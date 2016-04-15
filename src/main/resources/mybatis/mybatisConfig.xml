@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+
+	<!-- Global configuration settings for the mapping.-->
+	<settings>
+		<setting name="callSettersOnNulls" value="true"/>
+		<setting name="cacheEnabled" value="false"/>
+		<setting name="lazyLoadingEnabled" value="false"/>
+		<setting name="aggressiveLazyLoading" value="false"/>
+	</settings>
+	
+	<typeAliases>
+		<typeAlias alias="LinkedHashMap" type="java.util.LinkedHashMap"/>
+	</typeAliases>
+	
+	<typeHandlers>
+		<typeHandler javaType="org.postgis.Point" handler="gov.usgs.owi.nldi.dao.typehandler.PointTypeHandler"/>
+	</typeHandlers>
+   
+</configuration>

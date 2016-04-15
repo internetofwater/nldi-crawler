@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%d{ISO8601} %p %t %c{40}.%M - %m%n</pattern>
+		</encoder>
+	</appender>
+	<appender name="file"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<File>${catalina.base}/logs/nldi-crawler.log</File>
+		<encoder>
+			<pattern>%d{ISO8601} %p %t %c{40}.%M - %m%n</pattern>
+		</encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${catalina.base}/logs/nldi-services.%d{yyyy-MM-dd}.log
+			</fileNamePattern>
+			<maxHistory>30</maxHistory>
+		</rollingPolicy>
+		<timeBasedFileNamingAndTriggeringPolicy
+			class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+			<maxFileSize>100MB</maxFileSize>
+		</timeBasedFileNamingAndTriggeringPolicy>
+	</appender>
+	
+	<root level="ERROR">
+		<appender-ref ref="stdout" />
+		<appender-ref ref="file" />
+	</root>
+
+	<logger name="gov.usgs" level="ERROR" />
+	<logger name="org.springframework" level="ERROR" />
+	<logger name="org.mybatis" level="ERROR" />
+	<logger name="java.sql" level="ERROR" />
+</configuration>
