@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+
+<mapper namespace="ingest">
+
+	<!-- Note that tempTableName is built on user-supplied data and must be sanitized to prevent possible
+		 sql injection. This sanitizing is done by CrawlerSource.getTableName. -->
+
+	<update id="linkCatchment" >
+		update nldi_data.${tempTableName} upd_table
+		   set comid = featureid
+		  from nldi_data.${tempTableName} src_table
+		       join nhdplus.catchmentsp
+			     on ST_covers(catchmentsp.the_geom, src_table.location)
+		 where upd_table.crawler_source_id = src_table.crawler_source_id and 
+		       upd_table.identifier = src_table.identifier
+	</update>
+
+	<!-- Note that tempTableName is built on user-supplied data and must be sanitized to prevent possible
+		 sql injection. This sanitizing is done by CrawlerSource.getTableName. -->
+
+	<delete id="truncate">
+		begin;
+		drop table if exists nldi_data.${tempTableName};
+		create table nldi_data.${tempTableName} (like nldi_data.feature);
+		commit;
+	</delete>
+
+	<!-- Note that tempTableName, tableName, and oldTableName are built on user-supplied data and
+	     must be sanitized to prevent possible sql injection. This sanitizing is done by CrawlerSource.getTableName. -->
+
+	<update id="install">
+		begin;
+		drop table if exists nldi_data.${oldTableName};
+		alter table nldi_data.${tableName} no inherit nldi_data.feature;
+		alter table nldi_data.${tempTableName} inherit nldi_data.feature;
+		alter table nldi_data.${tableName} rename to ${oldTableName};
+		alter table nldi_data.${tempTableName} rename to ${tableName};
+		alter table nldi_data.${oldTableName} rename to ${tempTableName};
+		commit;
+	</update>
+
+</mapper>   

@@ -1,0 +1,36 @@
+{
+	"type": "FeatureCollection",
+	"features": [{
+		"type": "Feature",
+		"geometry": {
+			"type": "Point",
+			"coordinates": [-93.6351905, 36.2681280]
+		},
+		"properties": {
+			"ProviderName": "BIODATA",
+			"OrganizationIdentifier": "USGS-AR",
+			"OrganizationFormalName": "USGS Arkansas Water Science Center",
+			"MonitoringLocationIdentifier": "USGS-07050228",
+			"MonitoringLocationName": "Piney Creek near Cabanol, AR",
+			"MonitoringLocationTypeName": "Stream",
+			"ResolvedMonitoringLocationTypeName": "Stream",
+			"HUCEightDigitCode": "11010001"
+		}
+	}, {
+		"type": "Feature",
+		"geometry": {
+			"type": "Point",
+			"coordinates": [-93.6208333, 36.4272222]
+		},
+		"properties": {
+			"ProviderName": "BIODATA",
+			"OrganizationIdentifier": "USGS-AR",
+			"OrganizationFormalName": "USGS Arkansas Water Science Center",
+			"MonitoringLocationIdentifier": "USGS-07050500",
+			"MonitoringLocationName": "Kings River near Berryville, AR",
+			"MonitoringLocationTypeName": "Stream",
+			"ResolvedMonitoringLocationTypeName": "Stream",
+			"HUCEightDigitCode": "11010001"
+		}
+	}]
+}

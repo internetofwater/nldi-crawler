@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+
+<mapper namespace="feature">
+
+	<!-- Note that crawlerSource.tempTableName is built on user-supplied data and must be sanitized to prevent possible
+		 sql injection. This sanitizing is done by CrawlerSource.getTableName. -->
+
+	<insert id="add">
+        insert into nldi_data.${crawlerSource.tempTableName} (crawler_source_id, identifier, name, uri, location)
+        values (#{crawlerSource.id,jdbcType=NUMERIC},
+                #{identifier,jdbcType=VARCHAR},
+                #{name,jdbcType=VARCHAR},
+                #{uri,jdbcType=VARCHAR},
+                #{point})
+	</insert>
+
+</mapper>  
