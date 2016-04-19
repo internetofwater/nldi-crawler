@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configuration>
+<configuration scan="true" scanPeriod="15 minutes">
 	<appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
 		<encoder>
 			<pattern>%d{ISO8601} %p %t %c{40}.%M - %m%n</pattern>
@@ -27,7 +27,7 @@
 		<appender-ref ref="file" />
 	</root>
 
-	<logger name="gov.usgs" level="ERROR" />
+	<logger name="gov.usgs" level="INFO" />
 	<logger name="org.springframework" level="ERROR" />
 	<logger name="org.mybatis" level="ERROR" />
 	<logger name="java.sql" level="ERROR" />
