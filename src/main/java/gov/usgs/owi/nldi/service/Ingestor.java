@@ -32,36 +32,39 @@ public class Ingestor {
 	private IngestDao ingestDao;
 	private FeatureDao featureDao;
 	private HttpUtils httpUtils;
-	
+
 	public static final String GEOJSON_FEATURES = "features";
 	public static final String GEOJSON_PROPERTIES = "properties";
 	public static final String GEOJSON_GEOMETRY = "geometry";
 	public static final String GEOJSON_TYPE = "type";
 	public static final String GEOJSON_COORDINATES = "coordinates";
-	
+
 	public static final String GEOJSON_TYPE_POINT = "Point";
-	
+
 	@Autowired
 	public Ingestor(IngestDao ingestDao, FeatureDao featureDao, HttpUtils httpUtils) {
 		this.ingestDao = ingestDao;
 		this.featureDao = featureDao;
 		this.httpUtils = httpUtils;
 	}
-	
+
 	public void ingest(int sourceID) throws ClientProtocolException, IOException {
 		CrawlerSource crawlerSource = CrawlerSource.getDao().getById(sourceID);
 
 		clearTempTable(crawlerSource);
-		
+
+		LOG.info("***** about to call " + crawlerSource.getSourceUri() + " *****");
 		File file = httpUtils.callSourceSystem(crawlerSource);
-		
+		LOG.info("***** back from call to " + crawlerSource.getSourceUri() + " *****");
+
 		processSourceData(crawlerSource, file);
-		
+
 		linkCatchment(crawlerSource);
-		
+		LOG.info("***** done linking data *****");
+
 		installSourceData(crawlerSource);
 	}
-	
+
 	public void clearTempTable(CrawlerSource crawlerSource) {
 		ingestDao.clearTempTable(crawlerSource);
 	}
@@ -71,14 +74,14 @@ public class Ingestor {
 		//with source specific properties registered in the crawler_source table.
 		Gson gson = new GsonBuilder().create();
 		int cnt = 0;
-		
+
 		JsonReader reader = new JsonReader(new FileReader(file));
 		//First, get to the "features" array.
 		reader.beginObject();
 		reader.nextName();
 		reader.nextString();
 		reader.nextName();
-		
+
 		//Then process it.
 		reader.beginArray();
 		while (reader.hasNext()) {
@@ -87,7 +90,7 @@ public class Ingestor {
 			cnt =+1;
 		}
 		reader.endArray();
-		
+
 		reader.close();
 		LOG.info("Done processing features:" + cnt);
 	}
@@ -123,7 +126,7 @@ public class Ingestor {
 			feature.setName(getString(crawlerSource.getFeatureName(), properties));
 			feature.setUri(getString(crawlerSource.getFeatureUri(), properties));
 		}
-		
+
 		return feature;
 	}
 
@@ -134,10 +137,10 @@ public class Ingestor {
 				&& feature.has(GEOJSON_PROPERTIES) && feature.get(GEOJSON_PROPERTIES).isJsonObject()) {
 			properties = feature.getAsJsonObject(GEOJSON_PROPERTIES);
 		}
-		
+
 		return properties;
 	}
-	
+
 	protected Point getPoint(JsonObject feature) {
 		JsonObject geometry = null;
 		JsonArray coordinates = null;
@@ -147,7 +150,7 @@ public class Ingestor {
 				&& feature.has(GEOJSON_GEOMETRY) && feature.get(GEOJSON_GEOMETRY).isJsonObject()) {
 			geometry = feature.getAsJsonObject(GEOJSON_GEOMETRY);
 		}
-		
+
 		if (null != geometry
 				&& geometry.has(GEOJSON_TYPE) && GEOJSON_TYPE_POINT.equalsIgnoreCase(geometry.get(GEOJSON_TYPE).getAsString())
 				&& geometry.has(GEOJSON_COORDINATES) && geometry.get(GEOJSON_COORDINATES).isJsonArray()) {
@@ -173,7 +176,7 @@ public class Ingestor {
 				&& jsonObject.has(name) && jsonObject.get(name).isJsonPrimitive()) {
 			value = jsonObject.get(name).getAsString();
 		}
-		
+
 		return value;
 	}
 
