@@ -26,6 +26,7 @@ public class ColumnSensingFlatXMLDataSetLoader extends AbstractDataSetLoader {
 	private ReplacementDataSet createReplacementDataSet(FlatXmlDataSet dataSet) {
 		ReplacementDataSet replacementDataSet = new ReplacementDataSet(dataSet);
 		replacementDataSet.addReplacementObject("[today]", Date.from(Instant.now()));
+		replacementDataSet.addReplacementObject("[NULL]", null);
 		return replacementDataSet;
 	}
 

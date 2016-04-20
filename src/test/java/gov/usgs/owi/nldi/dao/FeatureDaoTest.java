@@ -41,4 +41,20 @@ public class FeatureDaoTest extends BaseSpringTest {
 		featureDao.addFeature(feature);
 	}
 
+	@Test
+	@DatabaseSetup("classpath:/cleanup/featureWqpTemp.xml")
+	@ExpectedDatabase(
+			table="nldi_data.feature_wqp_temp",
+			query="select crawler_source_id, identifier, name, uri, location, st_x(location) long, st_y(location) lat from nldi_data.feature_wqp_temp",
+			value="classpath:/testResult/featureWqpTempNullPoint.xml",
+			assertionMode=DatabaseAssertionMode.NON_STRICT_UNORDERED)
+	public void addFeatureNullPointTest() throws URISyntaxException {
+		Feature feature = new Feature();
+		feature.setCrawlerSource(CrawlerSourceDaoTest.buildTestSource(1));
+		feature.setIdentifier("USGS-05427880");
+		feature.setName("SIXMILE CREEK AT STATE HIGHWAY 19 NEAR WAUNAKEE,WI");
+		feature.setUri("http://cida-eros-wqpdev.er.usgs.gov:8080/wqp/Station/search?mimeType=geojson&siteid=USGS-05427880");
+		featureDao.addFeature(feature);
+	}
+
 }
