@@ -154,9 +154,14 @@ public class Ingestor {
 			coordinates = geometry.getAsJsonArray(GEOJSON_COORDINATES);
 		}
 
-		if (null != coordinates && 2 == coordinates.size()) {
-			point = new Point(coordinates.get(0).getAsDouble(), coordinates.get(1).getAsDouble());
-			point.setSrid(Feature.DEFAULT_SRID);
+		if (null != coordinates && 2 == coordinates.size()
+				&& !coordinates.get(0).isJsonNull() && !coordinates.get(1).isJsonNull()) {
+			try {
+				point = new Point(coordinates.get(0).getAsDouble(), coordinates.get(1).getAsDouble());
+				point.setSrid(Feature.DEFAULT_SRID);
+			} catch (Exception e) {
+				LOG.info("Unable to determine point from coordinates:" + coordinates.get(0).toString() + "-" + coordinates.get(1).toString());
+			}
 		}
 		return point;
 	}

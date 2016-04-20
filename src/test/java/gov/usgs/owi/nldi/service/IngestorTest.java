@@ -149,6 +149,23 @@ public class IngestorTest extends BaseSpringTest {
 		geometry.add(Ingestor.GEOJSON_COORDINATES, badCoordinatesArray);
 		assertNull(ingestor.getPoint(badFeature));
 
+		badCoordinatesArray.add((String) null);
+		assertNull(ingestor.getPoint(badFeature));
+
+		badCoordinatesArray = new JsonArray();
+		badCoordinatesArray.add((String) null);
+		badCoordinatesArray.add(12.59);
+		geometry.remove(Ingestor.GEOJSON_COORDINATES);
+		geometry.add(Ingestor.GEOJSON_COORDINATES, badCoordinatesArray);
+		assertNull(ingestor.getPoint(badFeature));
+
+		badCoordinatesArray = new JsonArray();
+		badCoordinatesArray.add("abc");
+		badCoordinatesArray.add("xyz");
+		geometry.remove(Ingestor.GEOJSON_COORDINATES);
+		geometry.add(Ingestor.GEOJSON_COORDINATES, badCoordinatesArray);
+		assertNull(ingestor.getPoint(badFeature));
+
 		JsonObject jsonFeature = gson.fromJson(getSourceFile("singleFeatureWqp.geojson"), JsonObject.class);
 		Point point = ingestor.getPoint(jsonFeature);
 		assertTrue(Double.valueOf(-93.6208333).equals(point.x));
