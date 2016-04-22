@@ -10,19 +10,19 @@
 		<result property="sourceUri" column="source_uri"/>
 		<result property="featureId" column="feature_id"/>
 		<result property="featureName" column="feature_name"/>
-		<result property="featureUri" column="feature_uri_prefix"/>
-    </resultMap>
+		<result property="featureUri" column="feature_uri"/>
+	</resultMap>
 
-    <select id="getById" resultMap="result">
-        select crawler_source_id,
-        	   source_name,
-        	   source_suffix,
-        	   source_uri,
-        	   feature_id,
-        	   feature_name,
-        	   feature_uri_prefix
-          from nldi_data.crawler_source
-         where crawler_source_id = #{id}
-     </select>
-     
-</mapper>       
+	<select id="getById" resultMap="result">
+		select crawler_source_id,
+		       source_name,
+		       source_suffix,
+		       source_uri,
+		       feature_id,
+		       feature_name,
+		       feature_uri
+		  from nldi_data.crawler_source
+		 where crawler_source_id = #{id}
+	</select>
+
+</mapper>

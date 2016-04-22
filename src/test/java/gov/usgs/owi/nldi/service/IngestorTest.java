@@ -46,7 +46,7 @@ public class IngestorTest extends BaseSpringTest {
 	private Ingestor ingestor;
 	Gson gson = new GsonBuilder().create();
 	CrawlerSource crawlerSource;
-	
+
 	@Before
 	public void initTest() {
 		MockitoAnnotations.initMocks(this);
@@ -85,10 +85,10 @@ public class IngestorTest extends BaseSpringTest {
 		JsonArray features = new JsonArray();
 		features.add("one");
 		features.add("two");
-		
+
 		assertNull(ingestor.getResponseIterator(null));
 		assertNull(ingestor.getResponseIterator(rawData));
-		
+
 		rawData.addProperty(Ingestor.GEOJSON_FEATURES, "none");
 		assertNull(ingestor.getResponseIterator(rawData));
 
@@ -108,18 +108,18 @@ public class IngestorTest extends BaseSpringTest {
 		JsonObject properties = new JsonObject();
 		properties.addProperty("one", 1);
 		properties.addProperty("two", 2);
-		
+
 		assertNull(ingestor.getProperties(null));
 		assertNull(ingestor.getProperties(feature));
-		
+
 		feature.addProperty(Ingestor.GEOJSON_PROPERTIES, "abc");
 		assertNull(ingestor.getProperties(feature));
-		
+
 		feature.remove(Ingestor.GEOJSON_PROPERTIES);
 		feature.add(Ingestor.GEOJSON_PROPERTIES, properties);
 		assertEquals(properties, ingestor.getProperties(feature));
 	}
-	
+
 	@Test
 	public void getPointTest() throws JsonSyntaxException, IOException {
 		JsonObject badFeature = new JsonObject();
@@ -129,22 +129,22 @@ public class IngestorTest extends BaseSpringTest {
 
 		assertNull(ingestor.getPoint(null));
 		assertNull(ingestor.getPoint(badFeature));
-		
+
 		badFeature.addProperty(Ingestor.GEOJSON_GEOMETRY, "bad");
 		assertNull(ingestor.getPoint(badFeature));
-		
+
 		badFeature.remove(Ingestor.GEOJSON_GEOMETRY);
 		badFeature.add(Ingestor.GEOJSON_GEOMETRY, geometry);
 		geometry.addProperty(Ingestor.GEOJSON_TYPE, "polygon");
 		assertNull(ingestor.getPoint(badFeature));
-		
+
 		geometry.remove(Ingestor.GEOJSON_TYPE);
 		geometry.addProperty(Ingestor.GEOJSON_TYPE, Ingestor.GEOJSON_TYPE_POINT);
 		assertNull(ingestor.getPoint(badFeature));
-		
+
 		geometry.addProperty(Ingestor.GEOJSON_COORDINATES, "bad");
 		assertNull(ingestor.getPoint(badFeature));
-		
+
 		geometry.remove(Ingestor.GEOJSON_COORDINATES);
 		geometry.add(Ingestor.GEOJSON_COORDINATES, badCoordinatesArray);
 		assertNull(ingestor.getPoint(badFeature));
@@ -178,11 +178,11 @@ public class IngestorTest extends BaseSpringTest {
 		assertNull(ingestor.getString("abc", null));
 		assertNull(ingestor.getString(null, new JsonObject()));
 		assertNull(ingestor.getString("abc", new JsonObject()));
-		
+
 		JsonObject good = new JsonObject();
 		good.addProperty("abc", "valueStr");
 		assertEquals("valueStr", ingestor.getString("abc", good));
-		
+
 		JsonObject bad = new JsonObject();
 		bad.add("abc", good);
 		assertNull(ingestor.getString("abc", bad));
@@ -191,7 +191,7 @@ public class IngestorTest extends BaseSpringTest {
 	@Test
 	public void buildFeatureTest() throws JsonSyntaxException, IOException, URISyntaxException {
 		JsonObject jsonFeature = gson.fromJson(getSourceFile("singleFeatureWqp.geojson"), JsonObject.class);
-		
+
 		Feature feature = ingestor.buildFeature(null, null);
 		assertNull(feature.getCrawlerSource());
 		assertNull(feature.getPoint());

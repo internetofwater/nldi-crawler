@@ -21,23 +21,23 @@ public class JmsConfig {
 	@Autowired
 	CrawlerMessageListener messageListener;
 
-    @Bean
-    public ActiveMQConnectionFactory connectionFactory() throws NamingException {
-    	ActiveMQConnectionFactory amqFactory = new ActiveMQConnectionFactory();
-    	amqFactory.setBrokerURL(brokerURL);
-    	return amqFactory;
-    }
+	@Bean
+	public ActiveMQConnectionFactory connectionFactory() throws NamingException {
+		ActiveMQConnectionFactory amqFactory = new ActiveMQConnectionFactory();
+		amqFactory.setBrokerURL(brokerURL);
+		return amqFactory;
+	}
 
-    @Bean
-    public DefaultMessageListenerContainer mlc() throws NamingException {
-    	DefaultMessageListenerContainer mlc = new DefaultMessageListenerContainer();
-    	mlc.setConcurrentConsumers(1);
-    	mlc.setMaxConcurrentConsumers(1);
-    	mlc.setConnectionFactory(connectionFactory());
-    	mlc.setDestinationName(queueName);
-    	mlc.setMessageListener(messageListener);
-    	mlc.setSessionAcknowledgeMode(Session.AUTO_ACKNOWLEDGE);
-    	return mlc;
-    }
+	@Bean
+	public DefaultMessageListenerContainer mlc() throws NamingException {
+		DefaultMessageListenerContainer mlc = new DefaultMessageListenerContainer();
+		mlc.setConcurrentConsumers(1);
+		mlc.setMaxConcurrentConsumers(1);
+		mlc.setConnectionFactory(connectionFactory());
+		mlc.setDestinationName(queueName);
+		mlc.setMessageListener(messageListener);
+		mlc.setSessionAcknowledgeMode(Session.AUTO_ACKNOWLEDGE);
+		return mlc;
+	}
 
 }

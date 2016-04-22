@@ -33,7 +33,7 @@ public class CrawlerMessageListener implements MessageListener {
 			ingestor.ingest(NumberUtils.parseNumber(msgText, Integer.class));
 		} catch (NumberFormatException e) {
 			LOG.error("Invalid ID given in the JMS Message:" + msgText);
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			LOG.error("Something Bad Happened:", e);
 		}
 		

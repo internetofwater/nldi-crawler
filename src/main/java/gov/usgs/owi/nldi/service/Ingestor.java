@@ -87,7 +87,7 @@ public class Ingestor {
 		while (reader.hasNext()) {
 			JsonObject jsonFeature = gson.fromJson(reader, JsonObject.class);
 			featureDao.addFeature(buildFeature(crawlerSource, jsonFeature));
-			cnt =+1;
+			cnt = cnt + 1;
 		}
 		reader.endArray();
 
@@ -162,7 +162,7 @@ public class Ingestor {
 			try {
 				point = new Point(coordinates.get(0).getAsDouble(), coordinates.get(1).getAsDouble());
 				point.setSrid(Feature.DEFAULT_SRID);
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				LOG.info("Unable to determine point from coordinates:" + coordinates.get(0).toString() + "-" + coordinates.get(1).toString());
 			}
 		}

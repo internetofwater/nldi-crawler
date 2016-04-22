@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <dataset>
-	<nldi_data.crawler_source crawler_source_id="1" source_name="Water Quality Portal" source_suffix="WQP" source_uri="http://cida-eros-wqpdev.er.usgs.gov:8080/wqp/Station/search?mimeType=geojson" feature_id="MonitoringLocationIdentifier" feature_name="MonitoringLocationName" feature_uri_prefix="MonitoringLocationUri"/>
-	<nldi_data.crawler_source crawler_source_id="2" source_name="TEST Source" source_suffix="TEST" source_uri="http://test.org/station?mimeType=geojson" feature_id="myId" feature_name="myName" feature_uri_prefix="myUri"/>
+	<nldi_data.crawler_source crawler_source_id="1" source_name="Water Quality Portal" source_suffix="WQP" source_uri="http://cida-eros-wqpdev.er.usgs.gov:8080/wqp/Station/search?mimeType=geojson" feature_id="MonitoringLocationIdentifier" feature_name="MonitoringLocationName" feature_uri="MonitoringLocationUri"/>
+	<nldi_data.crawler_source crawler_source_id="2" source_name="TEST Source" source_suffix="TEST" source_uri="http://test.org/station?mimeType=geojson" feature_id="myId" feature_name="myName" feature_uri="myUri"/>
 </dataset>

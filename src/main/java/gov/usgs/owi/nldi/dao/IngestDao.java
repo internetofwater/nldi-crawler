@@ -22,7 +22,7 @@ public class IngestDao extends BaseDao {
 	public IngestDao(SqlSessionFactory sqlSessionFactory) {
 		super(sqlSessionFactory);
 	}
-	
+
 	@Transactional
 	public void installData(CrawlerSource crawlerSource) {
 		getSqlSession().update(NS + INSTALL, crawlerSource);

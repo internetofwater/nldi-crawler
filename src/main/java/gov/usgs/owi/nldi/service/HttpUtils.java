@@ -34,7 +34,7 @@ public class HttpUtils {
 	private static int connections_max_route     = 32;
 	// 5 minutes, default is infinite
 	private static int client_socket_timeout     = 5 * 60 * 1000;
-    // 15 seconds, default is infinite
+	// 15 seconds, default is infinite
 	private static int client_connection_timeout = 15 * 1000;
 
 	public File callSourceSystem(CrawlerSource crawlerSource) throws ClientProtocolException, IOException {
@@ -50,40 +50,40 @@ public class HttpUtils {
 
 		HttpClient httpClient = HttpClients.custom().setConnectionManager(clientConnectionManager)
 				.setDefaultRequestConfig(config).build();
-		
+
 		HttpContext localContext = new BasicHttpContext();
 		httpResponse = httpClient.execute(new HttpGet(crawlerSource.getSourceUri()), localContext);
-		
+
 		httpEntity = httpResponse.getEntity();
 		return buildFile(httpEntity, crawlerSource);
 
 	}
-	
+
 	protected File buildFile(HttpEntity httpEntity, CrawlerSource crawlerSource) {
-        File file = null;
-        BufferedInputStream bis = null;
-        BufferedOutputStream bos = null;
+		File file = null;
+		BufferedInputStream bis = null;
+		BufferedOutputStream bos = null;
 		try {
 			file = File.createTempFile(crawlerSource.getTableName(), "geojson");
 			LOG.trace("Creating file:" + file.getPath() + file.getName());
 			bis = new BufferedInputStream(httpEntity.getContent());
 			bos = new BufferedOutputStream(new FileOutputStream(file));
-		   	byte[] buff = new byte[1024*8];
-		   	int count=0;
+			byte[] buff = new byte[1024*8];
+			int count=0;
 			while((count = bis.read(buff)) != -1) {
 				bos.write(buff,0,count);
 			}
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			LOG.error("Error saving geojson:", e);
 		} finally {
 			try {
-                // This is important to guarantee connection release back into
-                // connection pool for future reuse!
-                EntityUtils.consume(httpEntity);
-            } catch (IOException e) {
-                LOG.error("Consuming remaining bytes in server response entity:", e);
-            }
-        	
+				// This is important to guarantee connection release back into
+				// connection pool for future reuse!
+				EntityUtils.consume(httpEntity);
+			} catch (IOException e) {
+				LOG.error("Consuming remaining bytes in server response entity:", e);
+			}
+
 			try {
 				if (bos != null) {
 					bos.flush();
@@ -96,7 +96,9 @@ public class HttpUtils {
 				String msg = "Exception closing buffered streams [" + e.getMessage() + "] continuing...";
 				LOG.error(msg);
 			}
-         }
+		}
+
 		return file;
 	}
+
 }

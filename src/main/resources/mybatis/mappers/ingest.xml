@@ -11,7 +11,7 @@
 		   set comid = featureid
 		  from nldi_data.${tempTableName} src_table
 		       join nhdplus.catchmentsp
-			     on ST_covers(catchmentsp.the_geom, src_table.location)
+		         on ST_covers(catchmentsp.the_geom, src_table.location)
 		 where upd_table.crawler_source_id = src_table.crawler_source_id and 
 		       upd_table.identifier = src_table.identifier
 	</update>

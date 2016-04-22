@@ -11,13 +11,13 @@
 		<setting name="lazyLoadingEnabled" value="false"/>
 		<setting name="aggressiveLazyLoading" value="false"/>
 	</settings>
-	
+
 	<typeAliases>
 		<typeAlias alias="LinkedHashMap" type="java.util.LinkedHashMap"/>
 	</typeAliases>
-	
+
 	<typeHandlers>
 		<typeHandler javaType="org.postgis.Point" handler="gov.usgs.owi.nldi.dao.typehandler.PointTypeHandler"/>
 	</typeHandlers>
-   
+
 </configuration>

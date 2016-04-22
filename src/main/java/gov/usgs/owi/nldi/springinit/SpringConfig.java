@@ -36,8 +36,8 @@ public class SpringConfig extends WebMvcConfigurerAdapter {
 
 		return resolver;
 	}
-	
-    @Bean
+
+	@Bean
 	public SqlSessionFactoryBean sqlSessionFactory() throws Exception {
 		SqlSessionFactoryBean sqlSessionFactory = new SqlSessionFactoryBean();
 		Resource mybatisConfig = new ClassPathResource("mybatis/mybatisConfig.xml");

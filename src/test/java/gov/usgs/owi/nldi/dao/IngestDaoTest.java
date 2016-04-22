@@ -27,7 +27,7 @@ public class IngestDaoTest extends BaseSpringTest {
 	public void installDataTest() {
 		ingestDao.installData(CrawlerSourceDaoTest.buildTestSource(1));
 	}
-	
+
 	@Test
 	@DatabaseSetup("classpath:/testData/featureWqpTemp.xml")
 	@ExpectedDatabase(
