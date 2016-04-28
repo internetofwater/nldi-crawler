@@ -3,6 +3,7 @@ package gov.usgs.owi.nldi.service;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Iterator;
 
 import org.apache.http.client.ClientProtocolException;
@@ -96,7 +97,16 @@ public class Ingestor {
 	}
 
 	public void linkCatchment(CrawlerSource crawlerSource) {
-		ingestDao.linkCatchment(crawlerSource);
+		switch (crawlerSource.getIngestType()) {
+		case point:
+			ingestDao.linkPoint(crawlerSource);
+			break;
+		case reach:
+			ingestDao.linkReachMeasure(crawlerSource);
+			break;
+		default:
+			break;
+		}
 	}
 
 	public void installSourceData(CrawlerSource crawlerSource) {
@@ -125,6 +135,8 @@ public class Ingestor {
 			feature.setIdentifier(getString(crawlerSource.getFeatureId(), properties));
 			feature.setName(getString(crawlerSource.getFeatureName(), properties));
 			feature.setUri(getString(crawlerSource.getFeatureUri(), properties));
+			feature.setReachcode(getString(crawlerSource.getFeatureReach(), properties));
+			feature.setMeasure(getBigDecimal(crawlerSource.getFeatureMeasure(), properties));
 		}
 
 		return feature;
@@ -175,6 +187,21 @@ public class Ingestor {
 		if (null != jsonObject
 				&& jsonObject.has(name) && jsonObject.get(name).isJsonPrimitive()) {
 			value = jsonObject.get(name).getAsString();
+		}
+
+		return value;
+	}
+
+	protected BigDecimal getBigDecimal(String name, JsonObject jsonObject) {
+		BigDecimal value = null;
+
+		if (null != jsonObject
+				&& jsonObject.has(name) && jsonObject.get(name).isJsonPrimitive()) {
+			try {
+				value = jsonObject.get(name).getAsBigDecimal();
+			} catch (NumberFormatException e) {
+				//Do nothing (return null) if not a valid BigDecimal value.
+			}
 		}
 
 		return value;

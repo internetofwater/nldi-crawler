@@ -1,5 +1,7 @@
 package gov.usgs.owi.nldi.domain;
 
+import java.math.BigDecimal;
+
 import org.postgis.Point;
 import org.springframework.stereotype.Component;
 
@@ -20,52 +22,72 @@ public class Feature {
 
 	private Point point;
 
-	public final CrawlerSource getCrawlerSource() {
+	private String reachcode;
+
+	private BigDecimal measure;
+
+	public CrawlerSource getCrawlerSource() {
 		return crawlerSource;
 	}
 
-	public final void setCrawlerSource(CrawlerSource crawlerSource) {
-		this.crawlerSource = crawlerSource;
+	public void setCrawlerSource(final CrawlerSource inCrawlerSource) {
+		crawlerSource = inCrawlerSource;
 	}
 
-	public final String getIdentifier() {
+	public String getIdentifier() {
 		return identifier;
 	}
 
-	public final void setIdentifier(String identifier) {
-		this.identifier = identifier;
+	public void setIdentifier(final String inIdentifier) {
+		identifier = inIdentifier;
 	}
 
-	public final String getName() {
+	public String getName() {
 		return name;
 	}
 
-	public final void setName(String name) {
-		this.name = name;
+	public void setName(final String inName) {
+		name = inName;
 	}
 
-	public final String getUri() {
+	public String getUri() {
 		return uri;
 	}
 
-	public final void setUri(String uri) {
-		this.uri = uri;
+	public void setUri(final String inUri) {
+		uri = inUri;
 	}
 
-	public final Integer getComid() {
+	public Integer getComid() {
 		return comid;
 	}
 
-	public final void setComid(Integer comid) {
-		this.comid = comid;
+	public void setComid(final Integer inComid) {
+		comid = inComid;
 	}
 
-	public final Point getPoint() {
+	public Point getPoint() {
 		return point;
 	}
 
-	public final void setPoint(Point point) {
-		this.point = point;
+	public void setPoint(final Point inPoint) {
+		point = inPoint;
+	}
+
+	public String getReachcode() {
+		return reachcode;
+	}
+
+	public void setReachcode(final String inReachcode) {
+		reachcode = inReachcode;
+	}
+
+	public BigDecimal getMeasure() {
+		return measure;
+	}
+
+	public void setMeasure(final BigDecimal inMeasure) {
+		measure = inMeasure;
 	}
 
 }

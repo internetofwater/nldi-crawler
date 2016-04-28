@@ -40,6 +40,7 @@ public class TestSpringConfig implements EnvironmentAware {
 		DatabaseConfigBean dbUnitDbConfig = new DatabaseConfigBean();
 		dbUnitDbConfig.setDatatypeFactory(new PostgresqlDataTypeFactory());
 		dbUnitDbConfig.setQualifiedTableNames(true);
+		dbUnitDbConfig.setEscapePattern("\"?\"");
 		return dbUnitDbConfig;
 	}
 

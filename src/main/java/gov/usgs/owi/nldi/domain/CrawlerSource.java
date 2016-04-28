@@ -19,11 +19,17 @@ public class CrawlerSource {
 
 	private String sourceUri;
 
+	private IngestType ingestType;
+
 	private String featureId;
 
 	private String featureName;
 
 	private String featureUri;
+
+	private String featureReach;
+
+	private String featureMeasure;
 
 	public int getId() {
 		return id;
@@ -41,11 +47,11 @@ public class CrawlerSource {
 		sourceName = inSourceName;
 	}
 
-	public final String getSourceSuffix() {
+	public String getSourceSuffix() {
 		return sourceSuffix;
 	}
 
-	public final void setSourceSuffix(final String inSourceSuffix) {
+	public void setSourceSuffix(final String inSourceSuffix) {
 		sourceSuffix = inSourceSuffix;
 	}
 
@@ -55,6 +61,14 @@ public class CrawlerSource {
 
 	public void setSourceUri(final String inSourceUri) {
 		sourceUri = inSourceUri;
+	}
+
+	public IngestType getIngestType() {
+		return ingestType;
+	}
+
+	public void setIngestType(final IngestType inIngestType) {
+		ingestType = inIngestType;
 	}
 
 	public String getFeatureId() {
@@ -81,12 +95,29 @@ public class CrawlerSource {
 		featureUri = inFeatureUri;
 	}
 
-	public final String getTableName() {
-		//Sanitize the user-provided value and limit it to 4 characters as a sql injection prevention method.
-		return IngestDao.FEATURE_TABLE_PREFIX + sourceSuffix.replaceAll("[^\\w]", "").substring(0, 3).toLowerCase();
+	public String getFeatureReach() {
+		return featureReach;
 	}
 
-	public final String getTempTableName() {
+	public void setFeatureReach(final String inFeatureReach) {
+		featureReach = inFeatureReach;
+	}
+
+	public String getFeatureMeasure() {
+		return featureMeasure;
+	}
+
+	public void setFeatureMeasure(final String inFeatureMeasure) {
+		featureMeasure = inFeatureMeasure;
+	}
+
+	public String getTableName() {
+		//Sanitize the user-provided value as a sql injection prevention method.
+		String cleanSuffix = sourceSuffix.replaceAll("[^\\w]", "").toLowerCase();
+		return IngestDao.FEATURE_TABLE_PREFIX + cleanSuffix;
+	}
+
+	public String getTempTableName() {
 		return getTableName() + IngestDao.FEATURE_TABLE_TEMP_SUFFIX;
 	}
 
