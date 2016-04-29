@@ -14,7 +14,11 @@ public class PointTypeHandler implements TypeHandler<Point> {
 
 	@Override
 	public void setParameter(PreparedStatement ps, int i, Point parameter, JdbcType jdbcType) throws SQLException {
-		ps.setObject(i, new PGgeometry(parameter));
+		if (null == parameter) {
+			ps.setNull(i, JdbcType.NULL.TYPE_CODE);
+		} else {
+			ps.setObject(i, new PGgeometry(parameter));
+		}
 	}
 
 	@Override

@@ -7,12 +7,12 @@
 		 sql injection. This sanitizing is done by CrawlerSource.getTableName. -->
 
 	<insert id="add">
-        insert into nldi_data.${crawlerSource.tempTableName} (crawler_source_id, identifier, name, uri, location)
-        values (#{crawlerSource.id,jdbcType=NUMERIC},
-                #{identifier,jdbcType=VARCHAR},
-                #{name,jdbcType=VARCHAR},
-                #{uri,jdbcType=VARCHAR},
-                #{point})
+		insert into nldi_data.${crawlerSource.tempTableName} (crawler_source_id, identifier, name, uri, location)
+		values (#{crawlerSource.id,jdbcType=NUMERIC},
+		        #{identifier,jdbcType=VARCHAR},
+		        #{name,jdbcType=VARCHAR},
+		        #{uri,jdbcType=VARCHAR},
+		        #{point})
 	</insert>
 
 </mapper>  

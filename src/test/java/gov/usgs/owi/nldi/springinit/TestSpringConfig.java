@@ -19,9 +19,9 @@ public class TestSpringConfig implements EnvironmentAware {
 
 	private Environment env;
 
-    @Bean
-    public DataSource dataSource() throws Exception {
-    	PGSimpleDataSource ds = new PGSimpleDataSource();
+	@Bean
+	public DataSource dataSource() throws Exception {
+		PGSimpleDataSource ds = new PGSimpleDataSource();
 		ds.setUrl(env.getProperty("jdbc.nldi.url"));
 		ds.setUser(env.getProperty("jdbc.nldi.username"));
 		ds.setPassword(env.getProperty("jdbc.nldi.password"));
@@ -42,7 +42,7 @@ public class TestSpringConfig implements EnvironmentAware {
 		dbUnitDbConfig.setQualifiedTableNames(true);
 		return dbUnitDbConfig;
 	}
-	
+
 	@Bean
 	public DatabaseDataSourceConnectionFactoryBean dbUnitDatabaseConnection() throws Exception {
 		DatabaseDataSourceConnectionFactoryBean dbUnitDatabaseConnection = new DatabaseDataSourceConnectionFactoryBean();

@@ -37,7 +37,7 @@ public class IngestorDbIntegrationTest extends BaseSpringTest {
 	private HttpUtils httpUtils;
 
 	private Ingestor ingestor;
-	
+
 	@Before
 	public void initTest() {
 		MockitoAnnotations.initMocks(this);

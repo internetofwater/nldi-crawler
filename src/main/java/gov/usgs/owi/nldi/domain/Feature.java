@@ -7,15 +7,15 @@ import org.springframework.stereotype.Component;
 public class Feature {
 
 	public static final int DEFAULT_SRID = 4269;
-	
+
 	private CrawlerSource crawlerSource;
-	
+
 	private String identifier;
-	
+
 	private String name;
-	
+
 	private String uri;
-	
+
 	private Integer comid;
 
 	private Point point;

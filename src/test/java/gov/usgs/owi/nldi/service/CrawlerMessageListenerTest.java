@@ -23,9 +23,9 @@ public class CrawlerMessageListenerTest extends BaseSpringTest {
 	private Ingestor ingestor;
 	@Mock
 	private TextMessage mockMessage;
-	
+
 	private CrawlerMessageListener crawlerMessageListener;
-	
+
 	@Before
 	public void initTest() {
 		MockitoAnnotations.initMocks(this);
@@ -35,17 +35,17 @@ public class CrawlerMessageListenerTest extends BaseSpringTest {
 	@Test
 	public void onMessageTest() throws JMSException, ClientProtocolException, IOException {
 		when(mockMessage.getText()).thenReturn("1", "a").thenThrow(new JMSException("ouch"));
-		
+
 		crawlerMessageListener.onMessage(mockMessage);
 		verify(ingestor).ingest(anyInt());
-		
+
 		crawlerMessageListener.onMessage(mockMessage);
 		//Still 1 time as we couldn't convert an "a" to an int.
 		verify(ingestor).ingest(anyInt());
-		
+
 		crawlerMessageListener.onMessage(mockMessage);
 		//Still 1 time as we got a JMSException.
 		verify(ingestor).ingest(anyInt());
 	}
-	
+
 }

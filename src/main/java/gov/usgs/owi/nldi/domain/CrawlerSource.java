@@ -10,21 +10,21 @@ import gov.usgs.owi.nldi.dao.IngestDao;
 public class CrawlerSource {
 
 	private static CrawlerSourceDao crawlerSourceDao;
-	
+
 	private int id;
-	
+
 	private String sourceName;
-	
+
 	private String sourceSuffix;
-	
+
 	private String sourceUri;
-	
+
 	private String featureId;
-	
+
 	private String featureName;
-	
+
 	private String featureUri;
-	
+
 	public int getId() {
 		return id;
 	}
