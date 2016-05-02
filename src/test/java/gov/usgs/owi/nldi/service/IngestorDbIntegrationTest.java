@@ -45,17 +45,31 @@ public class IngestorDbIntegrationTest extends BaseSpringTest {
 	}
 
 	@Test
-	@DatabaseSetup("classpath:/testData/featureWqpTemp.xml")
+	@DatabaseSetup("classpath:/cleanup/featureWqpTemp.xml")
 	@DatabaseSetup("classpath:/testData/crawlerSource.xml")
 	@ExpectedDatabase(
 			table="nldi_data.feature_wqp",
-			query="select crawler_source_id, identifier, name, uri, location, comid, st_x(location) long, st_y(location) lat from nldi_data.feature_wqp_temp",
-			value="classpath:/testResult/ingestorDbIntegration.xml",
+			query="select crawler_source_id, identifier, name, uri, location, comid, st_x(location) long, st_y(location) lat from nldi_data.feature_wqp",
+			value="classpath:/testResult/ingestorPointDbIntegration.xml",
 			assertionMode=DatabaseAssertionMode.NON_STRICT_UNORDERED)
-	public void dbIntegrationTest() throws ClientProtocolException, IOException {
+	public void pointDbIntegrationTest() throws ClientProtocolException, IOException {
 		URL url = this.getClass().getResource("/testData/wqp.geojson");
 		when(httpUtils.callSourceSystem(any(CrawlerSource.class))).thenReturn(new File(url.getFile()));
 		ingestor.ingest(1);
+	}
+
+	@Test
+	@DatabaseSetup("classpath:/cleanup/featureNwisTemp.xml")
+	@DatabaseSetup("classpath:/testData/crawlerSource.xml")
+	@ExpectedDatabase(
+			table="nldi_data.feature_nwis",
+			query="select crawler_source_id, identifier, name, uri, location, comid, st_x(location) long, st_y(location) lat, reachcode, measure from nldi_data.feature_nwis",
+			value="classpath:/testResult/ingestorReachDbIntegration.xml",
+			assertionMode=DatabaseAssertionMode.NON_STRICT_UNORDERED)
+	public void reachDbIntegrationTest() throws ClientProtocolException, IOException {
+		URL url = this.getClass().getResource("/testData/nwis.geojson");
+		when(httpUtils.callSourceSystem(any(CrawlerSource.class))).thenReturn(new File(url.getFile()));
+		ingestor.ingest(3);
 	}
 
 }

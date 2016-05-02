@@ -4,15 +4,17 @@
 <mapper namespace="feature">
 
 	<!-- Note that crawlerSource.tempTableName is built on user-supplied data and must be sanitized to prevent possible
-		 sql injection. This sanitizing is done by CrawlerSource.getTableName. -->
+		 sql injection. This sanitizing is done by CrawlerSource.getTableName and within the function. -->
 
 	<insert id="add">
-		insert into nldi_data.${crawlerSource.tempTableName} (crawler_source_id, identifier, name, uri, location)
-		values (#{crawlerSource.id,jdbcType=NUMERIC},
-		        #{identifier,jdbcType=VARCHAR},
-		        #{name,jdbcType=VARCHAR},
-		        #{uri,jdbcType=VARCHAR},
-		        #{point})
+		select nldi_data.feature_add(#{crawlerSource.tempTableName,jdbcType=VARCHAR},
+		                             #{crawlerSource.id,jdbcType=NUMERIC},
+		                             #{identifier,jdbcType=VARCHAR},
+		                             #{name,jdbcType=VARCHAR},
+		                             #{uri,jdbcType=VARCHAR},
+		                             #{point},
+		                             #{reachcode,jdbcType=VARCHAR},
+		                             #{measure,jdbcType=NUMERIC})
 	</insert>
 
-</mapper>  
+</mapper>

@@ -13,7 +13,8 @@ public class IngestDao extends BaseDao {
 	private static final String NS = "ingest";
 	public static final String FEATURE_TABLE_PREFIX = "feature_";
 	public static final String FEATURE_TABLE_TEMP_SUFFIX = "_temp";
-	public static final String LINK_CATCHMENT = ".linkCatchment"; 
+	public static final String LINK_POINT = ".linkPoint";
+	public static final String LINK_REACH_MEASURE = ".linkReachMeasure";
 	public static final String TRUNCATE = ".truncate";
 	public static final String INSTALL = ".install";
 	public static final String FEATURE_TABLE_OLD_SUFFIX = "_old";
@@ -29,8 +30,13 @@ public class IngestDao extends BaseDao {
 	}
 
 	@Transactional
-	public void linkCatchment(CrawlerSource crawlerSource) {
-		getSqlSession().update(NS + LINK_CATCHMENT, crawlerSource);
+	public void linkPoint(CrawlerSource crawlerSource) {
+		getSqlSession().update(NS + LINK_POINT, crawlerSource);
+	}
+
+	@Transactional
+	public void linkReachMeasure(CrawlerSource crawlerSource) {
+		getSqlSession().update(NS + LINK_REACH_MEASURE, crawlerSource);
 	}
 
 	@Transactional

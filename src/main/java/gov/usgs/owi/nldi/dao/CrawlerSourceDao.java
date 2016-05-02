@@ -9,7 +9,7 @@ import gov.usgs.owi.nldi.domain.CrawlerSource;
 
 @Component
 public class CrawlerSourceDao extends BaseDao {
-	
+
 	private static final String NS = "crawlerSource";
 
 	@Autowired

@@ -7,10 +7,12 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Iterator;
@@ -45,38 +47,48 @@ public class IngestorTest extends BaseSpringTest {
 	private HttpUtils httpUtils;
 	private Ingestor ingestor;
 	Gson gson = new GsonBuilder().create();
-	CrawlerSource crawlerSource;
+	CrawlerSource crawlerSourcePoint;
+	CrawlerSource crawlerSourceReach;
 
 	@Before
 	public void initTest() {
 		MockitoAnnotations.initMocks(this);
 		ingestor = new Ingestor(ingestDao, featureDao, httpUtils);
-		crawlerSource = CrawlerSourceDaoTest.buildTestSource(1);
+		crawlerSourcePoint = CrawlerSourceDaoTest.buildTestPointSource(1);
+		crawlerSourceReach = CrawlerSourceDaoTest.buildTestReachSource(3);
 	}
 
 	@Test
 	public void processSourceDataTest() throws Exception {
 		URL url = this.getClass().getResource("/testResult/json/wqp.geojson");
-		ingestor.processSourceData(crawlerSource, new File(url.getFile()));
+		ingestor.processSourceData(crawlerSourcePoint, new File(url.getFile()));
 		verify(featureDao, times(2)).addFeature(any(Feature.class));
 	}
 
 	@Test
 	public void clearTempTableTest() {
-		ingestor.clearTempTable(crawlerSource);
-		verify(ingestDao).clearTempTable(crawlerSource);
+		ingestor.clearTempTable(crawlerSourcePoint);
+		verify(ingestDao).clearTempTable(crawlerSourcePoint);
 	}
 
 	@Test
-	public void linkCatchmentTest() {
-		ingestor.linkCatchment(crawlerSource);
-		verify(ingestDao).linkCatchment(crawlerSource);
+	public void linkCatchmentPointTest() {
+		ingestor.linkCatchment(crawlerSourcePoint);
+		verify(ingestDao).linkPoint(crawlerSourcePoint);
+		verify(ingestDao, never()).linkReachMeasure(crawlerSourcePoint);
+	}
+
+	@Test
+	public void linkCatchmentReachTest() {
+		ingestor.linkCatchment(crawlerSourceReach);
+		verify(ingestDao, never()).linkPoint(crawlerSourceReach);
+		verify(ingestDao).linkReachMeasure(crawlerSourceReach);
 	}
 
 	@Test
 	public void installSourceDataTest() {
-		ingestor.installSourceData(crawlerSource);
-		verify(ingestDao).installData(crawlerSource);
+		ingestor.installSourceData(crawlerSourcePoint);
+		verify(ingestDao).installData(crawlerSourcePoint);
 	}
 
 	@Test
@@ -189,6 +201,26 @@ public class IngestorTest extends BaseSpringTest {
 	}
 
 	@Test
+	public void getBigDecimalTest() {
+		assertNull(ingestor.getBigDecimal(null, null));
+		assertNull(ingestor.getBigDecimal("abc", null));
+		assertNull(ingestor.getBigDecimal(null, new JsonObject()));
+		assertNull(ingestor.getBigDecimal("abc", new JsonObject()));
+
+		JsonObject good = new JsonObject();
+		good.addProperty("abc", BigDecimal.ONE);
+		assertEquals(BigDecimal.ONE, ingestor.getBigDecimal("abc", good));
+
+		JsonObject bad = new JsonObject();
+		bad.addProperty("abc", "xyz");
+		assertNull(ingestor.getBigDecimal("abc", bad));
+
+		bad = new JsonObject();
+		bad.add("abc", good);
+		assertNull(ingestor.getBigDecimal("abc", bad));
+	}
+
+	@Test
 	public void buildFeatureTest() throws JsonSyntaxException, IOException, URISyntaxException {
 		JsonObject jsonFeature = gson.fromJson(getSourceFile("singleFeatureWqp.geojson"), JsonObject.class);
 
@@ -199,13 +231,35 @@ public class IngestorTest extends BaseSpringTest {
 		assertNull(feature.getName());
 		assertNull(feature.getUri());
 
-		feature = ingestor.buildFeature(crawlerSource, jsonFeature);
-		assertEquals(crawlerSource, feature.getCrawlerSource());
+		feature = ingestor.buildFeature(crawlerSourcePoint, jsonFeature);
+		assertEquals(crawlerSourcePoint, feature.getCrawlerSource());
 		assertTrue(Double.valueOf(-93.6208333).equals(feature.getPoint().x));
 		assertTrue(Double.valueOf(36.4272222).equals(feature.getPoint().y));
 		assertEquals("USGS-07050500", feature.getIdentifier());
 		assertEquals("Kings River near Berryville, AR", feature.getName());
 		assertEquals("http://waterqualitydata.us/NWIS/USGS-AR/USGS-07050500", feature.getUri());
+		assertNull(feature.getReachcode());
+		assertNull(feature.getMeasure());
+
+
+		jsonFeature = gson.fromJson(getSourceFile("singleFeatureNwis.geojson"), JsonObject.class);
+	
+		feature = ingestor.buildFeature(null, null);
+		assertNull(feature.getCrawlerSource());
+		assertNull(feature.getPoint());
+		assertNull(feature.getIdentifier());
+		assertNull(feature.getName());
+		assertNull(feature.getUri());
+	
+		feature = ingestor.buildFeature(crawlerSourceReach, jsonFeature);
+		assertEquals(crawlerSourceReach, feature.getCrawlerSource());
+		assertTrue(Double.valueOf(-89.30515430515425).equals(feature.getPoint().x));
+		assertTrue(Double.valueOf(43.008705399908536).equals(feature.getPoint().y));
+		assertEquals("05429500", feature.getIdentifier());
+		assertEquals("05429500", feature.getName());
+		assertEquals("http://waterdata.usgs.gov/nwis/nwisman/?site_no=05429500", feature.getUri());
+		assertEquals("07090002007072", feature.getReachcode());
+		assertEquals(BigDecimal.valueOf(98.36121), feature.getMeasure());
 	}
 
 }

@@ -8,9 +8,12 @@
 		<result property="sourceName" column="source_name"/>
 		<result property="sourceSuffix" column="source_suffix"/>
 		<result property="sourceUri" column="source_uri"/>
+		<result property="ingestType" column="ingest_type"/>
 		<result property="featureId" column="feature_id"/>
 		<result property="featureName" column="feature_name"/>
 		<result property="featureUri" column="feature_uri"/>
+		<result property="featureReach" column="feature_reach"/>
+		<result property="featureMeasure" column="feature_measure"/>
 	</resultMap>
 
 	<select id="getById" resultMap="result">
@@ -18,9 +21,12 @@
 		       source_name,
 		       source_suffix,
 		       source_uri,
+		       ingest_type,
 		       feature_id,
 		       feature_name,
-		       feature_uri
+		       feature_uri,
+		       feature_reach,
+		       feature_measure
 		  from nldi_data.crawler_source
 		 where crawler_source_id = #{id}
 	</select>
