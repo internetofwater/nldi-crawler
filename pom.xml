@@ -30,7 +30,7 @@
 
 	<scm>
 		<connection>scm:git:https://github.com/ACWI-SSWD/nldi-crawler.git</connection>
-		<developerConnection>scm:git:ssh://git@github.com:ACWI-SSWD/nldi-crawler.git</developerConnection>
+		<developerConnection>scm:git:ssh://git@github.com/ACWI-SSWD/nldi-crawler.git</developerConnection>
 		<url>https://github.com/ACWI-SSWD/nldi-crawler</url>
 		<tag>HEAD</tag>
 	</scm>
