@@ -27,6 +27,6 @@ before_script:
               <properties><nldi.url>jdbc:postgresql://127.0.0.1:5432/nldi</nldi.url><nldi.username>nldi</nldi.username><nldi.password></nldi.password>
               </properties></profile></profiles></settings>"
         > ~/settings.xml
-        
+
 script:
   - mvn verify --settings ~/settings.xml

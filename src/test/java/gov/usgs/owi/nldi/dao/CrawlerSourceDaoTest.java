@@ -30,9 +30,9 @@ public class CrawlerSourceDaoTest extends BaseSpringTest {
 	public static final String TEST_OLD_TABLE_NAME_POINT = TEST_TABLE_NAME_POINT + IngestDao.FEATURE_TABLE_OLD_SUFFIX;
 
 	public static final int TEST_SOURCE_ID_REACH = 3;
-	public static final String TEST_SOURCE_NAME_REACH = "USGS_NHD_StreamGages_ActiveContinuous";
-	public static final String TEST_SOURCE_SUFFIX_REACH = "NWIS";
-	public static final String TEST_SOURCE_URI_REACH = "https://www.sciencebase.gov/catalogMaps/mapping/ows/570e5c44e4b0ef3b7ca24cae?service=WFS&version=1.0.0&request=GetFeature&typeName=sb:USGS_NHD_StreamGages_ActiveContinuous&outputFormat=json";
+	public static final String TEST_SOURCE_NAME_REACH = "HNDPlusV2_NWIS_Gages";
+	public static final String TEST_SOURCE_SUFFIX_REACH = "np21_nwis";
+	public static final String TEST_SOURCE_URI_REACH = "https://www.sciencebase.gov/catalogMaps/mapping/ows/54eb4968e4b02d776a67d8ce?service=WFS&version=1.0.0&request=GetFeature&typeName=sb:nwis_gage_events&outputFormat=json";
 	public static final IngestType TEST_INGEST_TYPE_REACH = IngestType.reach;
 	public static final String TEST_FEATURE_ID_REACH = "SOURCE_FEA";
 	public static final String TEST_FEATURE_NAME_REACH = "SOURCE_FEA";

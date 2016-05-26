@@ -237,12 +237,12 @@ public class IngestorTest extends BaseSpringTest {
 		assertTrue(Double.valueOf(36.4272222).equals(feature.getPoint().y));
 		assertEquals("USGS-07050500", feature.getIdentifier());
 		assertEquals("Kings River near Berryville, AR", feature.getName());
-		assertEquals("http://waterqualitydata.us/NWIS/USGS-AR/USGS-07050500", feature.getUri());
+		assertEquals("http://www.waterqualitydata.us/provider/NWIS/USGS-AR/USGS-07050500", feature.getUri());
 		assertNull(feature.getReachcode());
 		assertNull(feature.getMeasure());
 
 
-		jsonFeature = gson.fromJson(getSourceFile("singleFeatureNwis.geojson"), JsonObject.class);
+		jsonFeature = gson.fromJson(getSourceFile("singleFeatureNp21Nwis.geojson"), JsonObject.class);
 	
 		feature = ingestor.buildFeature(null, null);
 		assertNull(feature.getCrawlerSource());

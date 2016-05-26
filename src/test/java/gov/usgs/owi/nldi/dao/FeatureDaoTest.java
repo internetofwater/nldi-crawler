@@ -23,7 +23,7 @@ public class FeatureDaoTest extends BaseSpringTest {
 
 	public static final String TEST_IDENTIFIER = "USGS-05427880";
 	public static final String TEST_NAME = "SIXMILE CREEK AT STATE HIGHWAY 19 NEAR WAUNAKEE,WI";
-	public static final String TEST_URI = "http://waterqualitydata.us/NWIS/USGS-WI/USGS-05427880/";
+	public static final String TEST_URI = "http://www.waterqualitydata.us/provider/NWIS/USGS-WI/USGS-05427880/";
 	public static final String TEST_REACHCODE = "05030103000218";
 	public static final BigDecimal TEST_MEASURE = BigDecimal.valueOf(123.654);
 	public static final Point TEST_POINT = new Point(-89.4728889, 43.1922222);
