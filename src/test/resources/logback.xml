@@ -10,7 +10,7 @@
 		<appender-ref ref="stdout" />
 	</root>
 
-	<logger name="gov.usgs" level="DEBUG" />
+	<logger name="gov.usgs" level="INFO" />
 	<logger name="org.springframework" level="INFO" />
 	<logger name="org.mybatis" level="INFO" />
 	<logger name="java.sql" level="INFO" />
