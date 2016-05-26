@@ -1,4 +1,4 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <dataset>
-	<nldi_data.feature_wqp_temp crawler_source_id = '1' identifier='USGS-05427880' name='SIXMILE CREEK AT STATE HIGHWAY 19 NEAR WAUNAKEE,WI' uri='http://waterqualitydata.us/NWIS/USGS-WI/USGS-05427880/' location='0101000020AD1000000D09CECF435E56C05848AFBC9A984540' long='-89.4728889' lat='43.1922222' reachcode="05030103000218" measure="123.654"/>
+	<nldi_data.feature_wqp_temp crawler_source_id = '1' identifier='USGS-05427880' name='SIXMILE CREEK AT STATE HIGHWAY 19 NEAR WAUNAKEE,WI' uri='http://www.waterqualitydata.us/provider/NWIS/USGS-WI/USGS-05427880/' location='0101000020AD1000000D09CECF435E56C05848AFBC9A984540' long='-89.4728889' lat='43.1922222' reachcode="05030103000218" measure="123.654"/>
 </dataset>

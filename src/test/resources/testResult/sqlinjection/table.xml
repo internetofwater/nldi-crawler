@@ -2,5 +2,3 @@
 <dataset>
 	<table name='nldi_data.feature; select * from pg_class;'/>
 </dataset>
-
-<!-- <table name=''><column>name</column><column>name2</column><row><value>0/0</value><value>0/1</value></row><row></row></table> -->

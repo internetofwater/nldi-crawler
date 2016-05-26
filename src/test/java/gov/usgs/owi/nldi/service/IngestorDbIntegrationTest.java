@@ -59,15 +59,15 @@ public class IngestorDbIntegrationTest extends BaseSpringTest {
 	}
 
 	@Test
-	@DatabaseSetup("classpath:/cleanup/featureNwisTemp.xml")
+	@DatabaseSetup("classpath:/cleanup/featureNp21NwisTemp.xml")
 	@DatabaseSetup("classpath:/testData/crawlerSource.xml")
 	@ExpectedDatabase(
-			table="nldi_data.feature_nwis",
-			query="select crawler_source_id, identifier, name, uri, location, comid, st_x(location) long, st_y(location) lat, reachcode, measure from nldi_data.feature_nwis",
+			table="nldi_data.feature_np21_nwis",
+			query="select crawler_source_id, identifier, name, uri, location, comid, st_x(location) long, st_y(location) lat, reachcode, measure from nldi_data.feature_np21_nwis",
 			value="classpath:/testResult/ingestorReachDbIntegration.xml",
 			assertionMode=DatabaseAssertionMode.NON_STRICT_UNORDERED)
 	public void reachDbIntegrationTest() throws ClientProtocolException, IOException {
-		URL url = this.getClass().getResource("/testData/nwis.geojson");
+		URL url = this.getClass().getResource("/testData/np21Nwis.geojson");
 		when(httpUtils.callSourceSystem(any(CrawlerSource.class))).thenReturn(new File(url.getFile()));
 		ingestor.ingest(3);
 	}

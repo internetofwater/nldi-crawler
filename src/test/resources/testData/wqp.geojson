@@ -13,7 +13,7 @@
 			"MonitoringLocationIdentifier": "USGS-05427880",
 			"MonitoringLocationName": "SIXMILE CREEK AT STATE HIGHWAY 19 NEAR WAUNAKEE,WI",
 			"MonitoringLocationTypeName": "Stream",
-			"siteUrl": "http://waterqualitydata.us/NWIS/USGS-WI/USGS-05427880/",
+			"siteUrl": "http://www.waterqualitydata.us/provider/NWIS/USGS-WI/USGS-05427880/",
 			"ResolvedMonitoringLocationTypeName": "Stream",
 			"HUCEightDigitCode": "07090002"
 		}
@@ -30,7 +30,7 @@
 			"MonitoringLocationIdentifier": "USGS-430211089252601",
 			"MonitoringLocationName": "UW ARBORETUM STORM SEWER AT MADISON, WI",
 			"MonitoringLocationTypeName": "Facility: Storm sewer",
-			"siteUrl": "http://waterqualitydata.us/NWIS/USGS-WI/USGS-430211089252601/",
+			"siteUrl": "http://www.waterqualitydata.us/provider/NWIS/USGS-WI/USGS-430211089252601/",
 			"ResolvedMonitoringLocationTypeName": "Facility",
 			"HUCEightDigitCode": "07090002"
 		}
@@ -47,7 +47,7 @@
 			"MonitoringLocationIdentifier": "USGS-430356089183501",
 			"MonitoringLocationName": "US HWY 51 WISDOT GRASS SWALES UPSTREAM MADISON, WI",
 			"MonitoringLocationTypeName": "Stream: Ditch",
-			"siteUrl": "http://waterqualitydata.us/NWIS/USGS-WI/USGS-430356089183501/",
+			"siteUrl": "http://www.waterqualitydata.us/provider/NWIS/USGS-WI/USGS-430356089183501/",
 			"ResolvedMonitoringLocationTypeName": "Stream",
 			"HUCEightDigitCode": "07090002"
 		}
@@ -64,7 +64,7 @@
 			"MonitoringLocationIdentifier": "USGS-430718089291501",
 			"MonitoringLocationName": "DN-08\/08E\/36-1440",
 			"MonitoringLocationTypeName": "Well",
-			"siteUrl": "http://waterqualitydata.us/NWIS/USGS-WI/USGS-430718089291501/",
+			"siteUrl": "http://www.waterqualitydata.us/provider/NWIS/USGS-WI/USGS-430718089291501/",
 			"ResolvedMonitoringLocationTypeName": "Well",
 			"HUCEightDigitCode": "07090002"
 		}
@@ -81,7 +81,7 @@
 			"MonitoringLocationIdentifier": "NARS_WQX-NLA06608-0611",
 			"MonitoringLocationName": "Lake Kegonsa",
 			"MonitoringLocationTypeName": "Lake",
-			"siteUrl": "http://waterqualitydata.us/STORET/NARS_WQX/NARS_WQX-NLA06608-0611/",
+			"siteUrl": "http://www.waterqualitydata.us/provider/STORET/NARS_WQX/NARS_WQX-NLA06608-0611/",
 			"ResolvedMonitoringLocationTypeName": "Lake, Reservoir, Impoundment",
 			"HUCEightDigitCode": "07090002"
 		}
@@ -98,7 +98,7 @@
 			"MonitoringLocationIdentifier": "WIDNR_WQX-10043542",
 			"MonitoringLocationName": "Wetlands AIS - Easy St at Hwy 113",
 			"MonitoringLocationTypeName": "Wetland Undifferentiated",
-			"siteUrl": "http://waterqualitydata.us/STORET/WIDNR_WQX/WIDNR_WQX-10043542/",
+			"siteUrl": "http://www.waterqualitydata.us/provider/STORET/WIDNR_WQX/WIDNR_WQX-10043542/",
 			"ResolvedMonitoringLocationTypeName": "Wetland",
 			"HUCEightDigitCode": "07090002"
 		}
@@ -115,7 +115,7 @@
 			"MonitoringLocationIdentifier": "WIDNR_WQX-10044182",
 			"MonitoringLocationName": "Yahara River estuary below upper basin",
 			"MonitoringLocationTypeName": "River\/Stream",
-			"siteUrl": "http://waterqualitydata.us/STORET/WIDNR_WQX/WIDNR_WQX-10044182/",
+			"siteUrl": "http://www.waterqualitydata.us/provider/STORET/WIDNR_WQX/WIDNR_WQX-10044182/",
 			"ResolvedMonitoringLocationTypeName": "Stream",
 			"HUCEightDigitCode": "07090002"
 		}
@@ -132,7 +132,7 @@
 			"MonitoringLocationIdentifier": "WIDNR_WQX-133038",
 			"MonitoringLocationName": "Yahara River at Windsor, WI",
 			"MonitoringLocationTypeName": "River\/Stream",
-			"siteUrl": "http://waterqualitydata.us/STORET/WIDNR_WQX/WIDNR_WQX-133038/",
+			"siteUrl": "http://www.waterqualitydata.us/provider/STORET/WIDNR_WQX/WIDNR_WQX-133038/",
 			"ResolvedMonitoringLocationTypeName": "Stream",
 			"HUCEightDigitCode": "07090002"
 		}

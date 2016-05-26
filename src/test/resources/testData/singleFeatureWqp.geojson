@@ -11,9 +11,8 @@
 		"MonitoringLocationIdentifier": "USGS-07050500",
 		"MonitoringLocationName": "Kings River near Berryville, AR",
 		"MonitoringLocationTypeName": "Stream",
-		"MonitoringLocationUri": "http://waterqualitydata.us/NWIS/USGS-AR/USGS-07050500",
 		"ResolvedMonitoringLocationTypeName": "Stream",
 		"HUCEightDigitCode": "11010001",
-		"siteUrl":"http://waterqualitydata.us/NWIS/USGS-AR/USGS-07050500"
+		"siteUrl":"http://www.waterqualitydata.us/provider/NWIS/USGS-AR/USGS-07050500"
 	}
 }
