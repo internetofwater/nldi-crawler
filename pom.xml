@@ -30,14 +30,14 @@
 
 	<distributionManagement>
 		<repository>
-			<id>cida-releases</id>
-			<name>CIDA Releases</name>
-			<url>${cida.maven.url}/content/repositories/cida-releases</url>
+			<id>cida-public-releases</id>
+			<name>CIDA Public Releases</name>
+			<url>${cida.maven.url}/content/repositories/cida-public-releases</url>
 		</repository>
 		<snapshotRepository>
-			<id>cida-snapshots</id>
-			<name>CIDA Snapshots</name>
-			<url>${cida.maven.url}/content/repositories/cida-snapshots</url>
+			<id>cida-public-snapshots</id>
+			<name>CIDA Public Snapshots</name>
+			<url>${cida.maven.url}/content/repositories/cida-public-snapshots</url>
 		</snapshotRepository>
 	</distributionManagement>
 
