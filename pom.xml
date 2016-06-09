@@ -3,7 +3,7 @@
 
 	<groupId>gov.usgs.owi</groupId>
 	<artifactId>nldi-crawler</artifactId>
-	<version>0.1.1-SNAPSHOT</version>
+	<version>0.2.0</version>
 	<packaging>war</packaging>
 
 	<name>nldi-crawler</name>
@@ -45,7 +45,7 @@
 		<connection>scm:git:https://github.com/ACWI-SSWD/nldi-crawler.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com/ACWI-SSWD/nldi-crawler.git</developerConnection>
 		<url>https://github.com/ACWI-SSWD/nldi-crawler</url>
-		<tag>HEAD</tag>
+		<tag>nldi-crawler-0.2.0</tag>
 	</scm>
 		
 	<dependencyManagement>
