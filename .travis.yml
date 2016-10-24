@@ -22,7 +22,7 @@ before_script:
   - psql -U postgres -c "create role nldi with superuser login;"
   - ~/liquibase/liquibase --driver=org.postgresql.Driver --url=jdbc:postgresql://127.0.0.1:5432/nldi --username=nldi --password= --changeLogFile=/home/travis/nldi-db/nldi-liquibase/src/main/resources/liquibase/changeLog.xml update
   - gunzip -c /home/travis/nldi-db/dbInit/nhdplus_yahara.backup.gz | pg_restore --data-only | psql -h 127.0.0.1 -p 5432 -U postgres -w -a -d nldi
-  - cd /home/travis/build/ACWI-SSWD/nldi-crawler/
+  - cd $TRAVIS_BUILD_DIR
   - echo "<settings><profiles><profile><id>default</id><activation><activeByDefault>true</activeByDefault></activation>
               <properties><nldi.url>jdbc:postgresql://127.0.0.1:5432/nldi</nldi.url><nldi.username>nldi</nldi.username><nldi.password></nldi.password>
               </properties></profile></profiles></settings>"
