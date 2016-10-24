@@ -21,6 +21,7 @@ import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
 
 import gov.usgs.owi.nldi.dao.FeatureDao;
 import gov.usgs.owi.nldi.dao.IngestDao;
@@ -77,12 +78,21 @@ public class Ingestor {
 		int cnt = 0;
 
 		JsonReader reader = new JsonReader(new FileReader(file));
-		//First, get to the "features" array.
+		
 		reader.beginObject();
-		reader.nextName();
-		reader.nextString();
-		reader.nextName();
-
+		//First, get to the "features" array.
+		Boolean foundFeature = false;
+		while (!foundFeature) {
+			JsonToken token = reader.peek();
+			if (token == JsonToken.NAME) {
+				String propName = reader.nextName();
+				if (propName.equals(GEOJSON_FEATURES)) {
+					foundFeature = true;
+				}
+				reader.skipValue();
+			}
+		}
+		
 		//Then process it.
 		reader.beginArray();
 		while (reader.hasNext()) {
