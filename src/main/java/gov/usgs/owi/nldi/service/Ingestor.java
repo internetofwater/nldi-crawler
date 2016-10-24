@@ -84,13 +84,29 @@ public class Ingestor {
 		Boolean foundFeature = false;
 		while (!foundFeature) {
 			JsonToken token = reader.peek();
-			if (token == JsonToken.NAME) {
-				String propName = reader.nextName();
-				if (propName.equals(GEOJSON_FEATURES)) {
-					foundFeature = true;
-				}
-				reader.skipValue();
-			}
+			switch (token) {
+				case NAME:
+					String propName = reader.nextName();
+					if (propName.equals(GEOJSON_FEATURES)) {
+						foundFeature = true;
+					}
+					break;
+				case BEGIN_ARRAY: 
+					reader.skipValue();
+					break;
+				case BEGIN_OBJECT:
+					reader.skipValue();
+					break;
+				case STRING:
+				case NUMBER:
+					reader.nextString();
+					break;
+				case BOOLEAN:
+					reader.nextBoolean();
+					break;
+				case NULL:
+					reader.nextNull();
+			}		
 		}
 		
 		//Then process it.
