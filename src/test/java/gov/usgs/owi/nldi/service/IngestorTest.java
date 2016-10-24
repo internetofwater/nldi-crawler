@@ -64,6 +64,13 @@ public class IngestorTest extends BaseSpringTest {
 		ingestor.processSourceData(crawlerSourcePoint, new File(url.getFile()));
 		verify(featureDao, times(2)).addFeature(any(Feature.class));
 	}
+	
+	@Test
+	public void processSourceDataWithProjectionTest() throws Exception {
+		URL url = this.getClass().getResource("/testResult/json/nwis_sites.geojson");
+		ingestor.processSourceData(crawlerSourcePoint, new File(url.getFile()));
+		verify(featureDao, times(2)).addFeature(any(Feature.class));
+	}
 
 	@Test
 	public void clearTempTableTest() {
