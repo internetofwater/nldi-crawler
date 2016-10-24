@@ -72,7 +72,7 @@ public class Ingestor {
 	}
 
 	public void processSourceData(CrawlerSource crawlerSource, File file) throws JsonIOException, JsonSyntaxException, IOException {
-		//We are expecting geojson similar to that found in src/test/resources/testResult/json/wqp.json
+		//We are expecting geojson 
 		//with source specific properties registered in the crawler_source table.
 		Gson gson = new GsonBuilder().create();
 		int cnt = 0;
@@ -81,19 +81,17 @@ public class Ingestor {
 		
 		reader.beginObject();
 		//First, get to the "features" array.
-		Boolean foundFeature = false;
-		while (!foundFeature) {
+		Boolean foundFeatures = false;
+		while (!foundFeatures) {
 			JsonToken token = reader.peek();
 			switch (token) {
 				case NAME:
 					String propName = reader.nextName();
 					if (propName.equals(GEOJSON_FEATURES)) {
-						foundFeature = true;
+						foundFeatures = true;
 					}
 					break;
 				case BEGIN_ARRAY: 
-					reader.skipValue();
-					break;
 				case BEGIN_OBJECT:
 					reader.skipValue();
 					break;
@@ -106,6 +104,7 @@ public class Ingestor {
 					break;
 				case NULL:
 					reader.nextNull();
+					break;
 			}		
 		}
 		
