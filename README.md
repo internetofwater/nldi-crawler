@@ -16,5 +16,5 @@ Java Messaging Services (JMS) is used to initiate the ingest process for a data 
 
 [nldi-db](https://travis-ci.org/ACWI-SSWD/nldi-db) contains everything you need to set up a development database environment. It includes data for the Yahara River in Wisconsin.
 
-Note that this project has some integration testing against the database. The "package" goal of the maven command will stop the build before running them
+Note that this project has some integration testing against the database. The "package" goal of the maven command will stop the build before running them.
 
