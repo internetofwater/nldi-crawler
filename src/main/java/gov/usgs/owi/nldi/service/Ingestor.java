@@ -21,6 +21,7 @@ import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
 
 import gov.usgs.owi.nldi.dao.FeatureDao;
 import gov.usgs.owi.nldi.dao.IngestDao;
@@ -71,18 +72,42 @@ public class Ingestor {
 	}
 
 	public void processSourceData(CrawlerSource crawlerSource, File file) throws JsonIOException, JsonSyntaxException, IOException {
-		//We are expecting geojson similar to that found in src/test/resources/testResult/json/wqp.json
+		//We are expecting geojson 
 		//with source specific properties registered in the crawler_source table.
 		Gson gson = new GsonBuilder().create();
 		int cnt = 0;
 
 		JsonReader reader = new JsonReader(new FileReader(file));
-		//First, get to the "features" array.
+		
 		reader.beginObject();
-		reader.nextName();
-		reader.nextString();
-		reader.nextName();
-
+		//First, get to the "features" array.
+		Boolean foundFeatures = false;
+		while (!foundFeatures) {
+			JsonToken token = reader.peek();
+			switch (token) {
+				case NAME:
+					String propName = reader.nextName();
+					if (propName.equals(GEOJSON_FEATURES)) {
+						foundFeatures = true;
+					}
+					break;
+				case BEGIN_ARRAY: 
+				case BEGIN_OBJECT:
+					reader.skipValue();
+					break;
+				case STRING:
+				case NUMBER:
+					reader.nextString();
+					break;
+				case BOOLEAN:
+					reader.nextBoolean();
+					break;
+				case NULL:
+					reader.nextNull();
+					break;
+			}		
+		}
+		
 		//Then process it.
 		reader.beginArray();
 		while (reader.hasNext()) {

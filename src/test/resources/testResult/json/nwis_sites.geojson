@@ -1,0 +1,42 @@
+{
+	"crs": {
+		"type": "name",
+		"properties": {
+			"name": "urn:ogc:def:crs:EPSG::4326"
+		}
+	},
+	"type": "FeatureCollection",
+	"features": [{
+		"geometry": {
+			"type": "Point",
+			"coordinates": [-69.7155556, 46.700555560000005]
+		},
+		"type": "Feature",
+		"properties": {
+			"hucCode": "01010001",
+			"agencyCode": "USGS",
+			"SiteType": "Stream",
+			"url": "http://waterdata.usgs.gov/nwis/inventory?agency_code=USGS&site_no=01010000",
+			"SiteTypeCode": "ST",
+			"siteId": "USGS-01010000",
+			"stationName": "St. John River at Ninemile Bridge, Maine",
+			"siteNumber": "01010000"
+		}
+	}, {
+		"geometry": {
+			"type": "Point",
+			"coordinates": [-69.75166670000002, 46.89388888999999]
+		},
+		"type": "Feature",
+		"properties": {
+			"hucCode": "01010001",
+			"agencyCode": "USGS",
+			"SiteType": "Stream",
+			"url": "http://waterdata.usgs.gov/nwis/inventory?agency_code=USGS&site_no=01010070",
+			"SiteTypeCode": "ST",
+			"siteId": "USGS-01010070",
+			"stationName": "Big Black River near Depot Mtn, Maine",
+			"siteNumber": "01010070"
+		}
+	}]
+}
