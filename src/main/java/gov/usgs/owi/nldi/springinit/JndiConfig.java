@@ -19,7 +19,7 @@ public class JndiConfig {
 
 	@Bean
 	public DataSource dataSource() throws Exception {
-		return (DataSource) ctx.lookup("java:comp/env/jdbc/NLDI");
+		return (DataSource) ctx.lookup("java:comp/env/jdbc/NLDI_DATA");
 	}
 
 	@Bean

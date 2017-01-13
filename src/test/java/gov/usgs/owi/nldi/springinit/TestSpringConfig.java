@@ -28,6 +28,15 @@ public class TestSpringConfig implements EnvironmentAware {
 		return ds;
 	}
 
+	@Bean
+	public DataSource dbUnitDataSource() throws Exception {
+		PGSimpleDataSource ds = new PGSimpleDataSource();
+		ds.setUrl(env.getProperty("jdbc.nldi.url"));
+		ds.setUser(env.getProperty("jdbc.dbunit.username"));
+		ds.setPassword(env.getProperty("jdbc.dbunit.password"));
+		return ds;
+	}
+
 	@Override
 	public void setEnvironment(Environment environment) {
 		env = environment;
@@ -48,7 +57,7 @@ public class TestSpringConfig implements EnvironmentAware {
 	public DatabaseDataSourceConnectionFactoryBean dbUnitDatabaseConnection() throws Exception {
 		DatabaseDataSourceConnectionFactoryBean dbUnitDatabaseConnection = new DatabaseDataSourceConnectionFactoryBean();
 		dbUnitDatabaseConnection.setDatabaseConfig(dbUnitDatabaseConfig());
-		dbUnitDatabaseConnection.setDataSource(dataSource());
+		dbUnitDatabaseConnection.setDataSource(dbUnitDataSource());
 		return dbUnitDatabaseConnection;
 	}
 
