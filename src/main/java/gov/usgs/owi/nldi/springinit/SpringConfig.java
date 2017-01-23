@@ -32,7 +32,8 @@ public class SpringConfig extends WebMvcConfigurerAdapter {
 	public InternalResourceViewResolver setupViewResolver() {
 		InternalResourceViewResolver resolver = new InternalResourceViewResolver();
 		resolver.setPrefix("/WEB-INF/views/");
-		resolver.setSuffix("");		// Making this empty so we can explicitly call each view we require (i.e. .jsp and .xml)
+		// Making this empty so we can explicitly call each view we require (i.e. .jsp and .xml)
+		resolver.setSuffix("");
 
 		return resolver;
 	}
