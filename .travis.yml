@@ -9,6 +9,7 @@ services:
 before_install:
   - cd ~
   - git clone https://github.com/ACWI-SSWD/nldi-db.git
+  - wget https://cida.usgs.gov/artifactory/nldi/datasets/nhdplus_yahara.backup.gz
   - mkdir ~/liquibase
   - cd ~/liquibase
   - wget https://github.com/liquibase/liquibase/releases/download/liquibase-parent-3.4.2/liquibase-3.4.2-bin.tar.gz
@@ -20,11 +21,15 @@ before_script:
   - psql -U postgres -c 'create database nldi;'
   - psql -U postgres -c "create extension postgis"
   - psql -U postgres -c "create role nldi with superuser login;"
+  - ~/liquibase/liquibase --driver=org.postgresql.Driver --url=jdbc:postgresql://127.0.0.1:5432/nldi --username=postgres --password= --changeLogFile=/home/travis/nldi-db/nldi-liquibase/src/main/resources/liquibase/postgres/changeLog.xml update
   - ~/liquibase/liquibase --driver=org.postgresql.Driver --url=jdbc:postgresql://127.0.0.1:5432/nldi --username=nldi --password= --changeLogFile=/home/travis/nldi-db/nldi-liquibase/src/main/resources/liquibase/changeLog.xml update
-  - gunzip -c /home/travis/nldi-db/dbInit/nhdplus_yahara.backup.gz | pg_restore --data-only | psql -h 127.0.0.1 -p 5432 -U postgres -w -a -d nldi
+  - gunzip -c ~/nhdplus_yahara.backup.gz | pg_restore --data-only | psql -h 127.0.0.1 -p 5432 -U postgres -w -a -d nldi
   - cd $TRAVIS_BUILD_DIR
   - echo "<settings><profiles><profile><id>default</id><activation><activeByDefault>true</activeByDefault></activation>
-              <properties><nldi.url>jdbc:postgresql://127.0.0.1:5432/nldi</nldi.url><nldi.username>nldi</nldi.username><nldi.password></nldi.password>
+              <properties>
+              <nldi.url>jdbc:postgresql://127.0.0.1:5432/nldi</nldi.url>
+              <nldi_data.username>nldi_data</nldi_data.username><nldi_data.password></nldi_data.password>
+              <dbunit.username>nldi</dbunit.username><dbunit.password></dbunit.password>
               </properties></profile></profiles></settings>"
         > ~/settings.xml
 
