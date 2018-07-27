@@ -2,17 +2,18 @@ package gov.usgs.owi.nldi.service;
 
 
 import javax.jms.Message;
-import javax.jms.MessageListener;
 import javax.jms.TextMessage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Service;
 import org.springframework.util.NumberUtils;
 
 @Service
-public class CrawlerMessageListener implements MessageListener {
+public class CrawlerMessageListener  {
+	
 	private static final Logger LOG = LoggerFactory.getLogger(CrawlerMessageListener.class);
 
 	private Ingestor ingestor;
@@ -20,9 +21,9 @@ public class CrawlerMessageListener implements MessageListener {
 	@Autowired
 	public CrawlerMessageListener(Ingestor ingestor) {
 		this.ingestor = ingestor;
-	}
+	};
 
-	@Override
+	@JmsListener(destination="${nldi.crawler.queue}")
 	public void onMessage(final Message message) {
 		LOG.info("***** begin message ingest *****");
 		long start = System.currentTimeMillis();
