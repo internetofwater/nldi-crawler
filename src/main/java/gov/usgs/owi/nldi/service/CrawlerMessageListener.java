@@ -23,7 +23,7 @@ public class CrawlerMessageListener  {
 		this.ingestor = ingestor;
 	};
 
-	@JmsListener(destination="${nldi.crawler.queue}")
+	@JmsListener(destination="${nldi.crawler.queue}", id="2")
 	public void onMessage(final Message message) {
 		LOG.info("***** begin message ingest *****");
 		long start = System.currentTimeMillis();
