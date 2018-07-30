@@ -2,44 +2,51 @@ package gov.usgs.owi.nldi.springinit;
 
 import javax.sql.DataSource;
 
-import org.dbunit.ext.postgresql.PostgresqlDataTypeFactory;
-import org.postgresql.ds.PGSimpleDataSource;
-import org.springframework.context.EnvironmentAware;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.env.Environment;
-
 import com.github.springtestdbunit.bean.DatabaseConfigBean;
 import com.github.springtestdbunit.bean.DatabaseDataSourceConnectionFactoryBean;
 
-@Configuration
-@PropertySource(value = "classpath:test.properties")
-public class TestSpringConfig implements EnvironmentAware {
+import org.dbunit.ext.postgresql.PostgresqlDataTypeFactory;
+import org.postgresql.ds.PGSimpleDataSource;
+import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Import;
 
-	private Environment env;
+@TestConfiguration
+@Import(MybatisConfig.class)
+public class DbTestConfig  {
+
+	@Value("${nldiDbUrl}")
+	private String datasourceUrl;
+	
+	@Value("${nldiUsername}")
+	private String datasourceUsername;
+	
+	@Value("${nldiPassword}")
+	private String datasourcePassword;
+	
+	@Value("${dbUnitUsername}")
+	private String dbUnitDatasourceUsername;
+	
+	@Value("${dbUnitPassword}")
+	private String dbUnitDatasourcePassword;
 
 	@Bean
 	public DataSource dataSource() throws Exception {
 		PGSimpleDataSource ds = new PGSimpleDataSource();
-		ds.setUrl(env.getProperty("jdbc.nldi.url"));
-		ds.setUser(env.getProperty("jdbc.nldi.username"));
-		ds.setPassword(env.getProperty("jdbc.nldi.password"));
+		ds.setUrl(datasourceUrl);
+		ds.setUser(datasourceUsername);
+		ds.setPassword(datasourcePassword);
 		return ds;
 	}
 
 	@Bean
 	public DataSource dbUnitDataSource() throws Exception {
 		PGSimpleDataSource ds = new PGSimpleDataSource();
-		ds.setUrl(env.getProperty("jdbc.nldi.url"));
-		ds.setUser(env.getProperty("jdbc.dbunit.username"));
-		ds.setPassword(env.getProperty("jdbc.dbunit.password"));
+		ds.setUrl(datasourceUrl);
+		ds.setUser(dbUnitDatasourceUsername);
+		ds.setPassword(dbUnitDatasourcePassword);
 		return ds;
-	}
-
-	@Override
-	public void setEnvironment(Environment environment) {
-		env = environment;
 	}
 
 	//Beans to support DBunit for unit testing with PostgreSQL.

@@ -1,8 +1,8 @@
 package gov.usgs.owi.nldi.dao.typehandler;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.anyInt;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.verify;
 
 import java.sql.PreparedStatement;
@@ -15,9 +15,9 @@ import org.mockito.MockitoAnnotations;
 import org.postgis.PGgeometry;
 import org.postgis.Point;
 
-import gov.usgs.owi.nldi.BaseSpringTest;
+import gov.usgs.owi.nldi.BaseTest;
 
-public class PointTypeHandlerTest extends BaseSpringTest {
+public class PointTypeHandlerTest extends BaseTest{
 
 	@Mock
 	protected PreparedStatement ps;

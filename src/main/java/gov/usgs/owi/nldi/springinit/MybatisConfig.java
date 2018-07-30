@@ -18,7 +18,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import gov.usgs.owi.nldi.dao.typehandler.PointTypeHandler;
 
 @Configuration
-public class MyBatisConfig {
+public class MybatisConfig {
 	
 	public static final String MYBATIS_MAPPERS = "mybatis/mappers/*.xml";
 	public static final String LINKED_HASH_MAP_ALIAS = "LinkedHashMap";
