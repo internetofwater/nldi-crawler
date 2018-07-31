@@ -37,5 +37,5 @@ before_script:
         > ~/settings.xml
 
 script:
-  - more settings.xml
+  - more ~/settings.xml
   - mvn verify --settings ~/settings.xml
