@@ -1,8 +1,6 @@
 spring:
     activemq:
         broker-url: ${activeMqUrl}
-        user: ${activeMqUser}
-        password: ${activeMqPassword}
     
     datasource:
         url: "jdbc:postgresql://${nldiDbHost}:${nldiDbPort}/nldi"
