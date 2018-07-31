@@ -1,4 +1,4 @@
-#NLDI Crawler
+# NLDI Crawler
 
 [![Build Status](https://travis-ci.org/ACWI-SSWD/nldi-crawler.svg?branch=master)](https://travis-ci.org/ACWI-SSWD/nldi-crawler)
 
@@ -12,7 +12,7 @@ An integer used to identify the source when starting the crawler source. | A hum
 
 Java Messaging Services (JMS) is used to initiate the ingest process for a data source. This implementation makes use of ActiveMQ. A message is sent to the server and queue defined via the JNDI properties jms/brokerURL and jms/nldiCrawler. The content of the message body is the key of the data source in the crawler_source table.
 
-###Developer Environment
+### Developer Environment
 
 [nldi-db](https://travis-ci.org/ACWI-SSWD/nldi-db) contains everything you need to set up a development database environment. It includes data for the Yahara River in Wisconsin.
 
