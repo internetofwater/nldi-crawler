@@ -31,11 +31,10 @@ before_script:
   - echo "<settings><profiles><profile><id>default</id><activation><activeByDefault>true</activeByDefault></activation>
               <properties>
               <nldi.url>jdbc:postgresql://127.0.0.1:5432/nldi</nldi.url>
-              <nldi.dbUsername>nldi_user</nldi.dbUsername><nldi.dbPassword></nldi.dbPassword>
+              <nldi.dbUsername>nldi</nldi.dbUsername><nldi.dbPassword></nldi.dbPassword>
               <nldi.dbUnitUsername>nldi</nldi.dbUnitUsername><nldi.dbUnitPassword></nldi.dbUnitPassword>
               </properties></profile></profiles></settings>"
         > ~/settings.xml
 
 script:
-  - more ~/settings.xml
   - mvn verify --settings ~/settings.xml
