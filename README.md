@@ -16,5 +16,43 @@ Java Messaging Services (JMS) is used to initiate the ingest process for a data 
 
 [nldi-db](https://travis-ci.org/ACWI-SSWD/nldi-db) contains everything you need to set up a development database environment. It includes data for the Yahara River in Wisconsin.
 
-Note that this project has some integration testing against the database. The "package" goal of the maven command will stop the build before running them.
+To run the project you will need to create the file application.yml in the project's root directory and add the following:
+```
+activeMqUrl: "tcp://activemqinstance.org:61616"
+crawlerQueueName: localNldiCrawler
 
+nldiDbHost: hostNameOfDatabase
+nldiDbPort: portNumberForDatabase
+nldiDbUsername: dbUserName
+nldiDbPassword: dbPassword
+```
+To run:
+```
+% mvn spring-boot:run
+```
+
+This project has some integration testing against the database. The "package" goal of the maven command will stop the build before running them.
+To set up the project for running the integration tests, add the following to your maven settings.xml file (the values below will work with the
+nldi-db docker container running on the same machine as the tests):
+
+```
+<profiles>
+  <profile>
+    <id>default</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <nldi.url>jdbc:postgresql://127.0.0.1:5433/nldi</nldi.url>
+        <nldi.dbUsername>nldi</nldi.dbUsername>
+        <nldi.dbPassword>nldi</nldi.dbPassword>
+        <nldi.dbUnitUsername>nldi</nldi.dbUnitUsername>
+        <nldi.dbUnitPassword>nldi</nldi.dbUnitPassword>
+      </properties>
+  </profile>
+</profiles>
+```
+
+If running integration tests without maven, you may specify the properties in the file, 
+application-it.yml. See the maven-failsafe-plugin configuration in the pom.xml 
+for the mapping of properties to varables.

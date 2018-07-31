@@ -151,6 +151,13 @@
 				<artifactId>maven-failsafe-plugin</artifactId>
 				
 				<configuration>
+					<environmentVariables>
+						<nldiDbUrl>${nldi.url}</nldiDbUrl>
+						<nldiUsername>${nldi.dbUsername}</nldiUsername>
+						<nldiPassword>${nldi.dbPassword}</nldiPassword>
+						<dbUnitUsername>${nldi.dbUnitUsername}</dbUnitUsername>
+						<dbUnitPassword>${nldi.dbUnitPassword}</dbUnitPassword>
+					</environmentVariables>
 				</configuration>
 				<executions>
 					<execution>
