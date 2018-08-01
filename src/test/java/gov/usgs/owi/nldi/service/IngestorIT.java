@@ -7,12 +7,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
-import javax.annotation.Resource;
 
 import org.apache.http.client.ClientProtocolException;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -20,18 +18,23 @@ import com.github.springtestdbunit.annotation.DatabaseSetup;
 import com.github.springtestdbunit.annotation.ExpectedDatabase;
 import com.github.springtestdbunit.assertion.DatabaseAssertionMode;
 
-import gov.usgs.owi.nldi.BaseSpringTest;
-import gov.usgs.owi.nldi.DBIntegrationTest;
+import gov.usgs.owi.nldi.BaseIT;
+import gov.usgs.owi.nldi.dao.CrawlerSourceDao;
 import gov.usgs.owi.nldi.dao.FeatureDao;
 import gov.usgs.owi.nldi.dao.IngestDao;
 import gov.usgs.owi.nldi.domain.CrawlerSource;
+import gov.usgs.owi.nldi.springinit.DbTestConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
-@Category(DBIntegrationTest.class)
-public class IngestorDbIntegrationTest extends BaseSpringTest {
+@SpringBootTest(webEnvironment=SpringBootTest.WebEnvironment.NONE,
+	classes={DbTestConfig.class, IngestDao.class, FeatureDao.class,
+	CrawlerSourceDao.class, CrawlerSource.class})
+public class IngestorIT extends BaseIT {
 
-	@Resource
+	@Autowired
 	private IngestDao ingestDao;
-	@Resource
+	@Autowired
 	private FeatureDao featureDao;
 	@Mock
 	private HttpUtils httpUtils;

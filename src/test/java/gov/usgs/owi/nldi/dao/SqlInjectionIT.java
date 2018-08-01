@@ -4,54 +4,39 @@ import static org.mockito.Mockito.when;
 
 import java.net.URISyntaxException;
 
-import javax.annotation.Resource;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.web.WebAppConfiguration;
-
-import com.github.springtestdbunit.TransactionDbUnitTestExecutionListener;
 import com.github.springtestdbunit.annotation.DatabaseSetup;
 import com.github.springtestdbunit.annotation.DbUnitConfiguration;
 import com.github.springtestdbunit.annotation.ExpectedDatabase;
 import com.github.springtestdbunit.assertion.DatabaseAssertionMode;
+import gov.usgs.owi.nldi.BaseIT;
 
-import gov.usgs.owi.nldi.DBIntegrationTest;
 import gov.usgs.owi.nldi.XMLDataSetLoader;
 import gov.usgs.owi.nldi.domain.CrawlerSource;
-import gov.usgs.owi.nldi.springinit.SpringConfig;
-import gov.usgs.owi.nldi.springinit.TestSpringConfig;
+import gov.usgs.owi.nldi.springinit.DbTestConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
 /** 
  * This class shows that the plpgsql functions have sql injection protection built in them.
  * They are written to treat the passed in value as the table name, and will wrap it with double quotes ass needed to enforce that.
  * The tests do not show that embedded double quotes will be escaped due to the limitations of DBUnit.
  */
-
-@Category(DBIntegrationTest.class)
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes={SpringConfig.class, TestSpringConfig.class})
-@WebAppConfiguration
-@TestExecutionListeners({DependencyInjectionTestExecutionListener.class, 
-	TransactionDbUnitTestExecutionListener.class
-	})
-@DbUnitConfiguration(dataSetLoader=XMLDataSetLoader.class)
-public class SqlInjectionTest {
+@SpringBootTest(webEnvironment=SpringBootTest.WebEnvironment.NONE,
+	classes={DbTestConfig.class, IngestDao.class, FeatureDao.class})
+@DbUnitConfiguration(dataSetLoader = XMLDataSetLoader.class)
+public class SqlInjectionIT extends BaseIT{
 
 	public static final String TEST_QUERY = "select crawler_source_id, identifier, location, comid, reachcode, measure from nldi_data.\"feature; select * from pg_class;\"";
 	public static final String TEST_QUERY_TEMP = "select crawler_source_id, identifier, location, comid, reachcode, measure from nldi_data.\"feature; select * from pg_class;_temp\"";
 
-	@Resource
+	@Autowired
 	private IngestDao ingestDao;
-	@Resource
+	@Autowired
 	private FeatureDao featureDao;
 
 	@Mock
@@ -110,7 +95,7 @@ public class SqlInjectionTest {
 			value="classpath:/testResult/sqlinjection/addFeature.xml",
 			assertionMode=DatabaseAssertionMode.NON_STRICT_UNORDERED)
 	public void addFeatureTest() throws URISyntaxException {
-		featureDao.addFeature(FeatureDaoTest.buildTestFeature(crawlerSource));
+		featureDao.addFeature(FeatureDaoIT.buildTestFeature(crawlerSource));
 	}
 
 }

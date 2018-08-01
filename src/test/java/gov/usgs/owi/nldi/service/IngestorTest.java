@@ -30,14 +30,14 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 
-import gov.usgs.owi.nldi.BaseSpringTest;
-import gov.usgs.owi.nldi.dao.CrawlerSourceDaoTest;
+import gov.usgs.owi.nldi.BaseTest;
+import gov.usgs.owi.nldi.dao.CrawlerSourceDaoIT;
 import gov.usgs.owi.nldi.dao.FeatureDao;
 import gov.usgs.owi.nldi.dao.IngestDao;
 import gov.usgs.owi.nldi.domain.CrawlerSource;
 import gov.usgs.owi.nldi.domain.Feature;
 
-public class IngestorTest extends BaseSpringTest {
+public class IngestorTest extends BaseTest{
 
 	@Mock
 	private IngestDao ingestDao;
@@ -54,8 +54,8 @@ public class IngestorTest extends BaseSpringTest {
 	public void initTest() {
 		MockitoAnnotations.initMocks(this);
 		ingestor = new Ingestor(ingestDao, featureDao, httpUtils);
-		crawlerSourcePoint = CrawlerSourceDaoTest.buildTestPointSource(1);
-		crawlerSourceReach = CrawlerSourceDaoTest.buildTestReachSource(3);
+		crawlerSourcePoint = CrawlerSourceDaoIT.buildTestPointSource(1);
+		crawlerSourceReach = CrawlerSourceDaoIT.buildTestReachSource(3);
 	}
 
 	@Test

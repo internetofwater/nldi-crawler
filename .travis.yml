@@ -3,8 +3,11 @@ language: java
 jdk:
   - oraclejdk8
 
-services:
-  - postgres
+addons:
+  postgresql: 9.6
+  apt:
+    packages:
+    - postgresql-9.6-postgis-2.3
 
 before_install:
   - cd ~
@@ -28,8 +31,8 @@ before_script:
   - echo "<settings><profiles><profile><id>default</id><activation><activeByDefault>true</activeByDefault></activation>
               <properties>
               <nldi.url>jdbc:postgresql://127.0.0.1:5432/nldi</nldi.url>
-              <nldi_data.username>nldi_data</nldi_data.username><nldi_data.password></nldi_data.password>
-              <dbunit.username>nldi</dbunit.username><dbunit.password></dbunit.password>
+              <nldi.dbUsername>nldi</nldi.dbUsername><nldi.dbPassword></nldi.dbPassword>
+              <nldi.dbUnitUsername>nldi</nldi.dbUnitUsername><nldi.dbUnitPassword></nldi.dbUnitPassword>
               </properties></profile></profiles></settings>"
         > ~/settings.xml
 

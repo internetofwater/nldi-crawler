@@ -1,24 +1,25 @@
 package gov.usgs.owi.nldi.dao;
 
-import javax.annotation.Resource;
 
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import com.github.springtestdbunit.annotation.DatabaseSetup;
 import com.github.springtestdbunit.annotation.ExpectedDatabase;
 import com.github.springtestdbunit.assertion.DatabaseAssertionMode;
 
-import gov.usgs.owi.nldi.BaseSpringTest;
-import gov.usgs.owi.nldi.DBIntegrationTest;
+import gov.usgs.owi.nldi.BaseIT;
+import gov.usgs.owi.nldi.springinit.DbTestConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
-@Category(DBIntegrationTest.class)
-public class IngestDaoTest extends BaseSpringTest {
+@SpringBootTest(webEnvironment=SpringBootTest.WebEnvironment.NONE,
+		classes={DbTestConfig.class, IngestDao.class})
+public class IngestDaoIT extends BaseIT {
 
 	public static final String TEST_QUERY = "select crawler_source_id, identifier, name, uri, location, st_x(location) long, comid, st_y(location) lat, reachcode, measure from nldi_data.feature_wqp";
 	public static final String TEST_QUERY_TEMP = "select crawler_source_id, identifier, name, uri, location, st_x(location) long, comid, st_y(location) lat, reachcode, measure from nldi_data.feature_wqp_temp";
 
-	@Resource
+	@Autowired
 	private IngestDao ingestDao;
 
 	@Test
@@ -28,7 +29,7 @@ public class IngestDaoTest extends BaseSpringTest {
 			query=TEST_QUERY,
 			value="classpath:/testResult/ingestorPointDbIntegration.xml",assertionMode=DatabaseAssertionMode.NON_STRICT_UNORDERED)
 	public void installDataTest() {
-		ingestDao.installData(CrawlerSourceDaoTest.buildTestPointSource(1));
+		ingestDao.installData(CrawlerSourceDaoIT.buildTestPointSource(1));
 	}
 
 	@Test
@@ -38,7 +39,7 @@ public class IngestDaoTest extends BaseSpringTest {
 			query=TEST_QUERY_TEMP,
 			value="classpath:/testResult/featureWqpTempLinkPoint.xml",assertionMode=DatabaseAssertionMode.NON_STRICT_UNORDERED)
 	public void linkPointTest() {
-		ingestDao.linkPoint(CrawlerSourceDaoTest.buildTestPointSource(1));
+		ingestDao.linkPoint(CrawlerSourceDaoIT.buildTestPointSource(1));
 	}
 
 	@Test
@@ -48,14 +49,14 @@ public class IngestDaoTest extends BaseSpringTest {
 			query=TEST_QUERY_TEMP,
 			value="classpath:/testResult/featureWqpTempLinkReachMeasure.xml",assertionMode=DatabaseAssertionMode.NON_STRICT_UNORDERED)
 	public void linkReachMeasureTest() {
-		ingestDao.linkReachMeasure(CrawlerSourceDaoTest.buildTestPointSource(1));
+		ingestDao.linkReachMeasure(CrawlerSourceDaoIT.buildTestPointSource(1));
 	}
 
 	@Test
 	@DatabaseSetup("classpath:/testData/featureWqpTemp.xml")
 	@ExpectedDatabase(value="classpath:/cleanup/featureWqpTemp.xml",assertionMode=DatabaseAssertionMode.NON_STRICT_UNORDERED)
 	public void clearTempTableTest() {
-		ingestDao.clearTempTable(CrawlerSourceDaoTest.buildTestPointSource(1));
+		ingestDao.clearTempTable(CrawlerSourceDaoIT.buildTestPointSource(1));
 	}
 
 }

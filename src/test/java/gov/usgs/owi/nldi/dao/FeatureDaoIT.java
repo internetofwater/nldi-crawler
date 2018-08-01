@@ -3,23 +3,25 @@ package gov.usgs.owi.nldi.dao;
 import java.math.BigDecimal;
 import java.net.URISyntaxException;
 
-import javax.annotation.Resource;
 
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.postgis.Point;
 
 import com.github.springtestdbunit.annotation.DatabaseSetup;
 import com.github.springtestdbunit.annotation.ExpectedDatabase;
 import com.github.springtestdbunit.assertion.DatabaseAssertionMode;
 
-import gov.usgs.owi.nldi.BaseSpringTest;
-import gov.usgs.owi.nldi.DBIntegrationTest;
+import gov.usgs.owi.nldi.BaseIT;
 import gov.usgs.owi.nldi.domain.CrawlerSource;
 import gov.usgs.owi.nldi.domain.Feature;
+import gov.usgs.owi.nldi.springinit.DbTestConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
-@Category(DBIntegrationTest.class)
-public class FeatureDaoTest extends BaseSpringTest {
+@SpringBootTest(webEnvironment=WebEnvironment.NONE,
+		classes={DbTestConfig.class, FeatureDao.class})
+public class FeatureDaoIT extends BaseIT {
 
 	public static final String TEST_IDENTIFIER = "USGS-05427880";
 	public static final String TEST_NAME = "SIXMILE CREEK AT STATE HIGHWAY 19 NEAR WAUNAKEE,WI";
@@ -27,7 +29,7 @@ public class FeatureDaoTest extends BaseSpringTest {
 	public static final String TEST_REACHCODE = "05030103000218";
 	public static final BigDecimal TEST_MEASURE = BigDecimal.valueOf(123.654);
 	public static final Point TEST_POINT = new Point(-89.4728889, 43.1922222);
-	public static final CrawlerSource TEST_CRAWLER_SOURCE = CrawlerSourceDaoTest.buildTestPointSource(1);
+	public static final CrawlerSource TEST_CRAWLER_SOURCE = CrawlerSourceDaoIT.buildTestPointSource(1);
 
 	static {
 		TEST_POINT.setSrid(Feature.DEFAULT_SRID);
@@ -35,7 +37,7 @@ public class FeatureDaoTest extends BaseSpringTest {
 
 	public static final String TEST_QUERY = "select crawler_source_id, identifier, name, uri, location, st_x(location) long, st_y(location) lat, reachcode, measure from nldi_data.feature_wqp_temp";
 
-	@Resource
+	@Autowired
 	private FeatureDao featureDao;
 
 	@Test

@@ -3,18 +3,25 @@ package gov.usgs.owi.nldi.dao;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import com.github.springtestdbunit.annotation.DatabaseSetup;
 
-import gov.usgs.owi.nldi.BaseSpringTest;
-import gov.usgs.owi.nldi.DBIntegrationTest;
+import gov.usgs.owi.nldi.BaseIT;
 import gov.usgs.owi.nldi.domain.CrawlerSource;
 import gov.usgs.owi.nldi.domain.IngestType;
+import gov.usgs.owi.nldi.springinit.DbTestConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
-@Category(DBIntegrationTest.class)
-public class CrawlerSourceDaoTest extends BaseSpringTest {
-
+@SpringBootTest(webEnvironment=WebEnvironment.NONE,
+	classes={DbTestConfig.class, CrawlerSourceDao.class})
+@DatabaseSetup("classpath:/testData/crawlerSource.xml")
+public class CrawlerSourceDaoIT extends BaseIT {
+	
+	@Autowired
+	CrawlerSourceDao crawlerSourceDao;
+	
 	public static final int TEST_SOURCE_ID_POINT = 1;
 	public static final String TEST_SOURCE_NAME_POINT = "Water Quality Portal";
 	public static final String TEST_SOURCE_SUFFIX_POINT = "WQP";
@@ -44,9 +51,8 @@ public class CrawlerSourceDaoTest extends BaseSpringTest {
 	public static final String TEST_OLD_TABLE_NAME_REACH = TEST_TABLE_NAME_REACH + IngestDao.FEATURE_TABLE_OLD_SUFFIX;
 
 	@Test
-	@DatabaseSetup("classpath:/testData/crawlerSource.xml")
 	public void getByIdTest() {
-		CrawlerSource crawlerSource = CrawlerSource.getDao().getById(1);
+		CrawlerSource crawlerSource = crawlerSourceDao.getById(1);
 		assertEquals(TEST_SOURCE_ID_POINT, crawlerSource.getId());
 		assertEquals(TEST_SOURCE_NAME_POINT, crawlerSource.getSourceName());
 		assertEquals(TEST_SOURCE_SUFFIX_POINT, crawlerSource.getSourceSuffix());
@@ -61,7 +67,7 @@ public class CrawlerSourceDaoTest extends BaseSpringTest {
 		assertEquals(TEST_TEMP_TABLE_NAME_POINT, crawlerSource.getTempTableName());
 		assertEquals(TEST_OLD_TABLE_NAME_POINT, crawlerSource.getOldTableName());
 
-		crawlerSource = CrawlerSource.getDao().getById(3);
+		crawlerSource = crawlerSourceDao.getById(3);
 		assertEquals(TEST_SOURCE_ID_REACH, crawlerSource.getId());
 		assertEquals(TEST_SOURCE_NAME_REACH, crawlerSource.getSourceName());
 		assertEquals(TEST_SOURCE_SUFFIX_REACH, crawlerSource.getSourceSuffix());

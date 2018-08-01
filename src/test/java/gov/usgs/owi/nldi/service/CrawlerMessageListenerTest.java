@@ -15,9 +15,10 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import gov.usgs.owi.nldi.BaseSpringTest;
+import gov.usgs.owi.nldi.BaseTest;
 
-public class CrawlerMessageListenerTest extends BaseSpringTest {
+
+public class CrawlerMessageListenerTest extends BaseTest {
 
 	@Mock
 	private Ingestor ingestor;

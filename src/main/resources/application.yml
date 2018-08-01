@@ -1,0 +1,19 @@
+spring:
+    activemq:
+        broker-url: ${activeMqUrl}
+    
+    datasource:
+        url: "jdbc:postgresql://${nldiDbHost}:${nldiDbPort}/nldi"
+        username: ${nldiDbUsername}
+        password: ${nldiDbPassword}
+        driver-class-name: org.postgresql.Driver
+        
+    profiles:
+        active: default
+       
+nldi:
+    crawler:
+        queue: ${crawlerQueueName}
+    
+        
+        
