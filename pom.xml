@@ -13,8 +13,6 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<additionalparam>-Xdoclint:none</additionalparam>
 		<java.version>1.8</java.version>
-		<maven.compiler.source>${java.version}</maven.compiler.source>
-		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<springfox.version>2.5.0</springfox.version>
 		<jackson.version>2.9.6</jackson.version>
  		<wma.artifactory.url>https://cida.usgs.gov/artifactory</wma.artifactory.url>
