@@ -1,0 +1,9 @@
+---
+  version: '3.3'
+
+  services:
+    nldi-crawler:
+      build: .
+      image: nldi-crawler
+      env_file:
+        - secrets.env
