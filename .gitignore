@@ -4,3 +4,4 @@
 /.project
 /application.yml
 /application-it.yml
+/secrets.env
