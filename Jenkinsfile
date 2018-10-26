@@ -8,6 +8,7 @@ pipeline {
     choice(choices: ['snapshots', 'releases'], description: 'type of build', name: 'BUILD_TYPE')
     string(defaultValue: 'nldi', description: 'docker image path in artifactory', name: 'ARTIFACTORY_PATH', trim: false)
     string(defaultValue: 'wma/docker/nldi', description: 'docker image path in gitlab', name: 'GITLAB_PATH', trim: false)
+    string(defaultValue: '579777464052.dkr.ecr.us-west-2.amazonaws.com', description: 'Elastic Container Registry Root', name: 'ECR_PATH', trim: false)
     string(defaultValue: 'nldi-crawler', description: 'Name of the docker image', name: 'DOCKER_IMAGE_NAME', trim: false)
     string(defaultValue: 'master', description: 'name of the git branch to build from', name: 'GIT_BRANCH', trim: false)
   }
@@ -26,8 +27,6 @@ pipeline {
           string(credentialsId: 'GITLAB_HOST', variable: 'gitlabHost')
           ]) {
           sh '''
-          cd $WORKSPACE
-          ls -al
           if [ $BUILD_TYPE == "releases" ]
           then
             bumpversion_resp=$($WORKSPACE/env/bin/bumpversion --allow-dirty --list release)
@@ -53,10 +52,11 @@ pipeline {
             } else {
               artifactoryPort = '8445'
             }
-            def artifactoryUrl = "${artifactoryHost}:${artifactoryPort}"
-            def gitlabUrl = "${gitlabHost}:5001"
-            def dockerImageArtifactory = docker.build(artifactoryUrl + "/${ARTIFACTORY_PATH}/" + imageName)
-            def dockerImageGitLab = docker.build(gitlabUrl + "/${GITLAB_PATH}/" + imageName)
+            def dockerImage = docker.build(imageName)
+            sh "docker tag ${imageName} ${artifactoryHost}:${artifactoryPort}/${ARTIFACTORY_PATH}/${imageName}"
+            sh "docker tag ${imageName} ${gitlabHost}:5001/${GITLAB_PATH}/${imageName}"
+            sh "docker tag ${imageName} ${ECR_PATH}/${imageName}"
+            sh "docker tag ${imageName} usgswma/${imageName}"
           }
         }
       }
@@ -76,12 +76,15 @@ pipeline {
             } else {
               artifactoryPort = '8445'
             }
+            //sh "docker push usgswma/${imageName}"
             withDockerRegistry([credentialsId: 'ARTIFACTORY_UPLOADER_CREDENTIALS', url: "https://${artifactoryHost}:${artifactoryPort}"]) {
               sh "docker push ${artifactoryHost}:${artifactoryPort}/${ARTIFACTORY_PATH}/${imageName}"
             }
             withDockerRegistry([credentialsId: 'jenkins_ci_access_token', url: 'https://${gitlabHost}:5001']) {
               sh "docker push ${gitlabHost}:5001/${GITLAB_PATH}/${imageName}"
             }
+            sh "#!/bin/sh -e\n" + "eval \$(aws --region us-west-2 ecr get-login --no-include-email)"
+            sh "docker push ${ECR_PATH}/${imageName}"
           }
         }
       }
