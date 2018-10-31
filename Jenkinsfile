@@ -8,7 +8,6 @@ pipeline {
     choice(choices: ['snapshots', 'releases'], description: 'type of build', name: 'BUILD_TYPE')
     string(defaultValue: 'nldi', description: 'docker image path in artifactory', name: 'ARTIFACTORY_PATH', trim: false)
     string(defaultValue: 'wma/docker/nldi', description: 'docker image path in gitlab', name: 'GITLAB_PATH', trim: false)
-    string(defaultValue: '579777464052.dkr.ecr.us-west-2.amazonaws.com', description: 'Elastic Container Registry Root', name: 'ECR_PATH', trim: false)
     string(defaultValue: 'nldi-crawler', description: 'Name of the docker image', name: 'DOCKER_IMAGE_NAME', trim: false)
     string(defaultValue: 'master', description: 'name of the git branch to build from', name: 'GIT_BRANCH', trim: false)
   }
@@ -24,7 +23,8 @@ pipeline {
       steps {
         withCredentials([
           string(credentialsId: 'ARTIFACTORY_HOST', variable: 'artifactoryHost'),
-          string(credentialsId: 'GITLAB_HOST', variable: 'gitlabHost')
+          string(credentialsId: 'GITLAB_HOST', variable: 'gitlabHost'),
+          string(credentialsId: 'ECR_HOST', variable: 'ecrHost')
           ]) {
           sh '''
           if [ $BUILD_TYPE == "releases" ]
@@ -55,7 +55,7 @@ pipeline {
             def dockerImage = docker.build(imageName)
             sh "docker tag ${imageName} ${artifactoryHost}:${artifactoryPort}/${ARTIFACTORY_PATH}/${imageName}"
             sh "docker tag ${imageName} ${gitlabHost}:5001/${GITLAB_PATH}/${imageName}"
-            sh "docker tag ${imageName} ${ECR_PATH}/${imageName}"
+            sh "docker tag ${imageName} ${ECR_HOST}/${imageName}"
             sh "docker tag ${imageName} usgswma/${imageName}"
           }
         }
@@ -65,7 +65,8 @@ pipeline {
       steps {
         withCredentials([
           string(credentialsId: 'ARTIFACTORY_HOST', variable: 'artifactoryHost'),
-          string(credentialsId: 'GITLAB_HOST', variable: 'gitlabHost')
+          string(credentialsId: 'GITLAB_HOST', variable: 'gitlabHost'),
+          string(credentialsId: 'ECR_HOST', variable: 'ecrHost')
           ]) {
           script {
             contents = readFile 'image_name.txt'
@@ -76,15 +77,17 @@ pipeline {
             } else {
               artifactoryPort = '8445'
             }
-            //sh "docker push usgswma/${imageName}"
+            // Push to Artifactory
             withDockerRegistry([credentialsId: 'ARTIFACTORY_UPLOADER_CREDENTIALS', url: "https://${artifactoryHost}:${artifactoryPort}"]) {
               sh "docker push ${artifactoryHost}:${artifactoryPort}/${ARTIFACTORY_PATH}/${imageName}"
             }
+            // Push to Gitlab
             withDockerRegistry([credentialsId: 'jenkins_ci_access_token', url: 'https://${gitlabHost}:5001']) {
               sh "docker push ${gitlabHost}:5001/${GITLAB_PATH}/${imageName}"
             }
+            // Push to ECR
             sh "#!/bin/sh -e\n" + "eval \$(aws --region us-west-2 ecr get-login --no-include-email)"
-            sh "docker push ${ECR_PATH}/${imageName}"
+            sh "docker push ${ECR_HOST}/${imageName}"
           }
         }
       }
