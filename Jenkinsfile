@@ -39,25 +39,23 @@ pipeline {
           bumpversion=$(/usr/bin/cut -d'=' -f2 <<<$result)
           version="${bumpversion}-${timestamp}"
           echo "version=${version}" > version.properties
-          imageName="${DOCKER_IMAGE_NAME}:${version}"
-          latestImageName="${DOCKER_IMAGE_NAME}:latest"
-          echo "${imageName}" > image_name.txt
+          echo "${version}" > version.txt
           '''
           script {
-            contents = readFile 'image_name.txt'
-            def imageName = contents.trim()
+            contents = readFile 'version.txt'
+            def version = contents.trim()
             def artifactoryPort
             if ("${BUILD_TYPE}" == "releases") {
               artifactoryPort = '8446'
             } else {
               artifactoryPort = '8445'
             }
-            def dockerImage = docker.build(imageName)
-            sh "docker tag ${imageName} ${artifactoryHost}:${artifactoryPort}/${ARTIFACTORY_PATH}/${imageName}"
-            sh "docker tag ${imageName} ${gitlabHost}:5001/${GITLAB_PATH}/${imageName}"
-            sh "docker tag ${imageName} ${ecrHost}/${imageName}"
-            sh "docker tag ${imageName} ${ecrHost}/${latestImageName}"
-            sh "docker tag ${imageName} usgswma/${imageName}"
+            def dockerImage = docker.build(DOCKER_IMAGE_NAME)
+            sh "docker tag ${DOCKER_IMAGE_NAME} ${artifactoryHost}:${artifactoryPort}/${ARTIFACTORY_PATH}/${DOCKER_IMAGE_NAME}:${version}"
+            sh "docker tag ${DOCKER_IMAGE_NAME} ${gitlabHost}:5001/${GITLAB_PATH}/${DOCKER_IMAGE_NAME}:${version}"
+            sh "docker tag ${DOCKER_IMAGE_NAME} ${ecrHost}/${DOCKER_IMAGE_NAME}:${version}"
+            sh "docker tag ${DOCKER_IMAGE_NAME} ${ecrHost}/${DOCKER_IMAGE_NAME}:latest"
+            sh "docker tag ${DOCKER_IMAGE_NAME} usgswma/${DOCKER_IMAGE_NAME}:${version}"
           }
         }
       }
@@ -70,9 +68,8 @@ pipeline {
           string(credentialsId: 'ECR_HOST', variable: 'ecrHost')
           ]) {
           script {
-            contents = readFile 'image_name.txt'
-            def imageName = contents.trim()
-            env.IMAGE_NAME = imageName
+            contents = readFile 'version.txt'
+            def version = contents.trim()
             if ("${BUILD_TYPE}" == "releases") {
               artifactoryPort = '8446'
             } else {
@@ -80,16 +77,16 @@ pipeline {
             }
             // Push to Artifactory
             withDockerRegistry([credentialsId: 'ARTIFACTORY_UPLOADER_CREDENTIALS', url: "https://${artifactoryHost}:${artifactoryPort}"]) {
-              sh "docker push ${artifactoryHost}:${artifactoryPort}/${ARTIFACTORY_PATH}/${imageName}"
+              sh "docker push ${artifactoryHost}:${artifactoryPort}/${ARTIFACTORY_PATH}/${DOCKER_IMAGE_NAME}:${version}"
             }
             // Push to Gitlab
             withDockerRegistry([credentialsId: 'jenkins_ci_access_token', url: 'https://${gitlabHost}:5001']) {
-              sh "docker push ${gitlabHost}:5001/${GITLAB_PATH}/${imageName}"
+              sh "docker push ${gitlabHost}:5001/${GITLAB_PATH}/${DOCKER_IMAGE_NAME}:${version}"
             }
             // Push to ECR
             sh "#!/bin/sh -e\n" + "eval \$(aws --region us-west-2 ecr get-login --no-include-email)"
-            sh "docker push ${ecrHost}/${imageName}"
-            sh "docker push ${ecrHost}/${latestImageName}"
+            sh "docker push ${ecrHost}/${DOCKER_IMAGE_NAME}:${version}"
+            sh "docker push ${ecrHost}/${DOCKER_IMAGE_NAME}:latest"
           }
         }
       }
