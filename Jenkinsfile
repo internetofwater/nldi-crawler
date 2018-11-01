@@ -9,7 +9,6 @@ pipeline {
     string(defaultValue: 'nldi', description: 'docker image path in artifactory', name: 'ARTIFACTORY_PATH', trim: false)
     string(defaultValue: 'wma/docker/nldi', description: 'docker image path in gitlab', name: 'GITLAB_PATH', trim: false)
     string(defaultValue: 'nldi-crawler', description: 'Name of the docker image', name: 'DOCKER_IMAGE_NAME', trim: false)
-    string(defaultValue: 'master', description: 'name of the git branch to build from', name: 'GIT_BRANCH', trim: false)
   }
   stages {
     stage('prep virtualenv') {
