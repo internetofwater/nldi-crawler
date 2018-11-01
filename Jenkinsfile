@@ -41,6 +41,7 @@ pipeline {
           version="${bumpversion}-${timestamp}"
           echo "version=${version}" > version.properties
           imageName="${DOCKER_IMAGE_NAME}:${version}"
+          latestImageName="${DOCKER_IMAGE_NAME}:latest"
           echo "${imageName}" > image_name.txt
           '''
           script {
@@ -56,6 +57,7 @@ pipeline {
             sh "docker tag ${imageName} ${artifactoryHost}:${artifactoryPort}/${ARTIFACTORY_PATH}/${imageName}"
             sh "docker tag ${imageName} ${gitlabHost}:5001/${GITLAB_PATH}/${imageName}"
             sh "docker tag ${imageName} ${ECR_HOST}/${imageName}"
+            sh "docker tag ${imageName} ${ECR_HOST}/${latestImageName}"
             sh "docker tag ${imageName} usgswma/${imageName}"
           }
         }
@@ -88,6 +90,7 @@ pipeline {
             // Push to ECR
             sh "#!/bin/sh -e\n" + "eval \$(aws --region us-west-2 ecr get-login --no-include-email)"
             sh "docker push ${ECR_HOST}/${imageName}"
+            sh "docker push ${ECR_HOST}/${latestImageName}"
           }
         }
       }
