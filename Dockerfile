@@ -1,4 +1,4 @@
-FROM maven:3.5.4-jdk-8 AS build
+FROM maven:3.5.3-jdk-8 AS build
 
 # Add pom.xml and install dependencies
 COPY pom.xml /build/pom.xml
