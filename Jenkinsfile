@@ -55,8 +55,8 @@ pipeline {
             def dockerImage = docker.build(imageName)
             sh "docker tag ${imageName} ${artifactoryHost}:${artifactoryPort}/${ARTIFACTORY_PATH}/${imageName}"
             sh "docker tag ${imageName} ${gitlabHost}:5001/${GITLAB_PATH}/${imageName}"
-            sh "docker tag ${imageName} ${ECR_HOST}/${imageName}"
-            sh "docker tag ${imageName} ${ECR_HOST}/${latestImageName}"
+            sh "docker tag ${imageName} ${ecrHost}/${imageName}"
+            sh "docker tag ${imageName} ${ecrHost}/${latestImageName}"
             sh "docker tag ${imageName} usgswma/${imageName}"
           }
         }
@@ -88,8 +88,8 @@ pipeline {
             }
             // Push to ECR
             sh "#!/bin/sh -e\n" + "eval \$(aws --region us-west-2 ecr get-login --no-include-email)"
-            sh "docker push ${ECR_HOST}/${imageName}"
-            sh "docker push ${ECR_HOST}/${latestImageName}"
+            sh "docker push ${ecrHost}/${imageName}"
+            sh "docker push ${ecrHost}/${latestImageName}"
           }
         }
       }
