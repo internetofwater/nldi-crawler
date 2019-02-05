@@ -3,54 +3,22 @@ language: java
 jdk:
   - oraclejdk8
 
-addons:
-  postgresql: 9.6
-  apt:
-    packages:
-    - postgresql-9.6-postgis-2.3
 
-before_install:
-  - cd ~
-  - git clone https://github.com/ACWI-SSWD/nldi-db.git
-  - wget https://cida.usgs.gov/artifactory/nldi/datasets/nhdplus.yahara.pgdump.gz
-  - mkdir ~/liquibase
-  - cd ~/liquibase
-  - wget https://github.com/liquibase/liquibase/releases/download/liquibase-parent-3.4.2/liquibase-3.4.2-bin.tar.gz
-  - tar -xzf liquibase-3.4.2-bin.tar.gz -C ./
-  - cd ~/liquibase/lib
-  - wget https://jdbc.postgresql.org/download/postgresql-9.4-1204.jdbc42.jar
-  - cd $TRAVIS_BUILD_DIR
-  - curl -L https://github.com/arminc/clair-scanner/releases/download/v8/clair-scanner_linux_amd64 > clair-scanner
-  - chmod +x clair-scanner
-  - sudo mv clair-scanner /usr/local/bin
-  - git clone https://github.com/docker/docker-bench-security.git
-
-install:
-  - cd $TRAVIS_BUILD_DIR
-  - touch secrets.env
-  - docker-compose up -d $DOCKER_IMAGE
 
 before_script:
-  - cd ~/liquibase/lib
-  - psql -U postgres -c 'create database nldi;'
-  - psql -U postgres -c "create extension postgis"
-  - psql -U postgres -c "create role nldi with superuser login;"
-  - ~/liquibase/liquibase --driver=org.postgresql.Driver --url=jdbc:postgresql://127.0.0.1:5432/nldi --username=postgres --password= --changeLogFile=/home/travis/nldi-db/nldi-liquibase/src/main/resources/liquibase/postgres/changeLog.xml update
-  - ~/liquibase/liquibase --driver=org.postgresql.Driver --url=jdbc:postgresql://127.0.0.1:5432/nldi --username=postgres --password= --changeLogFile=/home/travis/nldi-db/nldi-liquibase/src/main/resources/liquibase/changeLog.xml update
-  - gunzip -c ~/nhdplus.yahara.pgdump.gz | pg_restore --data-only | psql -h 127.0.0.1 -p 5432 -U postgres -w -a -d nldi
   - cd $TRAVIS_BUILD_DIR
   - echo "<settings><profiles><profile><id>default</id><activation><activeByDefault>true</activeByDefault></activation>
               <properties>
-              <nldi.url>jdbc:postgresql://127.0.0.1:5432/nldi</nldi.url>
-              <nldi.dbUsername>nldi</nldi.dbUsername><nldi.dbPassword></nldi.dbPassword>
-              <nldi.dbUnitUsername>nldi</nldi.dbUnitUsername><nldi.dbUnitPassword></nldi.dbUnitPassword>
+    		<nldi.url>jdbc:postgresql://127.0.0.1:5432/nldi</nldi.url>
+		<nldi.dbUsername>nldi_data</nldi.dbUsername>
+		<nldi.dbPassword>nldi</nldi.dbPassword>
+		<nldi.dbUnitUsername>nldi</nldi.dbUnitUsername>
+		<nldi.dbUnitPassword>nldi</nldi.dbUnitPassword>
+		<nldi.dbName>nldi</nldi.dbName>
+		<nldi.dbPort>5432</nldi.dbPort>
               </properties></profile></profiles></settings>"
         > ~/settings.xml
 
 script:
   - mvn verify --settings ~/settings.xml
-  - cd docker-bench-security
-  - sudo sh docker-bench-security.sh -c container_images
-  - docker run -d --name db arminc/clair-db
-  - docker run -p 6060:6060 --link db:postgres -d --name clair arminc/clair-local-scan:v2.0.3
-  - clair-scanner -c "http://127.0.0.1:6060" --ip "$(ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')" $DOCKER_IMAGE:latest || true
+
