@@ -156,6 +156,50 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>io.fabric8</groupId>
+				<artifactId>docker-maven-plugin</artifactId>
+				<version>0.28.0</version>
+				<executions>
+					<execution>
+						<id>start</id>
+						<phase>pre-integration-test</phase>
+						<goals>
+							 <goal>start</goal>
+						</goals>
+				   </execution>
+				   <execution>
+						<id>stop</id>
+						<phase>post-integration-test</phase>
+						<goals>
+							<goal>stop</goal>
+						</goals>
+				 </execution>
+				</executions>
+				<configuration>
+				<showLogs>true</showLogs>
+				   <images>
+						<image>
+							<name>usgswma/nldi-db:ci</name>
+							<run>
+							  <ports>
+								  <port>${nldi.dbPort}:5432</port>
+							  </ports>
+							  <env>
+									<POSTGRES_PASSWORD>${nldi.dbPassword}</POSTGRES_PASSWORD>
+									<POSTGRES_DB>${nldi.dbName}</POSTGRES_DB>
+									<NLDI_PASSWORD>${nldi.dbPassword}</NLDI_PASSWORD>
+									<NLDI_DATA_PASSWORD>${nldi.dbPassword}</NLDI_DATA_PASSWORD>
+									<NLDI_USER_PASSWORD>${nldi.dbPassword}</NLDI_USER_PASSWORD>
+							  </env>
+							  <wait>
+									<time>45000</time>
+							  </wait>
+							 </run>
+					   </image>
+					</images>
+				</configuration>
+           </plugin>			
 		</plugins>
 	</build>
 
