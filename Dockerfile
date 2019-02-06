@@ -7,7 +7,7 @@ RUN mvn clean
 
 # Add source code and (by default) build the jar
 COPY src /build/src
-ARG BUILD_COMMAND="mvn verify"
+ARG BUILD_COMMAND="mvn package"
 RUN ${BUILD_COMMAND}
 
 
