@@ -177,6 +177,7 @@
 				 </execution>
 				</executions>
 				<configuration>
+				<dockerHost>https://localhost:2376</dockerHost>
 				<showLogs>true</showLogs>
 				   <images>
 						<image>
