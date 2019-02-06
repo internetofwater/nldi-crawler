@@ -1,0 +1,22 @@
+projectName: "nldi"
+applicationName: "nldi-crawler"
+dockerImageName: "nldi-crawler"
+containerPort: 8080
+artifactoryPath: "nldi"
+gitlabPath: "wma/docker/nldi"
+repoPath: "ACWI-SSWD/nldi-crawler"
+memory: 768
+rulePriority: 88
+healthCheck: "/actuator/health"
+contextPath: "/nldi-crawler"
+#deployJobName: "ogcproxy-container-deploy"
+nldi:
+  url: "jdbc:postgresql://127.0.0.1:5433/nldi"
+  dbUsername: nldi_data
+  dbUnitUsername: nldi
+  dbName: nldi
+  dbPort: 5433
+
+
+#nldi.dbUnitPassword>nldi</nldi.dbUnitPassword>
+#nldi.dbPassword>nldi</nldi.dbPassword>
