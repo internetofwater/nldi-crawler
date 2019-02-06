@@ -3,7 +3,7 @@ language: java
 jdk:
   - oraclejdk8
 
-
+install: true
 
 before_script:
   - cd $TRAVIS_BUILD_DIR
