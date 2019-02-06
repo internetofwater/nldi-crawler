@@ -3,22 +3,21 @@ language: java
 jdk:
   - oraclejdk8
 
-
+install: true
 
 before_script:
   - cd $TRAVIS_BUILD_DIR
   - echo "<settings><profiles><profile><id>default</id><activation><activeByDefault>true</activeByDefault></activation>
               <properties>
-              <nldi.url>jdbc:postgresql://127.0.0.1:5432/nldi</nldi.url>
+              <nldi.url>jdbc:postgresql://127.0.0.1:5433/nldi</nldi.url>
               <nldi.dbUsername>nldi_data</nldi.dbUsername>
               <nldi.dbPassword>nldi</nldi.dbPassword>
               <nldi.dbUnitUsername>nldi</nldi.dbUnitUsername>
               <nldi.dbUnitPassword>nldi</nldi.dbUnitPassword>
               <nldi.dbName>nldi</nldi.dbName>
-              <nldi.dbPort>5432</nldi.dbPort>
+              <nldi.dbPort>5433</nldi.dbPort>
               </properties></profile></profiles></settings>"
         > ~/settings.xml
 
 script:
   - mvn verify --settings ~/settings.xml
-
