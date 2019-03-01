@@ -4,7 +4,8 @@ dockerImageName: "nldi-crawler"
 containerPort: 8080
 artifactoryPath: "nldi"
 gitlabPath: "wma/docker/nldi"
-repoPath: "ACWI-SSWD/nldi-crawler"
+gitRepoUrl: "https://github.com/ACWI-SSWD/nldi-crawler.git"
+gitRepoCredentialsId: "Jenkins-GitHub-Read-Write-Token"
 memory: 768
 rulePriority: 88
 healthCheck: "/actuator/health"
