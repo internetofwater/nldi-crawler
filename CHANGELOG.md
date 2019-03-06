@@ -11,5 +11,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Jobs invoked via command-line rather than via ActiveMQ
 - Jenkinsfile build job added
 - Updated to shared pipeline library 0.6.1 and JDK 11
+- Upgrade various dependencies
 
 [Unreleased]: https://github.com/ACWI-SSWD/nldi-crawler/compare/nldi-services-0.3.1...master
