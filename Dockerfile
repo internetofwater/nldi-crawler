@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install --no-install-recommends --no-upgrade -y \
 
 COPY --chown=1000:1000 --from=build /build/target/nldi-crawler-*.jar app.jar
 
-USER spring
+USER java
 CMD java -jar app.jar ${CRAWLER_SOURCE_ID}
 
 HEALTHCHECK --interval=30s --timeout=3s \
