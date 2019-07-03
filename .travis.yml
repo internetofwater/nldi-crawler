@@ -1,23 +1,14 @@
+sudo: true
+
 language: java
 
+services:
+  - docker
+
 jdk:
-  - oraclejdk11
-
-install: true
-
-before_script:
-  - cd $TRAVIS_BUILD_DIR
-  - echo "<settings><profiles><profile><id>default</id><activation><activeByDefault>true</activeByDefault></activation>
-              <properties>
-              <nldi.url>jdbc:postgresql://127.0.0.1:5433/nldi</nldi.url>
-              <nldi.dbUsername>nldi_data</nldi.dbUsername>
-              <nldi.dbPassword>nldi</nldi.dbPassword>
-              <nldi.dbUnitUsername>nldi</nldi.dbUnitUsername>
-              <nldi.dbUnitPassword>nldi</nldi.dbUnitPassword>
-              <nldi.dbName>nldi</nldi.dbName>
-              <nldi.dbPort>5433</nldi.dbPort>
-              </properties></profile></profiles></settings>"
-        > ~/settings.xml
+  - openjdk11
 
 script:
-  - mvn verify --settings ~/settings.xml
+  - docker network create nldiCrawler
+  - docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$TRAVIS_BUILD_DIR":/usr/src/mymaven -w /usr/src/mymaven --network=nldiCrawler -e TESTING_DATABASE_PORT=5432 -e TESTING_DATABASE_ADDRESS=nldiDatabase -e TESTING_DATABASE_NETWORK=nldiCrawler maven:3.6.0-jdk-11 mvn clean verify
+  - docker network rm nldiCrawler
