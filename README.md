@@ -1,5 +1,6 @@
 # NLDI Crawler
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/3c8a9f8eef79461e86d37036830a2b49)](https://app.codacy.com/app/usgs_wma_dev/nldi-crawler?utm_source=github.com&utm_medium=referral&utm_content=ACWI-SSWD/nldi-crawler&utm_campaign=Badge_Grade_Settings)
 [![Build Status](https://travis-ci.org/ACWI-SSWD/nldi-crawler.svg?branch=master)](https://travis-ci.org/ACWI-SSWD/nldi-crawler)
 
 The Crawler is used to ingest event data and link it to the network. The only requirement is that the source system is able to provide GeoJSON via a web request. A database table (nldi_data.crawler_source) contains metadata about the GeoJSON. We can link events to the network via latitude/longitude coordinates or NHDPlus reach and measure.
