@@ -1,0 +1,4 @@
+ignore:
+  # Spring Boot Application file - no testable logic
+  - "**/Application.java"
+
