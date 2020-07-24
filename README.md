@@ -1,6 +1,6 @@
 # NLDI Crawler
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/f0153ed6b07340bda3c04d6f05df6e8c)](https://app.codacy.com/app/usgs_wma_dev/nldi-crawler?utm_source=github.com&utm_medium=referral&utm_content=ACWI-SSWD/nldi-crawler&utm_campaign=Badge_Grade_Settings)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/3c8a9f8eef79461e86d37036830a2b49)](https://app.codacy.com/app/usgs_wma_dev/nldi-crawler?utm_source=github.com&utm_medium=referral&utm_content=ACWI-SSWD/nldi-crawler&utm_campaign=Badge_Grade_Settings)
 [![Build Status](https://travis-ci.org/ACWI-SSWD/nldi-crawler.svg?branch=master)](https://travis-ci.org/ACWI-SSWD/nldi-crawler)
 [![codecov](https://codecov.io/gh/ACWI-SSWD/nldi-crawler/branch/master/graph/badge.svg)](https://codecov.io/gh/ACWI-SSWD/nldi-crawler)
 
