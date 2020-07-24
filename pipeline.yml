@@ -1,16 +1,33 @@
-projectName: "nldi"
-applicationName: "nldi-crawler"
-dockerImageName: "nldi-crawler"
-containerPort: 8080
+# docker image path in artifactory
 artifactoryPath: "nldi"
-gitlabPath: "wma/docker/nldi"
+# docker image path in gitlab
+gitlabPath: "wma/docker/nldi/nldi-crawler"
+# name of the docker image
+dockerImageName: "nldi-crawler"
+#
+repoPath: "ACWI-SSWD/nldi-crawler.git"
+# name of the git repo
 gitRepoUrl: "https://github.com/ACWI-SSWD/nldi-crawler.git"
+# Jenkins credential for pushing back to repo
 gitRepoCredentialsId: "Jenkins-GitHub-Read-Write-Token"
+# name of the deploy job to trigger
+deployJobName: "ogcproxy-container-deploy"
+# name of the project
+projectName: "iow-allgemein"
+# maximum amount of RAM for running Docker containers in the service
 memory: 768
-rulePriority: 88
+# name of the application or service
+applicationName: "nldi-crawler"
+# integer representing the order of precedence of the ALB rule.
+# port that is exposed by your container
+containerPort: 8080
+# string parameter specifying a path that ALB should use to verify that your application is alive
 healthCheck: "/actuator/health"
-contextPath: "/nldi-crawler"
-#deployJobName: "ogcproxy-container-deploy"
+# configuration repository paths
+configRepoPath: "wma/docker/nldi/nldi-crawler"
+configCredentialsId: "wma-eto-eb-rsa"
+
+
 nldi:
   url: "jdbc:postgresql://127.0.0.1:5433/nldi"
   dbUsername: nldi_data
@@ -18,6 +35,10 @@ nldi:
   dbName: nldi
   dbPort: 5433
 
+rulePriority: 88
+contextPath: "/nldi-crawler"
 
+#This is the old gitlab path
+#gitlabPath: "wma/docker/nldi"
 #nldi.dbUnitPassword>nldi</nldi.dbUnitPassword>
 #nldi.dbPassword>nldi</nldi.dbPassword>
