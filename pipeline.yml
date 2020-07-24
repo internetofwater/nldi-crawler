@@ -10,8 +10,6 @@ repoPath: "ACWI-SSWD/nldi-crawler.git"
 gitRepoUrl: "https://github.com/ACWI-SSWD/nldi-crawler.git"
 # Jenkins credential for pushing back to repo
 gitRepoCredentialsId: "Jenkins-GitHub-Read-Write-Token"
-# name of the deploy job to trigger
-deployJobName: "NLDI-crawler-container-deploy"
 # name of the project
 projectName: "iow-allgemein"
 # maximum amount of RAM for running Docker containers in the service
