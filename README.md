@@ -6,6 +6,10 @@
 
 The Crawler is used to ingest event data and link it to the network. The only requirement is that the source system is able to provide GeoJSON via a web request. A database table (nldi_data.crawler_source) contains metadata about the GeoJSON. We can link events to the network via latitude/longitude coordinates or NHDPlus reach and measure.
 
+## Contributing:
+
+Contributions can be made via [pull request to this file](https://github.com/ACWI-SSWD/nldi-db/blob/master/liquibase/changeLogs/nldi/nldi_data/update_crawler_source/crawler_source.tsv).
+
 Current nldi_data.crawler_souce table fields:
 
 crawler_source_id | source_name | source_suffix | source_uri | feature_id | feature_name | feature_uri | feature_reach | feature_measure | ingest_type
