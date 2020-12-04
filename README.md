@@ -80,3 +80,6 @@ nldiDbPassword: dbPassword
 ```bash
 docker-compose run -e CRAWLER_SOURCE_ID=<crawler_source_id> nldi-crawler
 ```
+
+### Running via JAR File
+[RUNNING.md](RUNNING.md)
