@@ -152,12 +152,16 @@ public class Ingestor {
 
 	protected Feature buildFeature(CrawlerSource crawlerSource, JsonObject jsonFeature) {
 		JsonObject properties = getProperties(jsonFeature);
-		
+
 		Feature feature = new Feature();
 		feature.setCrawlerSource(crawlerSource);
 		feature.setPoint(getPoint(jsonFeature));
 		if (null != crawlerSource) {
-			feature.setIdentifier(getString(crawlerSource.getFeatureId(), properties));
+			String featureId = crawlerSource.getFeatureId();
+			if (!properties.has(featureId) && jsonFeature.has(featureId)) {
+				properties.addProperty(featureId, jsonFeature.get(featureId).getAsString());
+			}
+			feature.setIdentifier(getString(featureId, properties));
 			feature.setName(getString(crawlerSource.getFeatureName(), properties));
 			feature.setUri(getString(crawlerSource.getFeatureUri(), properties));
 			feature.setReachcode(getString(crawlerSource.getFeatureReach(), properties));
