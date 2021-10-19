@@ -130,15 +130,15 @@ public class IngestorTest extends BaseTest{
 		properties.addProperty("one", 1);
 		properties.addProperty("two", 2);
 
-		assertNull(ingestor.getProperties(null));
-		assertNull(ingestor.getProperties(feature));
+		assertNull(ingestor.getProperties(null, null));
+		assertNull(ingestor.getProperties(feature, null));
 
 		feature.addProperty(Ingestor.GEOJSON_PROPERTIES, "abc");
-		assertNull(ingestor.getProperties(feature));
+		assertNull(ingestor.getProperties(feature, null));
 
 		feature.remove(Ingestor.GEOJSON_PROPERTIES);
 		feature.add(Ingestor.GEOJSON_PROPERTIES, properties);
-		assertEquals(properties, ingestor.getProperties(feature));
+		assertEquals(properties, ingestor.getProperties(feature, null));
 	}
 
 	@Test
