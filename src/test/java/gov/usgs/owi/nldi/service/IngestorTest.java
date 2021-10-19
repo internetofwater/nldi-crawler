@@ -49,6 +49,7 @@ public class IngestorTest extends BaseTest{
 	Gson gson = new GsonBuilder().create();
 	CrawlerSource crawlerSourcePoint;
 	CrawlerSource crawlerSourceReach;
+	CrawlerSource crawlerSourceTopLevelId;
 
 	@Before
 	public void initTest() {
@@ -56,6 +57,7 @@ public class IngestorTest extends BaseTest{
 		ingestor = new Ingestor(ingestDao, featureDao, httpUtils);
 		crawlerSourcePoint = CrawlerSourceDaoIT.buildTestPointSource(1);
 		crawlerSourceReach = CrawlerSourceDaoIT.buildTestReachSource(3);
+		crawlerSourceTopLevelId = CrawlerSourceDaoIT.buildTestTopLevelIdSource(5);
 	}
 
 	@Test
@@ -128,15 +130,15 @@ public class IngestorTest extends BaseTest{
 		properties.addProperty("one", 1);
 		properties.addProperty("two", 2);
 
-		assertNull(ingestor.getProperties(null));
-		assertNull(ingestor.getProperties(feature));
+		assertNull(ingestor.getProperties(null, null));
+		assertNull(ingestor.getProperties(feature, null));
 
 		feature.addProperty(Ingestor.GEOJSON_PROPERTIES, "abc");
-		assertNull(ingestor.getProperties(feature));
+		assertNull(ingestor.getProperties(feature, null));
 
 		feature.remove(Ingestor.GEOJSON_PROPERTIES);
 		feature.add(Ingestor.GEOJSON_PROPERTIES, properties);
-		assertEquals(properties, ingestor.getProperties(feature));
+		assertEquals(properties, ingestor.getProperties(feature, null));
 	}
 
 	@Test
@@ -267,6 +269,28 @@ public class IngestorTest extends BaseTest{
 		assertEquals("http://waterdata.usgs.gov/nwis/nwisman/?site_no=05429500", feature.getUri());
 		assertEquals("07090002007072", feature.getReachcode());
 		assertEquals(BigDecimal.valueOf(98.36121), feature.getMeasure());
+	}
+
+	@Test
+	public void buildFeatureTopLevelIdTest() throws JsonSyntaxException, IOException, URISyntaxException {
+		JsonObject jsonFeature = gson.fromJson(getSourceFile("singleFeatureTopLevelId.geojson"), JsonObject.class);
+
+		Feature feature = ingestor.buildFeature(null, null);
+		assertNull(feature.getCrawlerSource());
+		assertNull(feature.getPoint());
+		assertNull(feature.getIdentifier());
+		assertNull(feature.getName());
+		assertNull(feature.getUri());
+
+		feature = ingestor.buildFeature(crawlerSourceTopLevelId, jsonFeature);
+		assertEquals(crawlerSourceTopLevelId, feature.getCrawlerSource());
+		assertTrue(Double.valueOf(-90.4444333).equals(feature.getPoint().x));
+		assertTrue(Double.valueOf(35.4242424).equals(feature.getPoint().y));
+		assertEquals("123456", feature.getIdentifier());
+		assertEquals("Test Data Name", feature.getName());
+		assertEquals("http://test.org/station?mimeType=geojson", feature.getUri());
+		assertNull(feature.getReachcode());
+		assertNull(feature.getMeasure());
 	}
 
 }

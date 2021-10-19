@@ -151,12 +151,12 @@ public class Ingestor {
 	}
 
 	protected Feature buildFeature(CrawlerSource crawlerSource, JsonObject jsonFeature) {
-		JsonObject properties = getProperties(jsonFeature);
-		
 		Feature feature = new Feature();
 		feature.setCrawlerSource(crawlerSource);
 		feature.setPoint(getPoint(jsonFeature));
+
 		if (null != crawlerSource) {
+			JsonObject properties = getProperties(jsonFeature, crawlerSource.getFeatureId());
 			feature.setIdentifier(getString(crawlerSource.getFeatureId(), properties));
 			feature.setName(getString(crawlerSource.getFeatureName(), properties));
 			feature.setUri(getString(crawlerSource.getFeatureUri(), properties));
@@ -167,12 +167,16 @@ public class Ingestor {
 		return feature;
 	}
 
-	protected JsonObject getProperties(JsonObject feature) {
+	protected JsonObject getProperties(JsonObject feature, String featureId) {
 		JsonObject properties = null;
 
 		if (null != feature
 				&& feature.has(GEOJSON_PROPERTIES) && feature.get(GEOJSON_PROPERTIES).isJsonObject()) {
 			properties = feature.getAsJsonObject(GEOJSON_PROPERTIES);
+
+			if (null != featureId && !properties.has(featureId) && feature.has(featureId)) {
+				properties.addProperty(featureId, feature.get(featureId).getAsString());
+			}
 		}
 
 		return properties;
