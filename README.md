@@ -3,9 +3,9 @@
 [![Spotless Check](https://github.com/internetofwater/nldi-crawler/actions/workflows/spotless.yml/badge.svg)](https://github.com/internetofwater/nldi-crawler/actions/workflows/spotless.yml)
 [![codecov](https://codecov.io/gh/internetofwater/nldi-crawler/branch/master/graph/badge.svg)](https://codecov.io/gh/internetofwater/nldi-crawler)
 
-The Crawler is used to ingest event data and link it to the network. The only requirement is that the source system
-is able to provide GeoJSON via a web request. A database table (`nldi_data.crawler_source`) contains metadata about the
-GeoJSON. We can link events to the network via latitude/longitude coordinates or NHDPlus reach and measure.
+The Crawler is used to ingest data and link it to the network if it is not already. The only requirement is that the source system
+is able to provide GeoJSON via a web request with necessary attributes. A database table (`nldi_data.crawler_source`) contains metadata about the
+GeoJSON. We can link data to the network via latitude/longitude coordinates or NHDPlus reachcode and measure.
 
 ## Table of Contents
 
