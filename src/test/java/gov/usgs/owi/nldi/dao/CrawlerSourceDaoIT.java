@@ -37,7 +37,7 @@ public class CrawlerSourceDaoIT extends BaseIT {
 	public static final String TEST_OLD_TABLE_NAME_POINT = TEST_TABLE_NAME_POINT + IngestDao.FEATURE_TABLE_OLD_SUFFIX;
 
 	public static final int TEST_SOURCE_ID_TOP_LEVEL = 5;
-	public static final String TEST_SOURCE_NAME_TOP_LEVEL = "Test Data Name";
+	public static final String TEST_SOURCE_NAME_TOP_LEVEL = "Test Source 2";
 	public static final String TEST_SOURCE_SUFFIX_TOP_LEVEL = "TEST2";
 	public static final String TEST_SOURCE_URI_TOP_LEVEL = "http://test.org/station?mimeType=geojson";
 	public static final IngestType TEST_INGEST_TYPE_TOP_LEVEL = IngestType.point;

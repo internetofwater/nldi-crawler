@@ -27,7 +27,8 @@ public class IngestDaoIT extends BaseIT {
 	@ExpectedDatabase(
 			table="nldi_data.feature_wqp",
 			query=TEST_QUERY,
-			value="classpath:/testResult/ingestorPointDbIntegration.xml",assertionMode=DatabaseAssertionMode.NON_STRICT_UNORDERED)
+			value="classpath:/testResult/ingestorPointDbIntegration.xml",
+			assertionMode=DatabaseAssertionMode.NON_STRICT_UNORDERED)
 	public void installDataTest() {
 		ingestDao.installData(CrawlerSourceDaoIT.buildTestPointSource(1));
 	}
@@ -37,7 +38,8 @@ public class IngestDaoIT extends BaseIT {
 	@ExpectedDatabase(
 			table="nldi_data.feature_wqp_temp",
 			query=TEST_QUERY_TEMP,
-			value="classpath:/testResult/featureWqpTempLinkPoint.xml",assertionMode=DatabaseAssertionMode.NON_STRICT_UNORDERED)
+			value="classpath:/testResult/featureWqpTempLinkPoint.xml",
+			assertionMode=DatabaseAssertionMode.NON_STRICT_UNORDERED)
 	public void linkPointTest() {
 		ingestDao.linkPoint(CrawlerSourceDaoIT.buildTestPointSource(1));
 	}
@@ -47,14 +49,17 @@ public class IngestDaoIT extends BaseIT {
 	@ExpectedDatabase(
 			table="nldi_data.feature_wqp_temp",
 			query=TEST_QUERY_TEMP,
-			value="classpath:/testResult/featureWqpTempLinkReachMeasure.xml",assertionMode=DatabaseAssertionMode.NON_STRICT_UNORDERED)
+			value="classpath:/testResult/featureWqpTempLinkReachMeasure.xml",
+			assertionMode=DatabaseAssertionMode.NON_STRICT_UNORDERED)
 	public void linkReachMeasureTest() {
 		ingestDao.linkReachMeasure(CrawlerSourceDaoIT.buildTestPointSource(1));
 	}
 
 	@Test
 	@DatabaseSetup("classpath:/testData/featureWqpTemp.xml")
-	@ExpectedDatabase(value="classpath:/cleanup/featureWqpTemp.xml",assertionMode=DatabaseAssertionMode.NON_STRICT_UNORDERED)
+	@ExpectedDatabase(
+			value="classpath:/cleanup/emptyWqpTemp.xml",
+			assertionMode=DatabaseAssertionMode.NON_STRICT_UNORDERED)
 	public void clearTempTableTest() {
 		ingestDao.clearTempTable(CrawlerSourceDaoIT.buildTestPointSource(1));
 	}

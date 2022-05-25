@@ -4,7 +4,9 @@ import java.math.BigDecimal;
 import java.net.URISyntaxException;
 
 
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mybatis.spring.boot.test.autoconfigure.MybatisTest;
 import org.postgis.Point;
 
 import com.github.springtestdbunit.annotation.DatabaseSetup;
