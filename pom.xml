@@ -16,6 +16,9 @@
         <springfox.version>2.5.0</springfox.version>
         <jackson.version>2.9.8</jackson.version>
          <wma.artifactory.url>https://cida.usgs.gov/artifactory</wma.artifactory.url>
+        <test.database.network>nldi</test.database.network>
+        <test.database.address>127.0.0.1</test.database.address>
+        <test.database.port>5432</test.database.port>
     </properties>
 
     <distributionManagement>
@@ -33,7 +36,8 @@
 
     <scm>
         <connection>scm:git:https://github.com/ACWI-SSWD/nldi-crawler.git</connection>
-        <developerConnection>scm:git:https://${env.GITHUB_USER}:${env.GITHUB_PASS}@github.com/ACWI-SSWD/nldi-crawler.git</developerConnection>
+        <!--suppress UnresolvedMavenProperty -->
+        <developerConnection>scm:git:https://${env.GITHUB_USER}:${env.GITHUB_PASS}@github.com/internetofwater/nldi-crawler.git</developerConnection>
         <url>https://github.com/ACWI-SSWD/nldi-crawler</url>
         <tag>HEAD</tag>
     </scm>
@@ -140,8 +144,7 @@
 
                 <configuration>
                     <environmentVariables>
-                        <nldiDbUrl>${nldi.url}</nldiDbUrl>
-                        <nldiDbUrl>jdbc:postgresql://${TESTING_DATABASE_ADDRESS}:${TESTING_DATABASE_PORT}/nldi_db_name</nldiDbUrl>
+                        <nldiDbUrl>jdbc:postgresql://${test.database.address}:${test.database.port}/nldi_db_name</nldiDbUrl>
                         <nldiUsername>nldi_schema_owner</nldiUsername>
                         <nldiPassword>changeMe</nldiPassword>
                         <dbUnitUsername>nldi</dbUnitUsername>
@@ -183,15 +186,15 @@
                    <containerNamePattern>%a</containerNamePattern>
                    <images>
                         <image>
-                            <name>usgswma/nldi-db:ci</name>
+                            <name>ghcr.io/internetofwater/nldi-db:ci</name>
                             <alias>nldiDatabase</alias>
                             <run>
                                 <network>
                                     <mode>custom</mode>
-                                    <name>${TESTING_DATABASE_NETWORK}</name>
+                                    <name>${test.database.network}</name>
                                 </network>
                                 <ports>
-                                    <port>5445:5432</port>
+                                    <port>${test.database.port}:5432</port>
                                 </ports>
                               <env>
                                     <POSTGRES_PASSWORD>changeMe</POSTGRES_PASSWORD>
@@ -207,7 +210,25 @@
                                     <LOCAL_NETWORK_NAME>nldi</LOCAL_NETWORK_NAME>
                               </env>
                               <wait>
-                                    <time>45000</time>
+                                  <!--
+                                    Stops waiting once the logs print this line (regex match).
+                                    Otherwise, fails at end of <time> duration.
+                                  -->
+                                  <log>^PostgreSQL init process complete; ready for start up\.$</log>
+                                  <time>45000</time>
+                                  <exec>
+                                      <!--
+                                        TODO: Replace this with a clean approach.
+                                        This creates _temp tables that were in an older version of the CI database.
+                                        We should no longer expect _temp tables to hand around. We can still use _temp
+                                        tables for testing, but an integrated approach should be found to replace this.
+                                        NOTE: The backlashes are escaping the spaces so everything is passed in correctly.
+                                      -->
+                                      <postStart>
+                                          psql -U postgres -d nldi_db_name -c CREATE\ TABLE\ nldi_data."feature;\ select\ *\ from\ pg_class;_temp"\ (LIKE\ nldi_data.feature);\ ALTER\ TABLE\ nldi_data."feature;\ select\ *\ from\ pg_class;_temp"\ OWNER\ TO\ read_only_user;\ CREATE\ TABLE\ nldi_data.feature_wqp_temp\ (LIKE\ nldi_data.feature);\ ALTER\ TABLE\ nldi_data.feature_wqp_temp\ OWNER\ TO\ read_only_user;\ CREATE\ TABLE\ nldi_data.feature_np21_nwis_temp\ (LIKE\ nldi_data.feature);\ ALTER\ TABLE\ nldi_data.feature_np21_nwis_temp\ OWNER\ TO\ read_only_user;
+                                      </postStart>
+                                      <breakOnError>true</breakOnError>
+                                  </exec>
                               </wait>
                              </run>
                        </image>

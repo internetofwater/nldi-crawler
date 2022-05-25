@@ -1,5 +1,43 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <dataset>
+	<table name='nhdplus.nhdflowline_np21'>
+		<column>objectid</column>
+		<column>permanent_identifier</column>
+		<column>nhdplus_comid</column>
+		<column>fdate</column>
+		<column>resolution</column>
+		<column>lengthkm</column>
+		<column>reachcode</column>
+		<column>flowdir</column>
+		<column>ftype</column>
+		<column>fcode</column>
+		<column>reachsmdate</column>
+		<column>fmeasure</column>
+		<column>tmeasure</column>
+		<column>wbd_huc12</column>
+		<column>nhdplus_region</column>
+		<column>nhdplus_version</column>
+		<column>navigable</column>
+		<row>
+			<value>2654842</value>
+			<value>13294322</value>
+			<value>13294322</value>
+			<value>2009-05-01 00:00:00.000</value>
+			<value>3.0000000000</value>
+			<value>2.38964506143</value>
+			<value>07090002008351</value>
+			<value>1</value>
+			<value>558</value>
+			<value>55800</value>
+			<value>2012-06-01 00:00:00.000</value>
+			<value>0.0000000000</value>
+			<value>100.0000000000</value>
+			<value>070900020702</value>
+			<value>07</value>
+			<value>021_04</value>
+			<value>Y</value>
+		</row>
+	</table>
 	<table name='nldi_data.feature; select * from pg_class;_temp'>
 		<column>crawler_source_id</column>
 		<column>identifier</column>
