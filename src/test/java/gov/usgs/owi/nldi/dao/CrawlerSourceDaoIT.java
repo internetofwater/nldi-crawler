@@ -36,6 +36,20 @@ public class CrawlerSourceDaoIT extends BaseIT {
 	public static final String TEST_TEMP_TABLE_NAME_POINT = TEST_TABLE_NAME_POINT + IngestDao.FEATURE_TABLE_TEMP_SUFFIX;
 	public static final String TEST_OLD_TABLE_NAME_POINT = TEST_TABLE_NAME_POINT + IngestDao.FEATURE_TABLE_OLD_SUFFIX;
 
+	public static final int TEST_SOURCE_ID_TOP_LEVEL = 5;
+	public static final String TEST_SOURCE_NAME_TOP_LEVEL = "Test Source 2";
+	public static final String TEST_SOURCE_SUFFIX_TOP_LEVEL = "TEST2";
+	public static final String TEST_SOURCE_URI_TOP_LEVEL = "http://test.org/station?mimeType=geojson";
+	public static final IngestType TEST_INGEST_TYPE_TOP_LEVEL = IngestType.point;
+	public static final String TEST_FEATURE_ID_TOP_LEVEL = "id";
+	public static final String TEST_FEATURE_NAME_TOP_LEVEL = "name";
+	public static final String TEST_FEATURE_URI_TOP_LEVEL = "myUri";
+	public static final String TEST_FEATURE_REACH_TOP_LEVEL = null;
+	public static final String TEST_FEATURE_MEASURE_TOP_LEVEL = null;
+	public static final String TEST_TABLE_NAME_TOP_LEVEL = IngestDao.FEATURE_TABLE_PREFIX + TEST_SOURCE_SUFFIX_TOP_LEVEL.toLowerCase();
+	public static final String TEST_TEMP_TABLE_NAME_TOP_LEVEL = TEST_TABLE_NAME_TOP_LEVEL + IngestDao.FEATURE_TABLE_TEMP_SUFFIX;
+	public static final String TEST_OLD_TABLE_NAME_TOP_LEVEL = TEST_TABLE_NAME_TOP_LEVEL + IngestDao.FEATURE_TABLE_OLD_SUFFIX;
+
 	public static final int TEST_SOURCE_ID_REACH = 3;
 	public static final String TEST_SOURCE_NAME_REACH = "HNDPlusV2_NWIS_Gages";
 	public static final String TEST_SOURCE_SUFFIX_REACH = "np21_nwis";
@@ -81,6 +95,21 @@ public class CrawlerSourceDaoIT extends BaseIT {
 		assertEquals(TEST_TABLE_NAME_REACH, crawlerSource.getTableName());
 		assertEquals(TEST_TEMP_TABLE_NAME_REACH, crawlerSource.getTempTableName());
 		assertEquals(TEST_OLD_TABLE_NAME_REACH, crawlerSource.getOldTableName());
+
+		crawlerSource = crawlerSourceDao.getById(5);
+		assertEquals(TEST_SOURCE_ID_TOP_LEVEL, crawlerSource.getId());
+		assertEquals(TEST_SOURCE_NAME_TOP_LEVEL, crawlerSource.getSourceName());
+		assertEquals(TEST_SOURCE_SUFFIX_TOP_LEVEL, crawlerSource.getSourceSuffix());
+		assertEquals(TEST_SOURCE_URI_TOP_LEVEL, crawlerSource.getSourceUri());
+		assertEquals(TEST_INGEST_TYPE_TOP_LEVEL, crawlerSource.getIngestType());
+		assertEquals(TEST_FEATURE_ID_TOP_LEVEL, crawlerSource.getFeatureId());
+		assertEquals(TEST_FEATURE_NAME_TOP_LEVEL, crawlerSource.getFeatureName());
+		assertEquals(TEST_FEATURE_URI_TOP_LEVEL, crawlerSource.getFeatureUri());
+		assertEquals(TEST_FEATURE_REACH_TOP_LEVEL, crawlerSource.getFeatureReach());
+		assertEquals(TEST_FEATURE_MEASURE_TOP_LEVEL, crawlerSource.getFeatureMeasure());
+		assertEquals(TEST_TABLE_NAME_TOP_LEVEL, crawlerSource.getTableName());
+		assertEquals(TEST_TEMP_TABLE_NAME_TOP_LEVEL, crawlerSource.getTempTableName());
+		assertEquals(TEST_OLD_TABLE_NAME_TOP_LEVEL, crawlerSource.getOldTableName());
 	}
 
 	public static CrawlerSource buildTestPointSource(int inId) {
@@ -94,6 +123,20 @@ public class CrawlerSourceDaoIT extends BaseIT {
 		crawlerSource.setFeatureUri(TEST_FEATURE_URI_POINT);
 		crawlerSource.setFeatureReach(TEST_FEATURE_REACH_POINT);
 		crawlerSource.setFeatureMeasure(TEST_FEATURE_MEASURE_POINT);
+		return crawlerSource;
+	}
+
+	public static CrawlerSource buildTestTopLevelIdSource(int inId) {
+		CrawlerSource crawlerSource = new CrawlerSource();
+		crawlerSource.setId(inId);
+		crawlerSource.setSourceName(TEST_SOURCE_NAME_TOP_LEVEL);
+		crawlerSource.setSourceSuffix(TEST_SOURCE_SUFFIX_TOP_LEVEL);
+		crawlerSource.setIngestType(TEST_INGEST_TYPE_TOP_LEVEL);
+		crawlerSource.setFeatureId(TEST_FEATURE_ID_TOP_LEVEL);
+		crawlerSource.setFeatureName(TEST_FEATURE_NAME_TOP_LEVEL);
+		crawlerSource.setFeatureUri(TEST_FEATURE_URI_TOP_LEVEL);
+		crawlerSource.setFeatureReach(TEST_FEATURE_REACH_TOP_LEVEL);
+		crawlerSource.setFeatureMeasure(TEST_FEATURE_MEASURE_TOP_LEVEL);
 		return crawlerSource;
 	}
 

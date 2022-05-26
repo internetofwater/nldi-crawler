@@ -1,0 +1,12 @@
+{
+	"type": "Feature",
+	"id": "123456",
+	"geometry": {
+		"type": "Point",
+		"coordinates": [-90.4444333, 35.4242424]
+	},
+	"properties": {
+		"name": "Test Data Name",
+		"myUri":"http://test.org/station?mimeType=geojson"
+	}
+}

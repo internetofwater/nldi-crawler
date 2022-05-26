@@ -3,7 +3,7 @@
 
     <groupId>gov.usgs.owi</groupId>
     <artifactId>nldi-crawler</artifactId>
-    <version>1.1.0-SNAPSHOT</version>
+    <version>1.2.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>nldi-crawler</name>
@@ -16,6 +16,10 @@
         <springfox.version>2.5.0</springfox.version>
         <jackson.version>2.9.8</jackson.version>
          <wma.artifactory.url>https://cida.usgs.gov/artifactory</wma.artifactory.url>
+        <test.database.network>nldi</test.database.network>
+        <test.database.address>127.0.0.1</test.database.address>
+        <test.database.port>5432</test.database.port>
+        <spotless.ratchetFrom>origin/master</spotless.ratchetFrom>
     </properties>
 
     <distributionManagement>
@@ -33,7 +37,8 @@
 
     <scm>
         <connection>scm:git:https://github.com/ACWI-SSWD/nldi-crawler.git</connection>
-        <developerConnection>scm:git:https://${env.GITHUB_USER}:${env.GITHUB_PASS}@github.com/ACWI-SSWD/nldi-crawler.git</developerConnection>
+        <!--suppress UnresolvedMavenProperty -->
+        <developerConnection>scm:git:https://${env.GITHUB_USER}:${env.GITHUB_PASS}@github.com/internetofwater/nldi-crawler.git</developerConnection>
         <url>https://github.com/ACWI-SSWD/nldi-crawler</url>
         <tag>HEAD</tag>
     </scm>
@@ -52,18 +57,18 @@
         <dependency>
             <groupId>org.mybatis.spring.boot</groupId>
             <artifactId>mybatis-spring-boot-starter</artifactId>
-            <version>2.1.3</version>
+            <version>2.2.2</version>
         </dependency>
 
         <dependency>
             <groupId>org.mybatis</groupId>
             <artifactId>mybatis</artifactId>
-            <version>3.5.5</version>
+            <version>3.5.10</version>
         </dependency>
         <dependency>
             <groupId>org.mybatis</groupId>
             <artifactId>mybatis-spring</artifactId>
-            <version>2.0.5</version>
+            <version>2.0.7</version>
         </dependency>
 
         <dependency>
@@ -92,7 +97,7 @@
         <dependency>
             <groupId>org.mybatis.spring.boot</groupId>
             <artifactId>mybatis-spring-boot-starter-test</artifactId>
-            <version>2.1.3</version>
+            <version>2.2.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -140,8 +145,7 @@
 
                 <configuration>
                     <environmentVariables>
-                        <nldiDbUrl>${nldi.url}</nldiDbUrl>
-                        <nldiDbUrl>jdbc:postgresql://${TESTING_DATABASE_ADDRESS}:${TESTING_DATABASE_PORT}/nldi_db_name</nldiDbUrl>
+                        <nldiDbUrl>jdbc:postgresql://${test.database.address}:${test.database.port}/nldi_db_name</nldiDbUrl>
                         <nldiUsername>nldi_schema_owner</nldiUsername>
                         <nldiPassword>changeMe</nldiPassword>
                         <dbUnitUsername>nldi</dbUnitUsername>
@@ -160,7 +164,7 @@
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
-                <version>0.33.0</version>
+                <version>0.39.1</version>
                 <executions>
                     <execution>
                         <id>start</id>
@@ -183,15 +187,15 @@
                    <containerNamePattern>%a</containerNamePattern>
                    <images>
                         <image>
-                            <name>usgswma/nldi-db:ci</name>
+                            <name>ghcr.io/internetofwater/nldi-db:ci</name>
                             <alias>nldiDatabase</alias>
                             <run>
                                 <network>
                                     <mode>custom</mode>
-                                    <name>${TESTING_DATABASE_NETWORK}</name>
+                                    <name>${test.database.network}</name>
                                 </network>
                                 <ports>
-                                    <port>5445:5432</port>
+                                    <port>${test.database.port}:5432</port>
                                 </ports>
                               <env>
                                     <POSTGRES_PASSWORD>changeMe</POSTGRES_PASSWORD>
@@ -207,7 +211,25 @@
                                     <LOCAL_NETWORK_NAME>nldi</LOCAL_NETWORK_NAME>
                               </env>
                               <wait>
-                                    <time>45000</time>
+                                  <!--
+                                    Stops waiting once the logs print this line (regex match).
+                                    Otherwise, fails at end of <time> duration.
+                                  -->
+                                  <log>^PostgreSQL init process complete; ready for start up\.$</log>
+                                  <time>45000</time>
+                                  <exec>
+                                      <!--
+                                        TODO: Replace this with a clean approach.
+                                        This creates _temp tables that were in an older version of the CI database.
+                                        We should no longer expect _temp tables to hand around. We can still use _temp
+                                        tables for testing, but an integrated approach should be found to replace this.
+                                        NOTE: The backlashes are escaping the spaces so everything is passed in correctly.
+                                      -->
+                                      <postStart>
+                                          psql -U postgres -d nldi_db_name -c CREATE\ TABLE\ nldi_data."feature;\ select\ *\ from\ pg_class;_temp"\ (LIKE\ nldi_data.feature);\ ALTER\ TABLE\ nldi_data."feature;\ select\ *\ from\ pg_class;_temp"\ OWNER\ TO\ read_only_user;\ CREATE\ TABLE\ nldi_data.feature_wqp_temp\ (LIKE\ nldi_data.feature);\ ALTER\ TABLE\ nldi_data.feature_wqp_temp\ OWNER\ TO\ read_only_user;\ CREATE\ TABLE\ nldi_data.feature_np21_nwis_temp\ (LIKE\ nldi_data.feature);\ ALTER\ TABLE\ nldi_data.feature_np21_nwis_temp\ OWNER\ TO\ read_only_user;
+                                      </postStart>
+                                      <breakOnError>true</breakOnError>
+                                  </exec>
                               </wait>
                              </run>
                        </image>
@@ -217,7 +239,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.5</version>
+                <version>0.8.8</version>
                 <executions>
                     <execution>
                         <goals>
@@ -232,6 +254,46 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>2.22.5</version>
+                <configuration>
+                    <ratchetFrom>${spotless.ratchetFrom}</ratchetFrom>
+                    <formats>
+                        <!-- you can define as many formats as you want, each is independent -->
+                        <format>
+                            <!-- define the files to apply to -->
+                            <includes>
+                                <include>**/*.json</include>
+                                <include>.gitignore</include>
+                            </includes>
+                            <!-- define the steps to apply to those files -->
+                            <trimTrailingWhitespace/>
+                            <endWithNewline/>
+                            <indent>
+                                <tabs>true</tabs>
+                                <spacesPerTab>4</spacesPerTab>
+                            </indent>
+                        </format>
+                    </formats>
+                    <!-- language-specific format -->
+                    <java>
+                        <includes>
+                            <include>src/main/java/**/*.java</include>
+                            <include>src/test/java/**/*.java</include>
+                        </includes>
+                        <trimTrailingWhitespace/>
+                        <endWithNewline/>
+                        <!-- apply a specific flavor of google-java-format and reflow long strings -->
+                        <googleJavaFormat>
+                            <version>1.14.0</version>
+                            <style>GOOGLE</style>
+                            <reflowLongStrings>true</reflowLongStrings>
+                        </googleJavaFormat>
+                    </java>
+                </configuration>
             </plugin>
         </plugins>
     </build>

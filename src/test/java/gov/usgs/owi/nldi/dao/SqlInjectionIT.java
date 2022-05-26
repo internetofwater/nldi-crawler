@@ -2,8 +2,6 @@ package gov.usgs.owi.nldi.dao;
 
 import static org.mockito.Mockito.when;
 
-import java.net.URISyntaxException;
-
 
 import org.junit.Before;
 import org.junit.Test;
@@ -23,7 +21,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 /** 
  * This class shows that the plpgsql functions have sql injection protection built in them.
- * They are written to treat the passed in value as the table name, and will wrap it with double quotes ass needed to enforce that.
+ * They are written to treat the passed in value as the table name, and will wrap it with double quotes as needed to enforce that.
  * The tests do not show that embedded double quotes will be escaped due to the limitations of DBUnit.
  */
 @SpringBootTest(webEnvironment=SpringBootTest.WebEnvironment.NONE,
@@ -56,7 +54,8 @@ public class SqlInjectionIT extends BaseIT{
 	@ExpectedDatabase(
 			table="nldi_data.feature; select * from pg_class;",
 			query=TEST_QUERY,
-			value="classpath:/testResult/sqlinjection/ingestorDbIntegration.xml",assertionMode=DatabaseAssertionMode.NON_STRICT_UNORDERED)
+			value="classpath:/testResult/sqlinjection/ingestorDbIntegration.xml",
+			assertionMode=DatabaseAssertionMode.NON_STRICT_UNORDERED)
 	public void installDataTest() {
 		ingestDao.installData(crawlerSource);
 	}
@@ -66,7 +65,8 @@ public class SqlInjectionIT extends BaseIT{
 	@ExpectedDatabase(
 			table="nldi_data.feature; select * from pg_class;_temp",
 			query=TEST_QUERY_TEMP,
-			value="classpath:/testResult/sqlinjection/tempTablePoint.xml",assertionMode=DatabaseAssertionMode.NON_STRICT_UNORDERED)
+			value="classpath:/testResult/sqlinjection/tempTablePoint.xml",
+			assertionMode=DatabaseAssertionMode.NON_STRICT_UNORDERED)
 	public void linkPointTest() {
 		ingestDao.linkPoint(crawlerSource);
 	}
@@ -76,13 +76,16 @@ public class SqlInjectionIT extends BaseIT{
 	@ExpectedDatabase(
 			table="nldi_data.feature; select * from pg_class;_temp",
 			query=TEST_QUERY_TEMP,
-			value="classpath:/testResult/sqlinjection/tempTableReach.xml",assertionMode=DatabaseAssertionMode.NON_STRICT_UNORDERED)
+			value="classpath:/testResult/sqlinjection/tempTableReach.xml",
+			assertionMode=DatabaseAssertionMode.NON_STRICT_UNORDERED)
 	public void linkReachMeasureTest() {
 		ingestDao.linkReachMeasure(crawlerSource);
 	}
 
 	@Test
-	@ExpectedDatabase(value="classpath:/testResult/sqlinjection/tempTable.xml",assertionMode=DatabaseAssertionMode.NON_STRICT_UNORDERED)
+	@ExpectedDatabase(
+			value="classpath:/testResult/sqlinjection/tempTable.xml",
+			assertionMode=DatabaseAssertionMode.NON_STRICT_UNORDERED)
 	public void clearTempTableSqlInjectionTest() {
 		ingestDao.clearTempTable(crawlerSource);
 	}
@@ -94,7 +97,7 @@ public class SqlInjectionIT extends BaseIT{
 			query=TEST_QUERY_TEMP,
 			value="classpath:/testResult/sqlinjection/addFeature.xml",
 			assertionMode=DatabaseAssertionMode.NON_STRICT_UNORDERED)
-	public void addFeatureTest() throws URISyntaxException {
+	public void addFeatureTest() {
 		featureDao.addFeature(FeatureDaoIT.buildTestFeature(crawlerSource));
 	}
 
