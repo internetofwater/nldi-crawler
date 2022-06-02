@@ -1,19 +1,5 @@
 package gov.usgs.owi.nldi.service;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.Iterator;
-
-import mil.nga.sf.geojson.FeatureConverter;
-import org.postgis.Point;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.lang.NonNull;
-import org.springframework.stereotype.Component;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -23,244 +9,264 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
-
 import gov.usgs.owi.nldi.dao.FeatureDao;
 import gov.usgs.owi.nldi.dao.IngestDao;
 import gov.usgs.owi.nldi.domain.CrawlerSource;
 import gov.usgs.owi.nldi.domain.Feature;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.Iterator;
+import mil.nga.sf.geojson.FeatureConverter;
+import org.postgis.Point;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
 
 @Component
 public class Ingestor {
-	private static final Logger LOG = LoggerFactory.getLogger(Ingestor.class);
-	private IngestDao ingestDao;
-	private FeatureDao featureDao;
-	private HttpUtils httpUtils;
+  private static final Logger LOG = LoggerFactory.getLogger(Ingestor.class);
+  private IngestDao ingestDao;
+  private FeatureDao featureDao;
+  private HttpUtils httpUtils;
 
-	public static final String GEOJSON_FEATURES = "features";
-	public static final String GEOJSON_PROPERTIES = "properties";
-	public static final String GEOJSON_GEOMETRY = "geometry";
-	public static final String GEOJSON_TYPE = "type";
-	public static final String GEOJSON_COORDINATES = "coordinates";
+  public static final String GEOJSON_FEATURES = "features";
+  public static final String GEOJSON_PROPERTIES = "properties";
+  public static final String GEOJSON_GEOMETRY = "geometry";
+  public static final String GEOJSON_TYPE = "type";
+  public static final String GEOJSON_COORDINATES = "coordinates";
 
-	public static final String GEOJSON_TYPE_POINT = "Point";
+  public static final String GEOJSON_TYPE_POINT = "Point";
 
-	@Autowired
-	public Ingestor(IngestDao ingestDao, FeatureDao featureDao, HttpUtils httpUtils) {
-		this.ingestDao = ingestDao;
-		this.featureDao = featureDao;
-		this.httpUtils = httpUtils;
-	}
+  @Autowired
+  public Ingestor(IngestDao ingestDao, FeatureDao featureDao, HttpUtils httpUtils) {
+    this.ingestDao = ingestDao;
+    this.featureDao = featureDao;
+    this.httpUtils = httpUtils;
+  }
 
-	public void ingest(int sourceID) {
-		LOG.trace("Getting crawler source from ID " + sourceID);
-		CrawlerSource crawlerSource = CrawlerSource.getDao().getById(sourceID);
+  public void ingest(int sourceID) {
+    LOG.trace("Getting crawler source from ID " + sourceID);
+    CrawlerSource crawlerSource = CrawlerSource.getDao().getById(sourceID);
 
-		LOG.trace("Initializing temporary table.");
-		ingestDao.initTempTable(crawlerSource.getTempTableName());
+    LOG.trace("Initializing temporary table.");
+    ingestDao.initTempTable(crawlerSource.getTempTableName());
 
-		File file;
+    File file;
 
-		try {
-			LOG.info("Beginning call to " + crawlerSource.getSourceUri() + " for file retrieval.");
-			file = httpUtils.callSourceSystem(crawlerSource);
-			LOG.info("File retrieval from " + crawlerSource.getSourceUri() + " complete.");
-		} catch (IOException exception) {
-			LOG.error("File retrieval from " + crawlerSource.getSourceUri() + " failed.");
-			LOG.error(exception.getMessage());
-			return;
-		}
+    try {
+      LOG.info("Beginning call to " + crawlerSource.getSourceUri() + " for file retrieval.");
+      file = httpUtils.callSourceSystem(crawlerSource);
+      LOG.info("File retrieval from " + crawlerSource.getSourceUri() + " complete.");
+    } catch (IOException exception) {
+      LOG.error("File retrieval from " + crawlerSource.getSourceUri() + " failed.");
+      LOG.error(exception.getMessage());
+      return;
+    }
 
-		try {
-			processSourceData(crawlerSource, file);
-		} catch (Exception exception) {
-			LOG.error("Failed processing source data.");
-			LOG.error(exception.getMessage());
-			return;
-		}
+    try {
+      processSourceData(crawlerSource, file);
+    } catch (Exception exception) {
+      LOG.error("Failed processing source data.");
+      LOG.error(exception.getMessage());
+      return;
+    }
 
-		linkCatchment(crawlerSource);
+    linkCatchment(crawlerSource);
 
-		LOG.info("Beginning install of the new data.");
-		ingestDao.installData(crawlerSource);
-		LOG.info("Finished installing the new data.");
-	}
+    LOG.info("Beginning install of the new data.");
+    ingestDao.installData(crawlerSource);
+    LOG.info("Finished installing the new data.");
+  }
 
-	public void processSourceData(CrawlerSource crawlerSource, File file) throws JsonIOException, JsonSyntaxException, IOException {
-		LOG.info("Beginning processing of source data.");
+  public void processSourceData(CrawlerSource crawlerSource, File file)
+      throws JsonIOException, JsonSyntaxException, IOException {
+    LOG.info("Beginning processing of source data.");
 
-		// We are expecting GeoJSON
-		// with source specific properties registered in the crawler_source table.
-		Gson gson = new GsonBuilder().create();
-		int count = 0;
+    // We are expecting GeoJSON
+    // with source specific properties registered in the crawler_source table.
+    Gson gson = new GsonBuilder().create();
+    int count = 0;
 
-		JsonReader reader = new JsonReader(new FileReader(file));
-		
-		reader.beginObject();
-		//First, get to the "features" array.
-		Boolean foundFeatures = false;
-		 do {
-			JsonToken token = reader.peek();
-			switch (token) {
-				case NAME:
-					String propName = reader.nextName();
-					if (propName.equals(GEOJSON_FEATURES)) {
-						foundFeatures = true;
-					}
-					break;
-				case BEGIN_ARRAY: 
-				case BEGIN_OBJECT:
-					reader.skipValue();
-					break;
-				case STRING:
-				case NUMBER:
-					reader.nextString();
-					break;
-				case BOOLEAN:
-					reader.nextBoolean();
-					break;
-				case NULL:
-					reader.nextNull();
-					break;
-			}		
-		} while (!foundFeatures && reader.hasNext());
+    JsonReader reader = new JsonReader(new FileReader(file));
 
-		//Then process it.
-		 try {
-			 reader.beginArray();
-		 } catch (IllegalStateException exception) {
-			 throw new JsonIOException("Unable to find features array. Input file may be malformed.");
-		 }
+    reader.beginObject();
+    // First, get to the "features" array.
+    Boolean foundFeatures = false;
+    do {
+      JsonToken token = reader.peek();
+      switch (token) {
+        case NAME:
+          String propName = reader.nextName();
+          if (propName.equals(GEOJSON_FEATURES)) {
+            foundFeatures = true;
+          }
+          break;
+        case BEGIN_ARRAY:
+        case BEGIN_OBJECT:
+          reader.skipValue();
+          break;
+        case STRING:
+        case NUMBER:
+          reader.nextString();
+          break;
+        case BOOLEAN:
+          reader.nextBoolean();
+          break;
+        case NULL:
+          reader.nextNull();
+          break;
+      }
+    } while (!foundFeatures && reader.hasNext());
 
-		while (reader.hasNext()) {
-			JsonObject jsonFeature = gson.fromJson(reader, JsonObject.class);
-			featureDao.addFeature(buildFeature(crawlerSource, jsonFeature), crawlerSource);
-			count = count + 1;
-		}
-		reader.endArray();
+    // Then process it.
+    try {
+      reader.beginArray();
+    } catch (IllegalStateException exception) {
+      throw new JsonIOException("Unable to find features array. Input file may be malformed.");
+    }
 
-		reader.close();
-		LOG.info("Finished processing a total of " + count + " features.");
-	}
+    while (reader.hasNext()) {
+      JsonObject jsonFeature = gson.fromJson(reader, JsonObject.class);
+      featureDao.addFeature(buildFeature(crawlerSource, jsonFeature), crawlerSource);
+      count = count + 1;
+    }
+    reader.endArray();
 
-	public void linkCatchment(CrawlerSource crawlerSource) {
-		LOG.info("Beginning process of linking data.");
-		switch (crawlerSource.getIngestType()) {
-		case point:
-			LOG.info("Ingest type recognized as point.");
-			ingestDao.linkPoint(crawlerSource.getTempTableName());
-			break;
-		case reach:
-			LOG.info("Ingest type recognized as reach.");
-			ingestDao.linkReachMeasure(crawlerSource.getTempTableName());
-			break;
-		default:
-			LOG.info("Ingest type not recognized. Skipping data linking.");
-			break;
-		}
-		LOG.info("Data linking complete.");
-	}
+    reader.close();
+    LOG.info("Finished processing a total of " + count + " features.");
+  }
 
-	protected Iterator<JsonElement> getResponseIterator(Object obj) {
-		Iterator<JsonElement> rtn = null;
-		if (obj instanceof JsonObject) {
-			JsonObject jsonObject = (JsonObject) obj;
-			if (null != jsonObject
-					&& jsonObject.has(GEOJSON_FEATURES) && jsonObject.get(GEOJSON_FEATURES).isJsonArray()) {
-				rtn = jsonObject.getAsJsonArray(GEOJSON_FEATURES).iterator();
-			}
-		}
-		return rtn;
-	}
+  public void linkCatchment(CrawlerSource crawlerSource) {
+    LOG.info("Beginning process of linking data.");
+    switch (crawlerSource.getIngestType()) {
+      case point:
+        LOG.info("Ingest type recognized as point.");
+        ingestDao.linkPoint(crawlerSource.getTempTableName());
+        break;
+      case reach:
+        LOG.info("Ingest type recognized as reach.");
+        ingestDao.linkReachMeasure(crawlerSource.getTempTableName());
+        break;
+      default:
+        LOG.info("Ingest type not recognized. Skipping data linking.");
+        break;
+    }
+    LOG.info("Data linking complete.");
+  }
 
-	protected Feature buildFeature(@NonNull CrawlerSource crawlerSource, JsonObject jsonFeature) {
-		Feature feature = new Feature();
+  protected Iterator<JsonElement> getResponseIterator(Object obj) {
+    Iterator<JsonElement> rtn = null;
+    if (obj instanceof JsonObject) {
+      JsonObject jsonObject = (JsonObject) obj;
+      if (null != jsonObject
+          && jsonObject.has(GEOJSON_FEATURES)
+          && jsonObject.get(GEOJSON_FEATURES).isJsonArray()) {
+        rtn = jsonObject.getAsJsonArray(GEOJSON_FEATURES).iterator();
+      }
+    }
+    return rtn;
+  }
 
-		feature.setCrawlerSource(crawlerSource);
-		feature.setPoint(getPoint(jsonFeature));
-		feature.setShape(getShape(jsonFeature));
+  protected Feature buildFeature(@NonNull CrawlerSource crawlerSource, JsonObject jsonFeature) {
+    Feature feature = new Feature();
 
-		JsonObject properties = getProperties(jsonFeature, crawlerSource.getFeatureId());
+    feature.setCrawlerSource(crawlerSource);
+    feature.setPoint(getPoint(jsonFeature));
+    feature.setShape(getShape(jsonFeature));
 
-		feature.setIdentifier(getString(crawlerSource.getFeatureId(), properties));
-		feature.setName(getString(crawlerSource.getFeatureName(), properties));
-		feature.setUri(getString(crawlerSource.getFeatureUri(), properties));
-		feature.setReachcode(getString(crawlerSource.getFeatureReach(), properties));
-		feature.setMeasure(getBigDecimal(crawlerSource.getFeatureMeasure(), properties));
+    JsonObject properties = getProperties(jsonFeature, crawlerSource.getFeatureId());
 
-		return feature;
-	}
+    feature.setIdentifier(getString(crawlerSource.getFeatureId(), properties));
+    feature.setName(getString(crawlerSource.getFeatureName(), properties));
+    feature.setUri(getString(crawlerSource.getFeatureUri(), properties));
+    feature.setReachcode(getString(crawlerSource.getFeatureReach(), properties));
+    feature.setMeasure(getBigDecimal(crawlerSource.getFeatureMeasure(), properties));
 
-	protected JsonObject getProperties(JsonObject feature, String featureId) {
-		JsonObject properties = null;
+    return feature;
+  }
 
-		if (null != feature
-				&& feature.has(GEOJSON_PROPERTIES) && feature.get(GEOJSON_PROPERTIES).isJsonObject()) {
-			properties = feature.getAsJsonObject(GEOJSON_PROPERTIES);
+  protected JsonObject getProperties(JsonObject feature, String featureId) {
+    JsonObject properties = null;
 
-			if (null != featureId && !properties.has(featureId) && feature.has(featureId)) {
-				properties.addProperty(featureId, feature.get(featureId).getAsString());
-			}
-		}
+    if (null != feature
+        && feature.has(GEOJSON_PROPERTIES)
+        && feature.get(GEOJSON_PROPERTIES).isJsonObject()) {
+      properties = feature.getAsJsonObject(GEOJSON_PROPERTIES);
 
-		return properties;
-	}
+      if (null != featureId && !properties.has(featureId) && feature.has(featureId)) {
+        properties.addProperty(featureId, feature.get(featureId).getAsString());
+      }
+    }
 
-	protected Point getPoint(JsonObject feature) {
-		JsonObject geometry = null;
-		JsonArray coordinates = null;
-		Point point = null;
+    return properties;
+  }
 
-		if (null != feature
-				&& feature.has(GEOJSON_GEOMETRY) && feature.get(GEOJSON_GEOMETRY).isJsonObject()) {
-			geometry = feature.getAsJsonObject(GEOJSON_GEOMETRY);
-		}
+  protected Point getPoint(JsonObject feature) {
+    JsonObject geometry = null;
+    JsonArray coordinates = null;
+    Point point = null;
 
-		if (null != geometry
-				&& geometry.has(GEOJSON_TYPE) && GEOJSON_TYPE_POINT.equalsIgnoreCase(geometry.get(GEOJSON_TYPE).getAsString())
-				&& geometry.has(GEOJSON_COORDINATES) && geometry.get(GEOJSON_COORDINATES).isJsonArray()) {
-			coordinates = geometry.getAsJsonArray(GEOJSON_COORDINATES);
-		}
+    if (null != feature
+        && feature.has(GEOJSON_GEOMETRY)
+        && feature.get(GEOJSON_GEOMETRY).isJsonObject()) {
+      geometry = feature.getAsJsonObject(GEOJSON_GEOMETRY);
+    }
 
-		if (null != coordinates && 2 == coordinates.size()
-				&& !coordinates.get(0).isJsonNull() && !coordinates.get(1).isJsonNull()) {
-			try {
-				point = new Point(coordinates.get(0).getAsDouble(), coordinates.get(1).getAsDouble());
-				point.setSrid(Feature.DEFAULT_SRID);
-			} catch (Throwable e) {
-				LOG.info("Unable to determine point from coordinates:" + coordinates.get(0).toString() + "-" + coordinates.get(1).toString());
-			}
-		}
-		return point;
-	}
+    if (null != geometry
+        && geometry.has(GEOJSON_TYPE)
+        && GEOJSON_TYPE_POINT.equalsIgnoreCase(geometry.get(GEOJSON_TYPE).getAsString())
+        && geometry.has(GEOJSON_COORDINATES)
+        && geometry.get(GEOJSON_COORDINATES).isJsonArray()) {
+      coordinates = geometry.getAsJsonArray(GEOJSON_COORDINATES);
+    }
 
-	protected mil.nga.sf.geojson.Geometry getShape(@NonNull JsonObject feature) {
-		return FeatureConverter.toFeature(feature.toString()).getGeometry();
-	}
+    if (null != coordinates
+        && 2 == coordinates.size()
+        && !coordinates.get(0).isJsonNull()
+        && !coordinates.get(1).isJsonNull()) {
+      try {
+        point = new Point(coordinates.get(0).getAsDouble(), coordinates.get(1).getAsDouble());
+        point.setSrid(Feature.DEFAULT_SRID);
+      } catch (Throwable e) {
+        LOG.info(
+            "Unable to determine point from coordinates:"
+                + coordinates.get(0).toString()
+                + "-"
+                + coordinates.get(1).toString());
+      }
+    }
+    return point;
+  }
 
-	protected String getString(String name, JsonObject jsonObject) {
-		String value = null;
+  protected mil.nga.sf.geojson.Geometry getShape(@NonNull JsonObject feature) {
+    return FeatureConverter.toFeature(feature.toString()).getGeometry();
+  }
 
-		if (null != jsonObject
-				&& jsonObject.has(name) && jsonObject.get(name).isJsonPrimitive()) {
-			value = jsonObject.get(name).getAsString();
-		}
+  protected String getString(String name, JsonObject jsonObject) {
+    String value = null;
 
-		return value;
-	}
+    if (null != jsonObject && jsonObject.has(name) && jsonObject.get(name).isJsonPrimitive()) {
+      value = jsonObject.get(name).getAsString();
+    }
 
-	protected BigDecimal getBigDecimal(String name, JsonObject jsonObject) {
-		BigDecimal value = null;
+    return value;
+  }
 
-		if (null != jsonObject
-				&& jsonObject.has(name) && jsonObject.get(name).isJsonPrimitive()) {
-			try {
-				value = jsonObject.get(name).getAsBigDecimal();
-			} catch (NumberFormatException e) {
-				//Do nothing (return null) if not a valid BigDecimal value.
-			}
-		}
+  protected BigDecimal getBigDecimal(String name, JsonObject jsonObject) {
+    BigDecimal value = null;
 
-		return value;
-	}
+    if (null != jsonObject && jsonObject.has(name) && jsonObject.get(name).isJsonPrimitive()) {
+      try {
+        value = jsonObject.get(name).getAsBigDecimal();
+      } catch (NumberFormatException e) {
+        // Do nothing (return null) if not a valid BigDecimal value.
+      }
+    }
 
+    return value;
+  }
 }

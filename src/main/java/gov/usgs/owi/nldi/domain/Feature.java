@@ -1,7 +1,6 @@
 package gov.usgs.owi.nldi.domain;
 
 import java.math.BigDecimal;
-
 import mil.nga.sf.geojson.Geometry;
 import org.postgis.Point;
 import org.springframework.stereotype.Component;
@@ -9,96 +8,95 @@ import org.springframework.stereotype.Component;
 @Component
 public class Feature {
 
-	public static final int DEFAULT_SRID = 4269;
+  public static final int DEFAULT_SRID = 4269;
 
-	private CrawlerSource crawlerSource;
+  private CrawlerSource crawlerSource;
 
-	private String identifier;
+  private String identifier;
 
-	private String name;
+  private String name;
 
-	private String uri;
+  private String uri;
 
-	private Integer comid;
+  private Integer comid;
 
-	private Point point;
+  private Point point;
 
-	private String reachcode;
+  private String reachcode;
 
-	private BigDecimal measure;
+  private BigDecimal measure;
 
-	private Geometry shape;
+  private Geometry shape;
 
-	public CrawlerSource getCrawlerSource() {
-		return crawlerSource;
-	}
+  public CrawlerSource getCrawlerSource() {
+    return crawlerSource;
+  }
 
-	public void setCrawlerSource(final CrawlerSource inCrawlerSource) {
-		crawlerSource = inCrawlerSource;
-	}
+  public void setCrawlerSource(final CrawlerSource inCrawlerSource) {
+    crawlerSource = inCrawlerSource;
+  }
 
-	public String getIdentifier() {
-		return identifier;
-	}
+  public String getIdentifier() {
+    return identifier;
+  }
 
-	public void setIdentifier(final String inIdentifier) {
-		identifier = inIdentifier;
-	}
+  public void setIdentifier(final String inIdentifier) {
+    identifier = inIdentifier;
+  }
 
-	public String getName() {
-		return name;
-	}
+  public String getName() {
+    return name;
+  }
 
-	public void setName(final String inName) {
-		name = inName;
-	}
+  public void setName(final String inName) {
+    name = inName;
+  }
 
-	public String getUri() {
-		return uri;
-	}
+  public String getUri() {
+    return uri;
+  }
 
-	public void setUri(final String inUri) {
-		uri = inUri;
-	}
+  public void setUri(final String inUri) {
+    uri = inUri;
+  }
 
-	public Integer getComid() {
-		return comid;
-	}
+  public Integer getComid() {
+    return comid;
+  }
 
-	public void setComid(final Integer inComid) {
-		comid = inComid;
-	}
+  public void setComid(final Integer inComid) {
+    comid = inComid;
+  }
 
-	public Point getPoint() {
-		return point;
-	}
+  public Point getPoint() {
+    return point;
+  }
 
-	public void setPoint(final Point inPoint) {
-		point = inPoint;
-	}
+  public void setPoint(final Point inPoint) {
+    point = inPoint;
+  }
 
-	public String getReachcode() {
-		return reachcode;
-	}
+  public String getReachcode() {
+    return reachcode;
+  }
 
-	public void setReachcode(final String inReachcode) {
-		reachcode = inReachcode;
-	}
+  public void setReachcode(final String inReachcode) {
+    reachcode = inReachcode;
+  }
 
-	public BigDecimal getMeasure() {
-		return measure;
-	}
+  public BigDecimal getMeasure() {
+    return measure;
+  }
 
-	public void setMeasure(final BigDecimal inMeasure) {
-		measure = inMeasure;
-	}
+  public void setMeasure(final BigDecimal inMeasure) {
+    measure = inMeasure;
+  }
 
-	public Geometry getShape() {
-		return shape;
-	}
+  public Geometry getShape() {
+    return shape;
+  }
 
-	public void setShape(final Geometry inShape) {
-		shape = inShape;
-	}
-
+  public void setShape(final Geometry inShape) {
+    shape = inShape;
+  }
 }
