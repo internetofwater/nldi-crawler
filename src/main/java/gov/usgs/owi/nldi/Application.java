@@ -5,9 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.util.NumberUtils;
 
 import gov.usgs.owi.nldi.service.Ingestor;
+
+import java.security.InvalidParameterException;
 
 @SpringBootApplication
 public class Application implements CommandLineRunner {
@@ -23,7 +24,12 @@ public class Application implements CommandLineRunner {
 	}
 
 	@Override
-	public void run(String[] args) throws Exception {
-		ingestor.ingest(NumberUtils.parseNumber(args[0], Integer.class));
+	public void run(String[] args) {
+		if (args.length != 1) {
+			throw new InvalidParameterException("Invalid number of input parameters. Expected one integer parameter.");
+		}
+		Integer inputValue = Integer.parseInt(args[0]);
+
+		ingestor.ingest(inputValue);
 	}
 }
