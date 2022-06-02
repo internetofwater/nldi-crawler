@@ -82,7 +82,7 @@ public class Ingestor {
 		reader.beginObject();
 		//First, get to the "features" array.
 		Boolean foundFeatures = false;
-		while (!foundFeatures) {
+		 do {
 			JsonToken token = reader.peek();
 			switch (token) {
 				case NAME:
@@ -106,10 +106,15 @@ public class Ingestor {
 					reader.nextNull();
 					break;
 			}		
-		}
-		
+		} while (!foundFeatures && reader.hasNext());
+
 		//Then process it.
-		reader.beginArray();
+		 try {
+			 reader.beginArray();
+		 } catch (IllegalStateException exception) {
+			 throw new JsonIOException("Unable to find features array. Input file may be malformed.");
+		 }
+
 		while (reader.hasNext()) {
 			JsonObject jsonFeature = gson.fromJson(reader, JsonObject.class);
 			featureDao.addFeature(buildFeature(crawlerSource, jsonFeature));
