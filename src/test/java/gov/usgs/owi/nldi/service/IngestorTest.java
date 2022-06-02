@@ -1,10 +1,6 @@
 package gov.usgs.owi.nldi.service;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.never;
@@ -13,12 +9,11 @@ import static org.mockito.Mockito.verify;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Iterator;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.postgis.Point;
@@ -51,7 +46,7 @@ public class IngestorTest extends BaseTest{
 	CrawlerSource crawlerSourceReach;
 	CrawlerSource crawlerSourceTopLevelId;
 
-	@Before
+	@BeforeEach
 	public void initTest() {
 		MockitoAnnotations.initMocks(this);
 		ingestor = new Ingestor(ingestDao, featureDao, httpUtils);
@@ -62,42 +57,30 @@ public class IngestorTest extends BaseTest{
 
 	@Test
 	public void processSourceDataTest() throws Exception {
-		URL url = this.getClass().getResource("/testResult/json/wqp.geojson");
+		URL url = this.getClass().getResource("/testResult/ingestorTest/wqp.geojson");
 		ingestor.processSourceData(crawlerSourcePoint, new File(url.getFile()));
-		verify(featureDao, times(2)).addFeature(any(Feature.class));
+		verify(featureDao, times(2)).addFeature(any(Feature.class), any(CrawlerSource.class));
 	}
 	
 	@Test
 	public void processSourceDataWithProjectionTest() throws Exception {
-		URL url = this.getClass().getResource("/testResult/json/nwis_sites.geojson");
+		URL url = this.getClass().getResource("/testResult/ingestorTest/nwis_sites.geojson");
 		ingestor.processSourceData(crawlerSourcePoint, new File(url.getFile()));
-		verify(featureDao, times(2)).addFeature(any(Feature.class));
-	}
-
-	@Test
-	public void clearTempTableTest() {
-		ingestor.clearTempTable(crawlerSourcePoint);
-		verify(ingestDao).clearTempTable(crawlerSourcePoint);
+		verify(featureDao, times(2)).addFeature(any(Feature.class), any(CrawlerSource.class));
 	}
 
 	@Test
 	public void linkCatchmentPointTest() {
 		ingestor.linkCatchment(crawlerSourcePoint);
-		verify(ingestDao).linkPoint(crawlerSourcePoint);
-		verify(ingestDao, never()).linkReachMeasure(crawlerSourcePoint);
+		verify(ingestDao).linkPoint(crawlerSourcePoint.getTempTableName());
+		verify(ingestDao, never()).linkReachMeasure(any());
 	}
 
 	@Test
 	public void linkCatchmentReachTest() {
 		ingestor.linkCatchment(crawlerSourceReach);
-		verify(ingestDao, never()).linkPoint(crawlerSourceReach);
-		verify(ingestDao).linkReachMeasure(crawlerSourceReach);
-	}
-
-	@Test
-	public void installSourceDataTest() {
-		ingestor.installSourceData(crawlerSourcePoint);
-		verify(ingestDao).installData(crawlerSourcePoint);
+		verify(ingestDao, never()).linkPoint(any());
+		verify(ingestDao).linkReachMeasure(crawlerSourceReach.getTempTableName());
 	}
 
 	@Test
@@ -230,17 +213,20 @@ public class IngestorTest extends BaseTest{
 	}
 
 	@Test
-	public void buildFeatureTest() throws JsonSyntaxException, IOException, URISyntaxException {
+	public void buildFeatureTest() throws JsonSyntaxException, IOException {
 		JsonObject jsonFeature = gson.fromJson(getSourceFile("singleFeatureWqp.geojson"), JsonObject.class);
 
-		Feature feature = ingestor.buildFeature(null, null);
-		assertNull(feature.getCrawlerSource());
-		assertNull(feature.getPoint());
-		assertNull(feature.getIdentifier());
-		assertNull(feature.getName());
-		assertNull(feature.getUri());
+		// assert that null pointer exception is thrown
+		boolean thrown = false;
+		try {
+			ingestor.buildFeature(null, null);
+		} catch (NullPointerException exception) {
+			thrown = true;
+		} finally {
+			assertTrue(thrown);
+		}
 
-		feature = ingestor.buildFeature(crawlerSourcePoint, jsonFeature);
+		Feature feature = ingestor.buildFeature(crawlerSourcePoint, jsonFeature);
 		assertEquals(crawlerSourcePoint, feature.getCrawlerSource());
 		assertTrue(Double.valueOf(-93.6208333).equals(feature.getPoint().x));
 		assertTrue(Double.valueOf(36.4272222).equals(feature.getPoint().y));
@@ -252,13 +238,6 @@ public class IngestorTest extends BaseTest{
 
 
 		jsonFeature = gson.fromJson(getSourceFile("singleFeatureNp21Nwis.geojson"), JsonObject.class);
-	
-		feature = ingestor.buildFeature(null, null);
-		assertNull(feature.getCrawlerSource());
-		assertNull(feature.getPoint());
-		assertNull(feature.getIdentifier());
-		assertNull(feature.getName());
-		assertNull(feature.getUri());
 	
 		feature = ingestor.buildFeature(crawlerSourceReach, jsonFeature);
 		assertEquals(crawlerSourceReach, feature.getCrawlerSource());
@@ -272,17 +251,20 @@ public class IngestorTest extends BaseTest{
 	}
 
 	@Test
-	public void buildFeatureTopLevelIdTest() throws JsonSyntaxException, IOException, URISyntaxException {
+	public void buildFeatureTopLevelIdTest() throws JsonSyntaxException, IOException {
 		JsonObject jsonFeature = gson.fromJson(getSourceFile("singleFeatureTopLevelId.geojson"), JsonObject.class);
 
-		Feature feature = ingestor.buildFeature(null, null);
-		assertNull(feature.getCrawlerSource());
-		assertNull(feature.getPoint());
-		assertNull(feature.getIdentifier());
-		assertNull(feature.getName());
-		assertNull(feature.getUri());
+		// assert that null pointer exception is thrown
+		boolean thrown = false;
+		try {
+			ingestor.buildFeature(null, null);
+		} catch (NullPointerException exception) {
+			thrown = true;
+		} finally {
+			assertTrue(thrown);
+		}
 
-		feature = ingestor.buildFeature(crawlerSourceTopLevelId, jsonFeature);
+		Feature feature = ingestor.buildFeature(crawlerSourceTopLevelId, jsonFeature);
 		assertEquals(crawlerSourceTopLevelId, feature.getCrawlerSource());
 		assertTrue(Double.valueOf(-90.4444333).equals(feature.getPoint().x));
 		assertTrue(Double.valueOf(35.4242424).equals(feature.getPoint().y));

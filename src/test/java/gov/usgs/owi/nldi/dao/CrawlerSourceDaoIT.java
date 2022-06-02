@@ -2,7 +2,7 @@ package gov.usgs.owi.nldi.dao;
 
 import static org.junit.Assert.assertEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.github.springtestdbunit.annotation.DatabaseSetup;
 
@@ -16,7 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
 @SpringBootTest(webEnvironment=WebEnvironment.NONE,
 	classes={DbTestConfig.class, CrawlerSourceDao.class})
-@DatabaseSetup("classpath:/testData/crawlerSource.xml")
+@DatabaseSetup("classpath:/testData/crawlerSourceDaoIT/crawlerSource.xml")
 public class CrawlerSourceDaoIT extends BaseIT {
 	
 	@Autowired
@@ -32,9 +32,9 @@ public class CrawlerSourceDaoIT extends BaseIT {
 	public static final String TEST_FEATURE_URI_POINT = "siteUrl";
 	public static final String TEST_FEATURE_REACH_POINT = null;
 	public static final String TEST_FEATURE_MEASURE_POINT = null;
-	public static final String TEST_TABLE_NAME_POINT = IngestDao.FEATURE_TABLE_PREFIX + TEST_SOURCE_SUFFIX_POINT.toLowerCase();
-	public static final String TEST_TEMP_TABLE_NAME_POINT = TEST_TABLE_NAME_POINT + IngestDao.FEATURE_TABLE_TEMP_SUFFIX;
-	public static final String TEST_OLD_TABLE_NAME_POINT = TEST_TABLE_NAME_POINT + IngestDao.FEATURE_TABLE_OLD_SUFFIX;
+	public static final String TEST_TABLE_NAME_POINT = CrawlerSource.FEATURE_TABLE_PREFIX + TEST_SOURCE_SUFFIX_POINT.toLowerCase();
+	public static final String TEST_TEMP_TABLE_NAME_POINT = TEST_TABLE_NAME_POINT + CrawlerSource.FEATURE_TABLE_TEMP_SUFFIX;
+	public static final String TEST_OLD_TABLE_NAME_POINT = TEST_TABLE_NAME_POINT + CrawlerSource.FEATURE_TABLE_OLD_SUFFIX;
 
 	public static final int TEST_SOURCE_ID_TOP_LEVEL = 5;
 	public static final String TEST_SOURCE_NAME_TOP_LEVEL = "Test Source 2";
@@ -46,9 +46,9 @@ public class CrawlerSourceDaoIT extends BaseIT {
 	public static final String TEST_FEATURE_URI_TOP_LEVEL = "myUri";
 	public static final String TEST_FEATURE_REACH_TOP_LEVEL = null;
 	public static final String TEST_FEATURE_MEASURE_TOP_LEVEL = null;
-	public static final String TEST_TABLE_NAME_TOP_LEVEL = IngestDao.FEATURE_TABLE_PREFIX + TEST_SOURCE_SUFFIX_TOP_LEVEL.toLowerCase();
-	public static final String TEST_TEMP_TABLE_NAME_TOP_LEVEL = TEST_TABLE_NAME_TOP_LEVEL + IngestDao.FEATURE_TABLE_TEMP_SUFFIX;
-	public static final String TEST_OLD_TABLE_NAME_TOP_LEVEL = TEST_TABLE_NAME_TOP_LEVEL + IngestDao.FEATURE_TABLE_OLD_SUFFIX;
+	public static final String TEST_TABLE_NAME_TOP_LEVEL = CrawlerSource.FEATURE_TABLE_PREFIX + TEST_SOURCE_SUFFIX_TOP_LEVEL.toLowerCase();
+	public static final String TEST_TEMP_TABLE_NAME_TOP_LEVEL = TEST_TABLE_NAME_TOP_LEVEL + CrawlerSource.FEATURE_TABLE_TEMP_SUFFIX;
+	public static final String TEST_OLD_TABLE_NAME_TOP_LEVEL = TEST_TABLE_NAME_TOP_LEVEL + CrawlerSource.FEATURE_TABLE_OLD_SUFFIX;
 
 	public static final int TEST_SOURCE_ID_REACH = 3;
 	public static final String TEST_SOURCE_NAME_REACH = "HNDPlusV2_NWIS_Gages";
@@ -60,9 +60,9 @@ public class CrawlerSourceDaoIT extends BaseIT {
 	public static final String TEST_FEATURE_URI_REACH = "FEATUREDET";
 	public static final String TEST_FEATURE_REACH_REACH = "REACHCODE";
 	public static final String TEST_FEATURE_MEASURE_REACH = "MEASURE";
-	public static final String TEST_TABLE_NAME_REACH = IngestDao.FEATURE_TABLE_PREFIX + TEST_SOURCE_SUFFIX_REACH.toLowerCase();
-	public static final String TEST_TEMP_TABLE_NAME_REACH = TEST_TABLE_NAME_REACH + IngestDao.FEATURE_TABLE_TEMP_SUFFIX;
-	public static final String TEST_OLD_TABLE_NAME_REACH = TEST_TABLE_NAME_REACH + IngestDao.FEATURE_TABLE_OLD_SUFFIX;
+	public static final String TEST_TABLE_NAME_REACH = CrawlerSource.FEATURE_TABLE_PREFIX + TEST_SOURCE_SUFFIX_REACH.toLowerCase();
+	public static final String TEST_TEMP_TABLE_NAME_REACH = TEST_TABLE_NAME_REACH + CrawlerSource.FEATURE_TABLE_TEMP_SUFFIX;
+	public static final String TEST_OLD_TABLE_NAME_REACH = TEST_TABLE_NAME_REACH + CrawlerSource.FEATURE_TABLE_OLD_SUFFIX;
 
 	@Test
 	public void getByIdTest() {

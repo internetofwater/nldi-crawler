@@ -32,7 +32,7 @@ public class DbTestConfig  {
 	private String dbUnitDatasourcePassword;
 
 	@Bean
-	public DataSource dataSource() throws Exception {
+	public DataSource dataSource() {
 		PGSimpleDataSource ds = new PGSimpleDataSource();
 		ds.setUrl(datasourceUrl);
 		ds.setUser(datasourceUsername);
@@ -41,7 +41,7 @@ public class DbTestConfig  {
 	}
 
 	@Bean
-	public DataSource dbUnitDataSource() throws Exception {
+	public DataSource dbUnitDataSource() {
 		PGSimpleDataSource ds = new PGSimpleDataSource();
 		ds.setUrl(datasourceUrl);
 		ds.setUser(dbUnitDatasourceUsername);

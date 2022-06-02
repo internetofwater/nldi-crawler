@@ -8,8 +8,11 @@ import static org.mockito.Mockito.verify;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import org.apache.ibatis.type.JdbcType;
 import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.postgis.PGgeometry;
@@ -22,7 +25,7 @@ public class PointTypeHandlerTest extends BaseTest{
 	@Mock
 	protected PreparedStatement ps;
 
-	@Before
+	@BeforeEach
 	public void initTest() {
 		MockitoAnnotations.initMocks(this);
 	}
@@ -38,7 +41,7 @@ public class PointTypeHandlerTest extends BaseTest{
 	public void setNullParameterTest() throws SQLException {
 		PointTypeHandler pth = new PointTypeHandler();
 		pth.setParameter(ps, 1, null, null);
-		verify(ps).setNull(eq(1), anyInt());
+		verify(ps).setNull(eq(1), eq(JdbcType.NULL.TYPE_CODE));
 	}
 
 }

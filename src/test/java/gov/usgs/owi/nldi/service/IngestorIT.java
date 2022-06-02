@@ -3,14 +3,10 @@ package gov.usgs.owi.nldi.service;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 
-
-import org.apache.http.client.ClientProtocolException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -26,6 +22,7 @@ import gov.usgs.owi.nldi.domain.CrawlerSource;
 import gov.usgs.owi.nldi.springinit.DbTestConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
 
 @SpringBootTest(webEnvironment=SpringBootTest.WebEnvironment.NONE,
 	classes={DbTestConfig.class, IngestDao.class, FeatureDao.class,
@@ -41,38 +38,52 @@ public class IngestorIT extends BaseIT {
 
 	private Ingestor ingestor;
 
-	@Before
+	@BeforeEach
 	public void initTest() {
 		MockitoAnnotations.initMocks(this);
 		ingestor = new Ingestor(ingestDao, featureDao, httpUtils);
 	}
 
 	@Test
-	@DatabaseSetup("classpath:/cleanup/featureWqpTemp.xml")
-	@DatabaseSetup("classpath:/testData/crawlerSource.xml")
+	@DatabaseSetup("classpath:/testData/ingestorIT/pointDbIntegrationTest.xml")
 	@ExpectedDatabase(
 			table="nldi_data.feature_wqp",
 			query="select crawler_source_id, identifier, name, uri, location, comid, st_x(location) long, st_y(location) lat from nldi_data.feature_wqp",
-			value="classpath:/testResult/ingestorPointDbIntegration.xml",
+			value="classpath:/testResult/ingestorIT/pointDbIntegrationTest.xml",
 			assertionMode=DatabaseAssertionMode.NON_STRICT_UNORDERED)
-	public void pointDbIntegrationTest() throws ClientProtocolException, IOException {
-		URL url = this.getClass().getResource("/testData/wqp.geojson");
-		when(httpUtils.callSourceSystem(any(CrawlerSource.class))).thenReturn(new File(url.getFile()));
+	public void pointDbIntegrationTest() throws IOException {
+		ClassPathResource resource = new ClassPathResource("/testData/ingestorIT/wqp.geojson");
+		when(httpUtils.callSourceSystem(any(CrawlerSource.class))).thenReturn(resource.getFile());
+
 		ingestor.ingest(1);
 	}
 
 	@Test
-	@DatabaseSetup("classpath:/cleanup/featureNp21NwisTemp.xml")
-	@DatabaseSetup("classpath:/testData/crawlerSource.xml")
+	@DatabaseSetup("classpath:/testData/ingestorIT/reachDbIntegrationTest.xml")
 	@ExpectedDatabase(
 			table="nldi_data.feature_np21_nwis",
 			query="select crawler_source_id, identifier, name, uri, location, comid, st_x(location) long, st_y(location) lat, reachcode, measure from nldi_data.feature_np21_nwis",
-			value="classpath:/testResult/ingestorReachDbIntegration.xml",
+			value="classpath:/testResult/ingestorIT/reachDbIntegrationTest.xml",
 			assertionMode=DatabaseAssertionMode.NON_STRICT_UNORDERED)
-	public void reachDbIntegrationTest() throws ClientProtocolException, IOException {
-		URL url = this.getClass().getResource("/testData/np21Nwis.geojson");
-		when(httpUtils.callSourceSystem(any(CrawlerSource.class))).thenReturn(new File(url.getFile()));
+	public void reachDbIntegrationTest() throws IOException {
+		ClassPathResource resource = new ClassPathResource("/testData/ingestorIT/np21Nwis.geojson");
+		when(httpUtils.callSourceSystem(any(CrawlerSource.class))).thenReturn(resource.getFile());
+
 		ingestor.ingest(3);
+	}
+
+	@Test
+	@DatabaseSetup("classpath:/testData/ingestorIT/shapeDbIntegrationTest.xml")
+	@ExpectedDatabase(
+			table="nldi_data.feature_shape",
+			query="select crawler_source_id, identifier, name, uri, comid, reachcode, measure, st_astext(shape) shape from nldi_data.feature_shape",
+			value="classpath:/testResult/ingestorIT/shapeDbIntegrationTest.xml",
+			assertionMode=DatabaseAssertionMode.NON_STRICT_UNORDERED)
+	public void shapeDbIntegrationTest() throws IOException {
+		ClassPathResource resource = new ClassPathResource("/testData/ingestorIT/shape.geojson");
+		when(httpUtils.callSourceSystem(any(CrawlerSource.class))).thenReturn(resource.getFile());
+
+		ingestor.ingest(13);
 	}
 
 }
