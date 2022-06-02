@@ -9,6 +9,10 @@ import gov.usgs.owi.nldi.dao.IngestDao;
 @Component
 public class CrawlerSource {
 
+	public static final String FEATURE_TABLE_PREFIX = "feature_";
+	public static final String FEATURE_TABLE_TEMP_SUFFIX = "_temp";
+	public static final String FEATURE_TABLE_OLD_SUFFIX = "_old";
+
 	private static CrawlerSourceDao crawlerSourceDao;
 
 	private int id;
@@ -114,15 +118,15 @@ public class CrawlerSource {
 	public String getTableName() {
 		//Sanitize the user-provided value as a sql injection prevention method.
 		String cleanSuffix = sourceSuffix.replaceAll("[^\\w]", "").toLowerCase();
-		return IngestDao.FEATURE_TABLE_PREFIX + cleanSuffix;
+		return FEATURE_TABLE_PREFIX + cleanSuffix;
 	}
 
 	public String getTempTableName() {
-		return getTableName() + IngestDao.FEATURE_TABLE_TEMP_SUFFIX;
+		return getTableName() + FEATURE_TABLE_TEMP_SUFFIX;
 	}
 
 	public Object getOldTableName() {
-		return getTableName() + IngestDao.FEATURE_TABLE_OLD_SUFFIX;
+		return getTableName() + FEATURE_TABLE_OLD_SUFFIX;
 	}
 
 	public static CrawlerSourceDao getDao() {

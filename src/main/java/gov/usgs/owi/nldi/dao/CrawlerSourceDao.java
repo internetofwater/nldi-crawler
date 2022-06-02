@@ -10,7 +10,7 @@ import gov.usgs.owi.nldi.domain.CrawlerSource;
 @Component
 public class CrawlerSourceDao extends BaseDao {
 
-	private static final String NS = "crawlerSource";
+	private static final String NS = "crawlerSource.";
 
 	@Autowired
 	public CrawlerSourceDao(SqlSessionFactory sqlSessionFactory) {
@@ -19,7 +19,7 @@ public class CrawlerSourceDao extends BaseDao {
 
 	@Transactional(readOnly = true)
 	public CrawlerSource getById(int id) {
-		return getSqlSession().selectOne(NS + GET_BY_ID, id);
+		return getSqlSession().selectOne(NS + "getById", id);
 	}
 
 }

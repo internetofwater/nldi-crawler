@@ -6,11 +6,12 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Iterator;
 
-import org.apache.http.client.ClientProtocolException;
+import mil.nga.sf.geojson.FeatureConverter;
 import org.postgis.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import com.google.gson.Gson;
@@ -50,32 +51,47 @@ public class Ingestor {
 		this.httpUtils = httpUtils;
 	}
 
-	public void ingest(int sourceID) throws ClientProtocolException, IOException {
+	public void ingest(int sourceID) {
+		LOG.trace("Getting crawler source from ID " + sourceID);
 		CrawlerSource crawlerSource = CrawlerSource.getDao().getById(sourceID);
 
-		clearTempTable(crawlerSource);
+		LOG.trace("Initializing temporary table.");
+		ingestDao.initTempTable(crawlerSource.getTempTableName());
 
-		LOG.info("***** about to call " + crawlerSource.getSourceUri() + " *****");
-		File file = httpUtils.callSourceSystem(crawlerSource);
-		LOG.info("***** back from call to " + crawlerSource.getSourceUri() + " *****");
+		File file;
 
-		processSourceData(crawlerSource, file);
+		try {
+			LOG.info("Beginning call to " + crawlerSource.getSourceUri() + " for file retrieval.");
+			file = httpUtils.callSourceSystem(crawlerSource);
+			LOG.info("File retrieval from " + crawlerSource.getSourceUri() + " complete.");
+		} catch (IOException exception) {
+			LOG.error("File retrieval from " + crawlerSource.getSourceUri() + " failed.");
+			LOG.error(exception.getMessage());
+			return;
+		}
+
+		try {
+			processSourceData(crawlerSource, file);
+		} catch (Exception exception) {
+			LOG.error("Failed processing source data.");
+			LOG.error(exception.getMessage());
+			return;
+		}
 
 		linkCatchment(crawlerSource);
-		LOG.info("***** done linking data *****");
 
-		installSourceData(crawlerSource);
-	}
-
-	public void clearTempTable(CrawlerSource crawlerSource) {
-		ingestDao.clearTempTable(crawlerSource);
+		LOG.info("Beginning install of the new data.");
+		ingestDao.installData(crawlerSource);
+		LOG.info("Finished installing the new data.");
 	}
 
 	public void processSourceData(CrawlerSource crawlerSource, File file) throws JsonIOException, JsonSyntaxException, IOException {
-		//We are expecting geojson 
-		//with source specific properties registered in the crawler_source table.
+		LOG.info("Beginning processing of source data.");
+
+		// We are expecting GeoJSON
+		// with source specific properties registered in the crawler_source table.
 		Gson gson = new GsonBuilder().create();
-		int cnt = 0;
+		int count = 0;
 
 		JsonReader reader = new JsonReader(new FileReader(file));
 		
@@ -117,30 +133,31 @@ public class Ingestor {
 
 		while (reader.hasNext()) {
 			JsonObject jsonFeature = gson.fromJson(reader, JsonObject.class);
-			featureDao.addFeature(buildFeature(crawlerSource, jsonFeature));
-			cnt = cnt + 1;
+			featureDao.addFeature(buildFeature(crawlerSource, jsonFeature), crawlerSource);
+			count = count + 1;
 		}
 		reader.endArray();
 
 		reader.close();
-		LOG.info("Done processing features:" + cnt);
+		LOG.info("Finished processing a total of " + count + " features.");
 	}
 
 	public void linkCatchment(CrawlerSource crawlerSource) {
+		LOG.info("Beginning process of linking data.");
 		switch (crawlerSource.getIngestType()) {
 		case point:
-			ingestDao.linkPoint(crawlerSource);
+			LOG.info("Ingest type recognized as point.");
+			ingestDao.linkPoint(crawlerSource.getTempTableName());
 			break;
 		case reach:
-			ingestDao.linkReachMeasure(crawlerSource);
+			LOG.info("Ingest type recognized as reach.");
+			ingestDao.linkReachMeasure(crawlerSource.getTempTableName());
 			break;
 		default:
+			LOG.info("Ingest type not recognized. Skipping data linking.");
 			break;
 		}
-	}
-
-	public void installSourceData(CrawlerSource crawlerSource) {
-		ingestDao.installData(crawlerSource);
+		LOG.info("Data linking complete.");
 	}
 
 	protected Iterator<JsonElement> getResponseIterator(Object obj) {
@@ -155,19 +172,20 @@ public class Ingestor {
 		return rtn;
 	}
 
-	protected Feature buildFeature(CrawlerSource crawlerSource, JsonObject jsonFeature) {
+	protected Feature buildFeature(@NonNull CrawlerSource crawlerSource, JsonObject jsonFeature) {
 		Feature feature = new Feature();
+
 		feature.setCrawlerSource(crawlerSource);
 		feature.setPoint(getPoint(jsonFeature));
+		feature.setShape(getShape(jsonFeature));
 
-		if (null != crawlerSource) {
-			JsonObject properties = getProperties(jsonFeature, crawlerSource.getFeatureId());
-			feature.setIdentifier(getString(crawlerSource.getFeatureId(), properties));
-			feature.setName(getString(crawlerSource.getFeatureName(), properties));
-			feature.setUri(getString(crawlerSource.getFeatureUri(), properties));
-			feature.setReachcode(getString(crawlerSource.getFeatureReach(), properties));
-			feature.setMeasure(getBigDecimal(crawlerSource.getFeatureMeasure(), properties));
-		}
+		JsonObject properties = getProperties(jsonFeature, crawlerSource.getFeatureId());
+
+		feature.setIdentifier(getString(crawlerSource.getFeatureId(), properties));
+		feature.setName(getString(crawlerSource.getFeatureName(), properties));
+		feature.setUri(getString(crawlerSource.getFeatureUri(), properties));
+		feature.setReachcode(getString(crawlerSource.getFeatureReach(), properties));
+		feature.setMeasure(getBigDecimal(crawlerSource.getFeatureMeasure(), properties));
 
 		return feature;
 	}
@@ -213,6 +231,10 @@ public class Ingestor {
 			}
 		}
 		return point;
+	}
+
+	protected mil.nga.sf.geojson.Geometry getShape(@NonNull JsonObject feature) {
+		return FeatureConverter.toFeature(feature.toString()).getGeometry();
 	}
 
 	protected String getString(String name, JsonObject jsonObject) {

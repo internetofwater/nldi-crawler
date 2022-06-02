@@ -2,6 +2,7 @@ package gov.usgs.owi.nldi.domain;
 
 import java.math.BigDecimal;
 
+import mil.nga.sf.geojson.Geometry;
 import org.postgis.Point;
 import org.springframework.stereotype.Component;
 
@@ -25,6 +26,8 @@ public class Feature {
 	private String reachcode;
 
 	private BigDecimal measure;
+
+	private Geometry shape;
 
 	public CrawlerSource getCrawlerSource() {
 		return crawlerSource;
@@ -88,6 +91,14 @@ public class Feature {
 
 	public void setMeasure(final BigDecimal inMeasure) {
 		measure = inMeasure;
+	}
+
+	public Geometry getShape() {
+		return shape;
+	}
+
+	public void setShape(final Geometry inShape) {
+		shape = inShape;
 	}
 
 }

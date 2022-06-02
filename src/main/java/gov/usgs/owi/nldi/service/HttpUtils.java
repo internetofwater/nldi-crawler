@@ -20,6 +20,7 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import gov.usgs.owi.nldi.domain.CrawlerSource;
@@ -37,7 +38,7 @@ public class HttpUtils {
 	// 15 seconds, default is infinite
 	private static int client_connection_timeout = 15 * 1000;
 
-	public File callSourceSystem(CrawlerSource crawlerSource) throws ClientProtocolException, IOException {
+	public File callSourceSystem(CrawlerSource crawlerSource) throws IOException {
 		HttpEntity httpEntity = null;
 		HttpResponse httpResponse;
 		PoolingHttpClientConnectionManager clientConnectionManager = new PoolingHttpClientConnectionManager(

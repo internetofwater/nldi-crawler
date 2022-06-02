@@ -5,6 +5,8 @@ import java.util.LinkedHashMap;
 
 import javax.sql.DataSource;
 
+import gov.usgs.owi.nldi.dao.typehandler.GeometryTypeHandler;
+import mil.nga.sf.geojson.Geometry;
 import org.apache.ibatis.type.TypeAliasRegistry;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 import org.mybatis.spring.SqlSessionFactoryBean;
@@ -56,6 +58,7 @@ public class MybatisConfig {
 	
 	private void registerHandlers(TypeHandlerRegistry registry) {
 		registry.register(Point.class, PointTypeHandler.class);
+		registry.register(Geometry.class, GeometryTypeHandler.class);
 	}
 	
 }
