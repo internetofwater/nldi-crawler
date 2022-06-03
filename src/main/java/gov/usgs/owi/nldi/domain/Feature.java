@@ -1,93 +1,102 @@
 package gov.usgs.owi.nldi.domain;
 
 import java.math.BigDecimal;
-
+import mil.nga.sf.geojson.Geometry;
 import org.postgis.Point;
 import org.springframework.stereotype.Component;
 
 @Component
 public class Feature {
 
-	public static final int DEFAULT_SRID = 4269;
+  public static final int DEFAULT_SRID = 4269;
 
-	private CrawlerSource crawlerSource;
+  private CrawlerSource crawlerSource;
 
-	private String identifier;
+  private String identifier;
 
-	private String name;
+  private String name;
 
-	private String uri;
+  private String uri;
 
-	private Integer comid;
+  private Integer comid;
 
-	private Point point;
+  private Point point;
 
-	private String reachcode;
+  private String reachcode;
 
-	private BigDecimal measure;
+  private BigDecimal measure;
 
-	public CrawlerSource getCrawlerSource() {
-		return crawlerSource;
-	}
+  private Geometry shape;
 
-	public void setCrawlerSource(final CrawlerSource inCrawlerSource) {
-		crawlerSource = inCrawlerSource;
-	}
+  public CrawlerSource getCrawlerSource() {
+    return crawlerSource;
+  }
 
-	public String getIdentifier() {
-		return identifier;
-	}
+  public void setCrawlerSource(final CrawlerSource inCrawlerSource) {
+    crawlerSource = inCrawlerSource;
+  }
 
-	public void setIdentifier(final String inIdentifier) {
-		identifier = inIdentifier;
-	}
+  public String getIdentifier() {
+    return identifier;
+  }
 
-	public String getName() {
-		return name;
-	}
+  public void setIdentifier(final String inIdentifier) {
+    identifier = inIdentifier;
+  }
 
-	public void setName(final String inName) {
-		name = inName;
-	}
+  public String getName() {
+    return name;
+  }
 
-	public String getUri() {
-		return uri;
-	}
+  public void setName(final String inName) {
+    name = inName;
+  }
 
-	public void setUri(final String inUri) {
-		uri = inUri;
-	}
+  public String getUri() {
+    return uri;
+  }
 
-	public Integer getComid() {
-		return comid;
-	}
+  public void setUri(final String inUri) {
+    uri = inUri;
+  }
 
-	public void setComid(final Integer inComid) {
-		comid = inComid;
-	}
+  public Integer getComid() {
+    return comid;
+  }
 
-	public Point getPoint() {
-		return point;
-	}
+  public void setComid(final Integer inComid) {
+    comid = inComid;
+  }
 
-	public void setPoint(final Point inPoint) {
-		point = inPoint;
-	}
+  public Point getPoint() {
+    return point;
+  }
 
-	public String getReachcode() {
-		return reachcode;
-	}
+  public void setPoint(final Point inPoint) {
+    point = inPoint;
+  }
 
-	public void setReachcode(final String inReachcode) {
-		reachcode = inReachcode;
-	}
+  public String getReachcode() {
+    return reachcode;
+  }
 
-	public BigDecimal getMeasure() {
-		return measure;
-	}
+  public void setReachcode(final String inReachcode) {
+    reachcode = inReachcode;
+  }
 
-	public void setMeasure(final BigDecimal inMeasure) {
-		measure = inMeasure;
-	}
+  public BigDecimal getMeasure() {
+    return measure;
+  }
 
+  public void setMeasure(final BigDecimal inMeasure) {
+    measure = inMeasure;
+  }
+
+  public Geometry getShape() {
+    return shape;
+  }
+
+  public void setShape(final Geometry inShape) {
+    shape = inShape;
+  }
 }

@@ -1,0 +1,21 @@
+{
+	"type": "FeatureCollection",
+	"features": [{
+		"type": "Feature",
+		"geometry": {
+			"type": "Point",
+			"coordinates": [-89.4728889, 43.1922222]
+		},
+		"properties": {
+			"ProviderName": "NWIS",
+			"OrganizationIdentifier": "USGS-WI",
+			"OrganizationFormalName": "USGS Wisconsin Water Science Center",
+			"MonitoringLocationIdentifier": "wqp;' drop table nldi_data.feature_wqp_temp;",
+			"MonitoringLocationName": "; select * from pg_class;",
+			"MonitoringLocationTypeName": "Stream",
+			"siteUrl": "wqp; select * from pg_class;",
+			"ResolvedMonitoringLocationTypeName": "Stream",
+			"HUCEightDigitCode": "07090002"
+		}
+	}]
+}

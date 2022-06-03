@@ -1,137 +1,138 @@
 package gov.usgs.owi.nldi.domain;
 
+import gov.usgs.owi.nldi.dao.CrawlerSourceDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import gov.usgs.owi.nldi.dao.CrawlerSourceDao;
-import gov.usgs.owi.nldi.dao.IngestDao;
 
 @Component
 public class CrawlerSource {
 
-	private static CrawlerSourceDao crawlerSourceDao;
+  public static final String FEATURE_TABLE_PREFIX = "feature_";
+  public static final String FEATURE_TABLE_TEMP_SUFFIX = "_temp";
+  public static final String FEATURE_TABLE_OLD_SUFFIX = "_old";
 
-	private int id;
+  private static CrawlerSourceDao crawlerSourceDao;
 
-	private String sourceName;
+  private int id;
 
-	private String sourceSuffix;
+  private String sourceName;
 
-	private String sourceUri;
+  private String sourceSuffix;
 
-	private IngestType ingestType;
+  private String sourceUri;
 
-	private String featureId;
+  private IngestType ingestType;
 
-	private String featureName;
+  private String featureId;
 
-	private String featureUri;
+  private String featureName;
 
-	private String featureReach;
+  private String featureUri;
 
-	private String featureMeasure;
+  private String featureReach;
 
-	public int getId() {
-		return id;
-	}
+  private String featureMeasure;
 
-	public void setId(final int inId) {
-		id = inId;
-	}
+  public int getId() {
+    return id;
+  }
 
-	public String getSourceName() {
-		return sourceName;
-	}
+  public void setId(final int inId) {
+    id = inId;
+  }
 
-	public void setSourceName(final String inSourceName) {
-		sourceName = inSourceName;
-	}
+  public String getSourceName() {
+    return sourceName;
+  }
 
-	public String getSourceSuffix() {
-		return sourceSuffix;
-	}
+  public void setSourceName(final String inSourceName) {
+    sourceName = inSourceName;
+  }
 
-	public void setSourceSuffix(final String inSourceSuffix) {
-		sourceSuffix = inSourceSuffix;
-	}
+  public String getSourceSuffix() {
+    return sourceSuffix;
+  }
 
-	public String getSourceUri() {
-		return sourceUri;
-	}
+  public void setSourceSuffix(final String inSourceSuffix) {
+    sourceSuffix = inSourceSuffix;
+  }
 
-	public void setSourceUri(final String inSourceUri) {
-		sourceUri = inSourceUri;
-	}
+  public String getSourceUri() {
+    return sourceUri;
+  }
 
-	public IngestType getIngestType() {
-		return ingestType;
-	}
+  public void setSourceUri(final String inSourceUri) {
+    sourceUri = inSourceUri;
+  }
 
-	public void setIngestType(final IngestType inIngestType) {
-		ingestType = inIngestType;
-	}
+  public IngestType getIngestType() {
+    return ingestType;
+  }
 
-	public String getFeatureId() {
-		return featureId;
-	}
+  public void setIngestType(final IngestType inIngestType) {
+    ingestType = inIngestType;
+  }
 
-	public void setFeatureId(final String inFeatureId) {
-		featureId = inFeatureId;
-	}
+  public String getFeatureId() {
+    return featureId;
+  }
 
-	public String getFeatureName() {
-		return featureName;
-	}
+  public void setFeatureId(final String inFeatureId) {
+    featureId = inFeatureId;
+  }
 
-	public void setFeatureName(final String inFeatureName) {
-		featureName = inFeatureName;
-	}
+  public String getFeatureName() {
+    return featureName;
+  }
 
-	public String getFeatureUri() {
-		return featureUri;
-	}
+  public void setFeatureName(final String inFeatureName) {
+    featureName = inFeatureName;
+  }
 
-	public void setFeatureUri(final String inFeatureUri) {
-		featureUri = inFeatureUri;
-	}
+  public String getFeatureUri() {
+    return featureUri;
+  }
 
-	public String getFeatureReach() {
-		return featureReach;
-	}
+  public void setFeatureUri(final String inFeatureUri) {
+    featureUri = inFeatureUri;
+  }
 
-	public void setFeatureReach(final String inFeatureReach) {
-		featureReach = inFeatureReach;
-	}
+  public String getFeatureReach() {
+    return featureReach;
+  }
 
-	public String getFeatureMeasure() {
-		return featureMeasure;
-	}
+  public void setFeatureReach(final String inFeatureReach) {
+    featureReach = inFeatureReach;
+  }
 
-	public void setFeatureMeasure(final String inFeatureMeasure) {
-		featureMeasure = inFeatureMeasure;
-	}
+  public String getFeatureMeasure() {
+    return featureMeasure;
+  }
 
-	public String getTableName() {
-		//Sanitize the user-provided value as a sql injection prevention method.
-		String cleanSuffix = sourceSuffix.replaceAll("[^\\w]", "").toLowerCase();
-		return IngestDao.FEATURE_TABLE_PREFIX + cleanSuffix;
-	}
+  public void setFeatureMeasure(final String inFeatureMeasure) {
+    featureMeasure = inFeatureMeasure;
+  }
 
-	public String getTempTableName() {
-		return getTableName() + IngestDao.FEATURE_TABLE_TEMP_SUFFIX;
-	}
+  public String getTableName() {
+    // Sanitize the user-provided value as a sql injection prevention method.
+    String cleanSuffix = sourceSuffix.replaceAll("[^\\w]", "").toLowerCase();
+    return FEATURE_TABLE_PREFIX + cleanSuffix;
+  }
 
-	public Object getOldTableName() {
-		return getTableName() + IngestDao.FEATURE_TABLE_OLD_SUFFIX;
-	}
+  public String getTempTableName() {
+    return getTableName() + FEATURE_TABLE_TEMP_SUFFIX;
+  }
 
-	public static CrawlerSourceDao getDao() {
-		return crawlerSourceDao;
-	}
+  public Object getOldTableName() {
+    return getTableName() + FEATURE_TABLE_OLD_SUFFIX;
+  }
 
-	@Autowired
-	public void setCrawlerSourceDao(final CrawlerSourceDao inCrawlerSourceDao) {
-		crawlerSourceDao = inCrawlerSourceDao;
-	}
+  public static CrawlerSourceDao getDao() {
+    return crawlerSourceDao;
+  }
 
+  @Autowired
+  public void setCrawlerSourceDao(final CrawlerSourceDao inCrawlerSourceDao) {
+    crawlerSourceDao = inCrawlerSourceDao;
+  }
 }

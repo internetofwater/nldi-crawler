@@ -3,32 +3,44 @@
 
 <mapper namespace="ingest">
 
-	<!-- Note that tempTableName is built on user-supplied data and must be sanitized to prevent possible
-		 sql injection. This sanitizing is done by CrawlerSource.getTableName and within the function. -->
-
 	<update id="linkPoint" >
-		select nldi_data.ingest_link_point(#{tempTableName,jdbcType=VARCHAR})
+		update nldi_data.${tempTableName,jdbcType=VARCHAR} upd_table
+			set comid = featureid
+		from nldi_data.${tempTableName,jdbcType=VARCHAR} src_table
+			join nhdplus.catchmentsp
+			on ST_covers(catchmentsp.the_geom, src_table.location)
+			where upd_table.crawler_source_id = src_table.crawler_source_id and
+				upd_table.identifier = src_table.identifier
 	</update>
 
-	<!-- Note that tempTableName is built on user-supplied data and must be sanitized to prevent possible
-		 sql injection. This sanitizing is done by CrawlerSource.getTableName and within the function. -->
-
-	<update id="linkReachMeasure" >
-		select nldi_data.ingest_link_reach_measure(#{tempTableName,jdbcType=VARCHAR})
+	<update id="linkReachMeasure">
+		update nldi_data.${tempTableName,jdbcType=VARCHAR} upd_table
+			set comid = nhdflowline_np21.nhdplus_comid
+		from nldi_data.${tempTableName,jdbcType=VARCHAR} src_table
+		    join nhdplus.nhdflowline_np21
+		    on nhdflowline_np21.reachcode = src_table.reachcode and
+		    	src_table.measure between nhdflowline_np21.fmeasure and nhdflowline_np21.tmeasure
+		    where upd_table.crawler_source_id = src_table.crawler_source_id and
+		    	upd_table.identifier = src_table.identifier
 	</update>
 
-	<!-- Note that tempTableName is built on user-supplied data and must be sanitized to prevent possible
-		 sql injection. This sanitizing is done by CrawlerSource.getTableName and within the function. -->
+	<insert id="createTempTable">
+		create table if not exists nldi_data.${tempTableName,jdbcType=VARCHAR}
+			(like nldi_data.feature)
+	</insert>
 
-	<delete id="truncate">
-		select nldi_data.ingest_truncate(#{tempTableName,jdbcType=VARCHAR})
+	<delete id="truncateTempTable">
+		truncate table nldi_data.${tempTableName,jdbcType=VARCHAR}
 	</delete>
 
-	<!-- Note that tempTableName, tableName, and oldTableName are built on user-supplied data and
-	     must be sanitized to prevent possible sql injection. This sanitizing is done by CrawlerSource.getTableName and within the function. -->
-
 	<update id="install">
-		select nldi_data.ingest_install(#{tableName,jdbcType=VARCHAR}, #{tempTableName,jdbcType=VARCHAR}, #{oldTableName,jdbcType=VARCHAR})
+		set search_path = nldi_data;
+		drop table if exists ${oldTableName};
+		alter table if exists ${tableName} no inherit feature;
+		alter table ${tempTableName} inherit feature;
+		alter table if exists ${tableName} rename to ${oldTableName};
+		alter table ${tempTableName} rename to ${tableName};
+		drop table if exists ${oldTableName};
 	</update>
 
 </mapper>

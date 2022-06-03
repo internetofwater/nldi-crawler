@@ -1,0 +1,4 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dataset>
+	<nldi_data.crawler_source crawler_source_id="1" source_name="Water Quality Portal" source_suffix="WQP" source_uri="http://cida-eros-wqpdev.er.usgs.gov:8080/wqp/Station/search?mimeType=geojson" feature_id="MonitoringLocationIdentifier" feature_name="MonitoringLocationName" feature_uri="siteUrl" feature_reach="[NULL]" feature_measure="[NULL]" ingest_type="point"/>
+</dataset>
