@@ -1,8 +1,6 @@
 package gov.usgs.owi.nldi;
 
 import com.github.springtestdbunit.TransactionDbUnitTestExecutionListener;
-import com.github.springtestdbunit.annotation.DatabaseOperation;
-import com.github.springtestdbunit.annotation.DatabaseTearDown;
 import com.github.springtestdbunit.annotation.DbUnitConfiguration;
 import java.sql.SQLException;
 import java.sql.Statement;
