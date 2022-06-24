@@ -1,7 +1,6 @@
 package gov.usgs.owi.nldi;
 
 import com.github.springtestdbunit.TransactionDbUnitTestExecutionListener;
-import com.github.springtestdbunit.annotation.DatabaseTearDown;
 import com.github.springtestdbunit.annotation.DbUnitConfiguration;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -25,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 @DbUnitConfiguration(dataSetLoader = ColumnSensingFlatXMLDataSetLoader.class)
 @AutoConfigureTestDatabase(replace = Replace.NONE)
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
-@DatabaseTearDown("classpath:/cleanup/featureTables.xml")
 public abstract class BaseIT extends BaseTest {
 
   protected void moveDataIntoTempTable(Statement statement, @NonNull String sourceSuffix)
