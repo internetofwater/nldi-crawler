@@ -25,13 +25,10 @@
 	</update>
 
 	<insert id="createTempTable">
+		drop table if exists nldi_data.${tempTableName,jdbcType=VARCHAR};
 		create table if not exists nldi_data.${tempTableName,jdbcType=VARCHAR}
-			(like nldi_data.feature)
+			(like nldi_data.feature);
 	</insert>
-
-	<delete id="truncateTempTable">
-		truncate table nldi_data.${tempTableName,jdbcType=VARCHAR}
-	</delete>
 
 	<update id="install">
 		set search_path = nldi_data;

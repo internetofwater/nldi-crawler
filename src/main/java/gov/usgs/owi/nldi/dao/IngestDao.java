@@ -43,6 +43,5 @@ public class IngestDao extends BaseDao {
   @Transactional
   public void initTempTable(@NonNull String tempTableName) {
     getSqlSession().insert(NS + "createTempTable", tempTableName);
-    getSqlSession().delete(NS + "truncateTempTable", tempTableName);
   }
 }
