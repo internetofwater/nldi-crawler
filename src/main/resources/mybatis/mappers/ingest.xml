@@ -27,7 +27,7 @@
 	<insert id="createTempTable">
 		drop table if exists nldi_data.${tempTableName,jdbcType=VARCHAR};
 		create table if not exists nldi_data.${tempTableName,jdbcType=VARCHAR}
-			(like nldi_data.feature);
+			(like nldi_data.feature including indexes);
 	</insert>
 
 	<update id="install">

@@ -4,7 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/internetofwater/nldi-crawler/compare/1.1.1...master)
+## [Unreleased](https://github.com/internetofwater/nldi-crawler/compare/1.1.2...master)
+### Added
+- Temporary table creation now includes `feature` table indexes
+
+## [1.1.1](https://github.com/internetofwater/nldi-crawler/compare/nldi-crawler-1.1.1...1.1.2)
 ### Fixed
 - Subsequent executions after a failed run now properly re-initialize the temp table
 
