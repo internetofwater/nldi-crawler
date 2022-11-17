@@ -18,6 +18,7 @@ GeoJSON. We can link data to the network via latitude/longitude coordinates or N
   - [Maven](#maven)
   - [JAR File](#jar-file)
   - [Docker](#docker)
+- [Sequence Diagram](#sequence-diagram)
 
 ## Contributing
 
@@ -120,3 +121,11 @@ and run with:
 ```shell
 docker-compose run -e CRAWLER_SOURCE_ID=<crawler_source_id> nldi-crawler
 ```
+
+## Sequence Diagram
+
+The image below is a sequence diagram detailing how the NLDI crawler operates.
+
+![Sequence Diagram](images/CrawlerDiagram.png)
+
+An internal user starts the crawler with an input source value. The crawler gathers information from the database for that source. A `GET` request to the source URL is made to get the target GeoJSON features. That collection of features is then looped through and each one is added as a row to a database table specific to the feature source.
