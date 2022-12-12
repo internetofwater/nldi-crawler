@@ -1,5 +1,0 @@
-include:
-  - project: "wma/nhgf/nldi/mirror-pipelines"
-    ref: "2022-08-24-r0"
-    file:
-      - "nldi-crawler.yml"

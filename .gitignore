@@ -1,8 +1,9 @@
-/target/
-/.settings/
-/.classpath
-/.project
-/application.yml
-/application-it.yml
-/secrets.env
-/.idea
+.vscode
+.coverage
+.pytype
+.nox
+.pytest_cache
+.ipynb_checkpoints
+__pycache__
+poetry.lock
+docs/_build
