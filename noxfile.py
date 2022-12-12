@@ -3,7 +3,6 @@
 """
 NOX (The Pythonic make) config to automate test, lint, black, etc.
 """
-import os
 import nox  # pylint: disable=E0401
 
 # Global options (a.k.a. make defaults)
