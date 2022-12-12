@@ -1,4 +1,6 @@
-U.S.Geological Survey Software User Rights Notice
+# LICENSE
+
+## U.S.Geological Survey Software User Rights Notice
 				
 Copied from http://water.usgs.gov/software/help/notice/ on December 6, 2013.  
 Please check webpage for updates.

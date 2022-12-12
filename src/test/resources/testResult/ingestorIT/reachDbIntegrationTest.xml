@@ -1,5 +1,0 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<dataset>
-	<nldi_data.feature_np21_nwis crawler_source_id='3' identifier='05429485' name='05429485' uri='http://waterdata.usgs.gov/nwis/nwisman/?site_no=05429485' location='0101000020AD100000AC33C8B08D5356C030DAC3201E814540' comid='13294322' long='-89.30552310515367' lat='43.00873193324185' reachcode='07090002008351' measure='100'/>
-	<nldi_data.feature_np21_nwis crawler_source_id='3' identifier='05429500' name='05429500' uri='http://waterdata.usgs.gov/nwis/nwisman/?site_no=05429500' location='0101000020AD100000C037ECA5875356C0F0F32F421D814540' comid='13294322' long='-89.30515430515425' lat='43.008705399908536' reachcode='07090002008351' measure='98.36121'/>
-</dataset>
