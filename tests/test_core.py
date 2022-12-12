@@ -2,7 +2,7 @@
 # coding: utf-8
 # pylint: disable=fixme
 """
-Test suite 
+Test suite.
 """
 
 import nldi_crawler
