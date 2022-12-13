@@ -9,6 +9,8 @@ packages = [{include = "nldi_crawler", from = "src"}]
 [tool.poetry.dependencies]
 python = "^3.8"
 click = "^8.1.3"
+sqlalchemy = "^1.4.45"
+psycopg2-binary = "^2.9.5"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.0"
