@@ -1,0 +1,8 @@
+[nldi-db]
+hostname: 172.17.0.1
+port: 5445
+username: nldi_schema_owner
+password: changeMe
+db_name: nldi
+## These values used to populate the connection string thus:
+# DB_URL = f"postgresql://{username}:{password}@{hostname}:{port}/{db_name}"
