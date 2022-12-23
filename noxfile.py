@@ -40,7 +40,7 @@ def lint(session):
 def test(session):
     """test suite, including coverage report"""
     session.run("poetry", "install", external=True)
-    session.run("pytest", "--cov", external=True)
+    session.run("pytest", "-v", "--cov", external=True)
 
 
 @nox.session(python=["3.9"])

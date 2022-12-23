@@ -14,47 +14,52 @@ import click
 
 
 from . import __version__
+from . import sources
 
 DEFAULT_DB_INFO = {
     "NLDI_DB_HOST": "localhost",
-    "NLDI_DB_PORT": "5445",
+    "NLDI_DB_PORT": "5432",
     "NLDI_DB_USER": "nldi_schema_owner",
     "NLDI_DB_NAME": "nldi",
 }
 
 
 @click.command()
-@click.option("-v", count=True, help="Verbose mode.")
+@click.option("-v", "verbose_", count=True, help="Verbose mode.")
 @click.option("--config", "conf_", type=click.Path(exists=True), help="location of config file.")
 @click.option("--list", "list_", is_flag=True, help="Show list of crawler sources and exit.")
 @click.version_option(version=__version__)
-def main(list_, conf_, verbose):
+def main(list_, conf_, verbose_):
     """
     CLI to launch NLDI crawler.
 
     The database connection string is assembled from information in environment variables, or
     from a config file.  If neither are set, will attempt a connection with generic defaults.
     """
-    if verbose == 1:
+    if verbose_ == 1:
         logging.basicConfig(level=logging.INFO)
-    if verbose >= 2:
+    if verbose_ >= 2:
         logging.basicConfig(level=logging.DEBUG)
-    logging.info("verbosity set to %s", verbose)
+    logging.info("verbosity set to %s", verbose_)
 
     cfg = DEFAULT_DB_INFO
     cfg.update(cfg_from_env())
     if conf_:
         cfg.update(cfg_from_toml(conf_))
-    if "NLDI_DB_PASS" in cfg:
-        db_url = f"postgresql://{cfg['NLDI_DB_USER']}:{cfg['NLDI_DB_PASS']}@{cfg['NLDI_DB_HOST']}:{cfg['NLDI_DB_PORT']}/{cfg['NLDI_DB_NAME']}"
-    else:
-        db_url = f"postgresql://{cfg['NLDI_DB_USER']}@{cfg['NLDI_DB_HOST']}:{cfg['NLDI_DB_PORT']}/{cfg['NLDI_DB_NAME']}"
-    logging.info("Using DB Connect String %s", db_url)
 
     if list_:
-        click.echo("Listing sources.")
+        for source_item in sources.fetch_source_table(db_url(cfg)):
+            print(f"{source_item.crawler_source_id} :: {source_item.source_name} :: {source_item.source_uri[0:64]}...")
         sys.exit(0)
 
+
+def db_url(c:dict) -> str:
+    if "NLDI_DB_PASS" in c:
+        db_url = f"postgresql://{c['NLDI_DB_USER']}:{c['NLDI_DB_PASS']}@{c['NLDI_DB_HOST']}:{c['NLDI_DB_PORT']}/{c['NLDI_DB_NAME']}"
+    else:
+        db_url = f"postgresql://{c['NLDI_DB_USER']}@{c['NLDI_DB_HOST']}:{c['NLDI_DB_PORT']}/{c['NLDI_DB_NAME']}"
+    logging.info("Using DB Connect String %s", db_url)
+    return db_url
 
 def cfg_from_toml(filepath: str) -> dict:
     """
@@ -69,28 +74,26 @@ def cfg_from_toml(filepath: str) -> dict:
     """
     ## We already know that filepath is valid and points to an existing file, thanks
     ## to click.Path() in the cmdline option spec.
+    _section_ = "nldi-db"
     logging.info("Parsing TOML config file %s", filepath)
     retval = {}
     dbconfig = configparser.ConfigParser()
     _ = dbconfig.read(filepath)
-    if "nldi-db" not in dbconfig.sections():
-        logging.info("No 'nldi-db' section in configuration file %s.", filepath)
+    if _section_ not in dbconfig.sections():
+        logging.info("No '%s' section in configuration file %s.", _section_, filepath)
         return retval
-    nldi_db = dbconfig["nldi-db"]
-    if "hostname" in nldi_db:
-        retval["NLDI_DB_HOST"] = nldi_db["hostname"].strip("'\"")
-    if "port" in nldi_db:
-        retval["NLDI_DB_PORT"] = nldi_db["port"].strip("'\"")
-    if "username" in nldi_db:
-        retval["NLDI_DB_USER"] = nldi_db["username"].strip("'\"")
-    if "password" in nldi_db:
-        retval["NLDI_DB_PASS"] = nldi_db["password"].strip("'\"")
+    retval["NLDI_DB_HOST"] = dbconfig[_section_].get("hostname").strip("'\"")
+    retval["NLDI_DB_PORT"] = dbconfig[_section_].get("port").strip("'\"")
+    retval["NLDI_DB_USER"] = dbconfig[_section_].get("username").strip("'\"")
+    if dbconfig[_section_].get("password") is None:
+        logging.debug("No password in TOML file; good.")
+    else:
+        retval["NLDI_DB_PASS"] = dbconfig[_section_].get("password").strip("'\"")
         logging.warning(
             "Pasword stored as plain text in %s. Consider passing as environment variable instead.",
             os.path.basename(filepath),
         )
-    if "db_name" in nldi_db:
-        retval["NLDI_DB_NAME"] = nldi_db["db_name"].strip("'\"")
+    retval["NLDI_DB_NAME"] = dbconfig[_section_].get("db_name").strip("'\"")
     return retval
 
 
@@ -106,5 +109,6 @@ def cfg_from_env() -> dict:
     for (_k, _v) in DEFAULT_DB_INFO.items():
         env_cfg[_k] = os.environ.get(_k, _v)
     if "NLDI_DB_PASS" in os.environ:
+        # password is a special case.  There is no default; it must be explicitly set.
         env_cfg["NLDI_DB_PASS"] = os.environ.get("NLDI_DB_PASS")
     return env_cfg
