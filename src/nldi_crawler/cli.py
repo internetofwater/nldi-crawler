@@ -48,18 +48,33 @@ def main(list_, conf_, verbose_):
         cfg.update(cfg_from_toml(conf_))
 
     if list_:
-        for source_item in sources.fetch_source_table(db_url(cfg)):
-            print(f"{source_item.crawler_source_id} :: {source_item.source_name} :: {source_item.source_uri[0:64]}...")
+        print("\nID : Source Name                                      : URI ")
+        print("==  ", "="*48, " ", "="*48)
+        for source in sources.fetch_source_table(db_url(cfg)):
+            print(
+                f"{source.crawler_source_id:2} :",
+                f"{source.source_name[0:48]:48} :",
+                f"{source.source_uri[0:48]:48}...",
+            )
         sys.exit(0)
 
 
-def db_url(c:dict) -> str:
-    if "NLDI_DB_PASS" in c:
-        db_url = f"postgresql://{c['NLDI_DB_USER']}:{c['NLDI_DB_PASS']}@{c['NLDI_DB_HOST']}:{c['NLDI_DB_PORT']}/{c['NLDI_DB_NAME']}"
+def db_url(conf: dict) -> str:
+    """
+    Formats the full database connection URL using the configuration dict.
+
+    :param conf: config information retrieved from env variables or from toml file.
+    :type conf: dict
+    :return: connection string
+    :rtype: str
+    """
+    if "NLDI_DB_PASS" in conf:
+        _url = f"postgresql://{conf['NLDI_DB_USER']}:{conf['NLDI_DB_PASS']}@{conf['NLDI_DB_HOST']}:{conf['NLDI_DB_PORT']}/{conf['NLDI_DB_NAME']}"
     else:
-        db_url = f"postgresql://{c['NLDI_DB_USER']}@{c['NLDI_DB_HOST']}:{c['NLDI_DB_PORT']}/{c['NLDI_DB_NAME']}"
-    logging.info("Using DB Connect String %s", db_url)
-    return db_url
+        _url = f"postgresql://{conf['NLDI_DB_USER']}@{conf['NLDI_DB_HOST']}:{conf['NLDI_DB_PORT']}/{conf['NLDI_DB_NAME']}"
+    logging.info("Using DB Connect String %s", _url)
+    return _url
+
 
 def cfg_from_toml(filepath: str) -> dict:
     """

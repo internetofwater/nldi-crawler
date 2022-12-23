@@ -6,15 +6,20 @@
 """
 routines to manage the table of crawler_sources
 """
-from  sqlalchemy import create_engine, Table, select
+import dataclasses
+
+from sqlalchemy import create_engine, Table, select
 from sqlalchemy.orm import DeclarativeBase, Session
 
-class NLDI_Base(DeclarativeBase):
+
+@dataclasses.dataclass
+class NldiBase(DeclarativeBase):
+    """Base class used to create reflected ORM objects."""
+
     pass
 
 
-
-def fetch_source_table(connect_string:str) -> list:
+def fetch_source_table(connect_string: str) -> list:
     """
     Fetches a list of crawler sources from the master NLDI-DB database.  The returned list
     holds one or mor CrawlerSource() objects, which are reflected from the database using
@@ -30,17 +35,23 @@ def fetch_source_table(connect_string:str) -> list:
     eng = create_engine(connect_string, client_encoding="UTF-8", echo=False, future=True)
     retval = []
 
-    class CrawlerSource(NLDI_Base):
+    @dataclasses.dataclass
+    class CrawlerSource(NldiBase):
+        """
+        An ORM reflection of the crawler_source table
+        """
+
         __table__ = Table(
-            _tbl_name_,         ## <--- name of the table
-            NLDI_Base.metadata,
+            _tbl_name_,  ## <--- name of the table
+            NldiBase.metadata,
             autoload_with=eng,  ## <--- this is where the magic happens
-            schema=_schema_,    ## <--- only need this if the table is not in
-                                ##      the default schema.
+            schema=_schema_,  ## <--- only need this if the table is not in
+            ##      the default schema.
         )
-    stmt = select(CrawlerSource).order_by(CrawlerSource.crawler_source_id)
+
+    stmt = select(CrawlerSource).order_by(CrawlerSource.crawler_source_id)  # pylint: disable=E1101
     with Session(eng) as session:
         for source in session.scalars(stmt):
             retval.append(source)
-    eng=None
+    eng = None
     return retval

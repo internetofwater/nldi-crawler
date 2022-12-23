@@ -11,6 +11,7 @@ import pytest
 import nldi_crawler
 
 from nldi_crawler import cli
+from nldi_crawler import sources
 
 
 def test_successful_import():
@@ -59,3 +60,12 @@ def test_main_w_config():
     runner = click.testing.CliRunner()
     result = runner.invoke(cli.main, args=["--config", os.path.join(_test_dir, "cfg-test-1.toml")])
     assert result.exit_code == 0
+
+
+def test_list_sources():
+    """get table of sources from db"""
+    _test_dir = os.path.dirname(os.path.realpath(__file__))
+    cfg = cli.cfg_from_toml(os.path.join(_test_dir, "..", r"nldi-crawler.toml"))
+    _url = cli.db_url(cfg)
+    srcs = sources.fetch_source_table(_url)
+    assert len(srcs) >= 1
