@@ -7,6 +7,9 @@
 routines to manage the table of crawler_sources
 """
 import dataclasses
+import tempfile
+import logging
+import httpx
 
 from sqlalchemy import create_engine, Table, select
 from sqlalchemy.orm import DeclarativeBase, Session
@@ -19,7 +22,7 @@ class NldiBase(DeclarativeBase):
     pass
 
 
-def fetch_source_table(connect_string: str) -> list:
+def fetch_source_table(connect_string: str, selector="") -> list:
     """
     Fetches a list of crawler sources from the master NLDI-DB database.  The returned list
     holds one or mor CrawlerSource() objects, which are reflected from the database using
@@ -49,9 +52,29 @@ def fetch_source_table(connect_string: str) -> list:
             ##      the default schema.
         )
 
-    stmt = select(CrawlerSource).order_by(CrawlerSource.crawler_source_id)  # pylint: disable=E1101
+    if selector == "":
+        stmt = select(CrawlerSource).order_by(CrawlerSource.crawler_source_id)  # pylint: disable=E1101
+    else:
+        stmt = select(CrawlerSource).where(CrawlerSource.crawler_source_id == selector).order_by(CrawlerSource.crawler_source_id)  # pylint: disable=E1101
+
     with Session(eng) as session:
         for source in session.scalars(stmt):
             retval.append(source)
     eng = None
     return retval
+
+
+def download_geojson(source) -> str:
+    logging.info("Downloading from %s ...", source.source_uri)
+    with tempfile.NamedTemporaryFile(
+        suffix=".geojson",
+        prefix=f"CrawlerData_{source.crawler_source_id}_",
+        dir=".",
+        delete=False,
+    ) as fh:
+        logging.info("Writing to tmp file %s", fh.name)
+        with httpx.stream("GET", source.source_uri) as response:
+            for chunk in response.iter_bytes():
+                fh.write(chunk)
+        fname = fh.name
+    return fname

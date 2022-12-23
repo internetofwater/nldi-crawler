@@ -28,8 +28,9 @@ DEFAULT_DB_INFO = {
 @click.option("-v", "verbose_", count=True, help="Verbose mode.")
 @click.option("--config", "conf_", type=click.Path(exists=True), help="location of config file.")
 @click.option("--list", "list_", is_flag=True, help="Show list of crawler sources and exit.")
+@click.option("--source", "source_id", help="The crawler_source_id to download and process.")
 @click.version_option(version=__version__)
-def main(list_, conf_, verbose_):
+def main(list_, conf_, verbose_, source_id):
     """
     CLI to launch NLDI crawler.
 
@@ -49,7 +50,7 @@ def main(list_, conf_, verbose_):
 
     if list_:
         print("\nID : Source Name                                      : URI ")
-        print("==  ", "="*48, " ", "="*48)
+        print("==  ", "=" * 48, " ", "=" * 48)
         for source in sources.fetch_source_table(db_url(cfg)):
             print(
                 f"{source.crawler_source_id:2} :",
@@ -58,6 +59,12 @@ def main(list_, conf_, verbose_):
             )
         sys.exit(0)
 
+    if source_id:
+        logging.info("Crawling source %s", source_id)
+        for source in sources.fetch_source_table(db_url(cfg), selector=source_id):
+            logging.debug("Found a source...%s : %s", source.crawler_source_id, source.source_name)
+            fname = sources.download_geojson(source)
+        sys.exit(0)
 
 def db_url(conf: dict) -> str:
     """
