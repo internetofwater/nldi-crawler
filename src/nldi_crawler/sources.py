@@ -19,8 +19,6 @@ from sqlalchemy.orm import DeclarativeBase, Session
 class NldiBase(DeclarativeBase):
     """Base class used to create reflected ORM objects."""
 
-    pass
-
 
 def fetch_source_table(connect_string: str, selector="") -> list:
     """
@@ -35,6 +33,7 @@ def fetch_source_table(connect_string: str, selector="") -> list:
     """
     _tbl_name_ = "crawler_source"
     _schema_ = "nldi_data"
+
     eng = create_engine(connect_string, client_encoding="UTF-8", echo=False, future=True)
     retval = []
 
@@ -43,7 +42,6 @@ def fetch_source_table(connect_string: str, selector="") -> list:
         """
         An ORM reflection of the crawler_source table
         """
-
         __table__ = Table(
             _tbl_name_,  ## <--- name of the table
             NldiBase.metadata,
@@ -65,6 +63,14 @@ def fetch_source_table(connect_string: str, selector="") -> list:
 
 
 def download_geojson(source) -> str:
+    """
+    Downloads data from the specified source, saving it to a temporary file on local disk.
+
+    :param source: The descriptor for the source.
+    :type source: CrawlerSource()
+    :return: path name to temporary file
+    :rtype: str
+    """
     logging.info("Downloading from %s ...", source.source_uri)
     with tempfile.NamedTemporaryFile(
         suffix=".geojson",

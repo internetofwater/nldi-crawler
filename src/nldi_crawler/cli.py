@@ -60,11 +60,15 @@ def main(list_, conf_, verbose_, source_id):
         sys.exit(0)
 
     if source_id:
-        logging.info("Crawling source %s", source_id)
+        click.echo(f"Looking for source ID {source_id}")
+        logging.info("Setting up to crawl source %s", source_id)
         for source in sources.fetch_source_table(db_url(cfg), selector=source_id):
             logging.debug("Found a source...%s : %s", source.crawler_source_id, source.source_name)
             fname = sources.download_geojson(source)
+            click.echo(fname)
         sys.exit(0)
+
+
 
 def db_url(conf: dict) -> str:
     """
