@@ -10,8 +10,8 @@ import sys
 import os
 import logging
 import configparser
-import click
 import re
+import click
 
 from . import __version__
 from . import sources
@@ -86,12 +86,14 @@ def db_url(conf: dict) -> str:
     # global dict DEFAULT_DB_INFO.  If that assumption is proven invalid, we need to do more error
     # trapping here.
     if "NLDI_DB_PASS" in conf:
-        _url = f"postgresql://{conf['NLDI_DB_USER']}:{conf['NLDI_DB_PASS']}@{conf['NLDI_DB_HOST']}:{conf['NLDI_DB_PORT']}/{conf['NLDI_DB_NAME']}"
+        _url = f"postgresql://{conf['NLDI_DB_USER']}:{conf['NLDI_DB_PASS']}" + \
+            f"@{conf['NLDI_DB_HOST']}:{conf['NLDI_DB_PORT']}/{conf['NLDI_DB_NAME']}"
         logging.info(
             "Using DB connection URI: %s", re.sub(r"//([^:]+):.*@", r"//\g<1>:****@", _url)
         )
     else:
-        _url = f"postgresql://{conf['NLDI_DB_USER']}@{conf['NLDI_DB_HOST']}:{conf['NLDI_DB_PORT']}/{conf['NLDI_DB_NAME']}"
+        _url = f"postgresql://{conf['NLDI_DB_USER']}@{conf['NLDI_DB_HOST']}:" + \
+            f"{conf['NLDI_DB_PORT']}/{conf['NLDI_DB_NAME']}"
         logging.info("Using DB connection URI: %s", _url)
     return _url
 
@@ -125,7 +127,7 @@ def cfg_from_toml(filepath: str) -> dict:
     else:
         retval["NLDI_DB_PASS"] = dbconfig[_section_].get("password").strip("'\"")
         logging.warning(
-            "Password stored as plain text in %s. Consider passing as environment variable instead.",
+            "Password stored as plain text in %s. Consider passing as env variable instead.",
             os.path.basename(filepath),
         )
     retval["NLDI_DB_NAME"] = dbconfig[_section_].get("db_name").strip("'\"")

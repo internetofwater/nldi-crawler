@@ -47,20 +47,19 @@ def fetch_source_table(connect_string: str, selector="") -> list:
             _tbl_name_,  ## <--- name of the table
             NldiBase.metadata,
             autoload_with=eng,  ## <--- this is where the magic happens
-            schema=_schema_,  ## <--- only need this if the table is not in
-            ##      the default schema.
+            schema=_schema_,  ## <--- only need this if the table is not in the default schema.
         )
 
     if selector == "":
-        stmt = select(CrawlerSource).order_by(
-            CrawlerSource.crawler_source_id
-        )  # pylint: disable=E1101
+        stmt = select(CrawlerSource).order_by(# pylint: disable=E1101
+            CrawlerSource.crawler_source_id                    # pylint: disable=E1101
+        )
     else:
         stmt = (
             select(CrawlerSource)
-            .where(CrawlerSource.crawler_source_id == selector)
-            .order_by(CrawlerSource.crawler_source_id)
-        )  # pylint: disable=E1101
+            .where(CrawlerSource.crawler_source_id == selector)# pylint: disable=E1101
+            .order_by(CrawlerSource.crawler_source_id)         # pylint: disable=E1101
+        )
 
     with Session(eng) as session:
         for source in session.scalars(stmt):
@@ -84,10 +83,10 @@ def download_geojson(source) -> str:
         prefix=f"CrawlerData_{source.crawler_source_id}_",
         dir=".",
         delete=False,
-    ) as fh:
-        logging.info("Writing to tmp file %s", fh.name)
+    ) as tmp_fh:
+        logging.info("Writing to tmp file %s", tmp_fh.name)
         with httpx.stream("GET", source.source_uri) as response:
             for chunk in response.iter_bytes():
-                fh.write(chunk)
-        fname = fh.name
+                tmp_fh.write(chunk)
+        fname = tmp_fh.name
     return fname
