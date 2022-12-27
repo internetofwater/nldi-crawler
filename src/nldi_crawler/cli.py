@@ -76,14 +76,18 @@ def db_url(conf: dict) -> str:
 
     :param conf: config information retrieved from env variables or from toml file.
     :type conf: dict
-    :return: connection string
+    :return: connection string in URI format
     :rtype: str
     """
+    # NOTE: NLDI_DB_PASS may or may not be set, depending on whether the connection needs a password
+    # or not.  The other configurables are assumed to be set based on the defaults defined in the
+    # global dict DEFAULT_DB_INFO.  If that assumption is proven invalid, we need to do more error
+    # trapping here.
     if "NLDI_DB_PASS" in conf:
         _url = f"postgresql://{conf['NLDI_DB_USER']}:{conf['NLDI_DB_PASS']}@{conf['NLDI_DB_HOST']}:{conf['NLDI_DB_PORT']}/{conf['NLDI_DB_NAME']}"
     else:
         _url = f"postgresql://{conf['NLDI_DB_USER']}@{conf['NLDI_DB_HOST']}:{conf['NLDI_DB_PORT']}/{conf['NLDI_DB_NAME']}"
-    logging.info("Using DB Connect String %s", _url)
+    logging.info("Using DB Connect String %s", _url) ##<<< This will put the password into the log !!! change this.
     return _url
 
 
@@ -112,11 +116,11 @@ def cfg_from_toml(filepath: str) -> dict:
     retval["NLDI_DB_PORT"] = dbconfig[_section_].get("port").strip("'\"")
     retval["NLDI_DB_USER"] = dbconfig[_section_].get("username").strip("'\"")
     if dbconfig[_section_].get("password") is None:
-        logging.debug("No password in TOML file; good.")
+        logging.debug("No password in TOML file; This is good.")
     else:
         retval["NLDI_DB_PASS"] = dbconfig[_section_].get("password").strip("'\"")
         logging.warning(
-            "Pasword stored as plain text in %s. Consider passing as environment variable instead.",
+            "Password stored as plain text in %s. Consider passing as environment variable instead.",
             os.path.basename(filepath),
         )
     retval["NLDI_DB_NAME"] = dbconfig[_section_].get("db_name").strip("'\"")
