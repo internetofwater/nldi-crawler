@@ -15,6 +15,7 @@ import click
 
 from . import __version__
 from . import sources
+from . import ingestor
 
 DEFAULT_DB_INFO = {
     "NLDI_DB_HOST": "localhost",
@@ -73,6 +74,7 @@ def main(list_, conf_, verbose_, source_id):
             else:
                 click.echo("ABORTED")
                 sys.exit(-2)
+            ingestor.ingest(source, fname)
         sys.exit(0)
 
 
