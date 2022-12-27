@@ -4,7 +4,7 @@
 .nox
 .pytest_cache
 .ipynb_checkpoints
-.geojson
+*.geojson
 __pycache__
 poetry.lock
 docs/_build

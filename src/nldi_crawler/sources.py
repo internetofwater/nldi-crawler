@@ -6,6 +6,8 @@
 """
 routines to manage the table of crawler_sources
 """
+import os
+import sys
 import dataclasses
 import tempfile
 import logging
@@ -68,6 +70,7 @@ def fetch_source_table(connect_string: str, selector="") -> list:
     return retval
 
 
+
 def download_geojson(source) -> str:
     """
     Downloads data from the specified source, saving it to a temporary file on local disk.
@@ -78,15 +81,25 @@ def download_geojson(source) -> str:
     :rtype: str
     """
     logging.info("Downloading from %s ...", source.source_uri)
-    with tempfile.NamedTemporaryFile(
-        suffix=".geojson",
-        prefix=f"CrawlerData_{source.crawler_source_id}_",
-        dir=".",
-        delete=False,
-    ) as tmp_fh:
-        logging.info("Writing to tmp file %s", tmp_fh.name)
-        with httpx.stream("GET", source.source_uri) as response:
-            for chunk in response.iter_bytes():
-                tmp_fh.write(chunk)
-        fname = tmp_fh.name
+    fname="_tmp"
+    try:
+        with tempfile.NamedTemporaryFile(
+            suffix=".geojson",
+            prefix=f"CrawlerData_{source.crawler_source_id}_",
+            dir=".",
+            delete=False,
+        ) as tmp_fh:
+            fname = tmp_fh.name
+            logging.info("Writing to tmp file %s", tmp_fh.name)
+            # timeout = 15sec  TODO: make this a tunable
+            with httpx.stream("GET", source.source_uri, timeout=15.0, follow_redirects=True) as response:
+                for chunk in response.iter_bytes():
+                    tmp_fh.write(chunk)
+    except IOError:
+        logging.exception("I/O Error while downloading from %s to %s", source.source_uri, fname)
+        raise
+    except httpx.ReadTimeout:
+        logging.critical("Read TimeOut attempting to download from %s", source.source_uri)
+        os.remove(fname)
+        return None
     return fname

@@ -68,7 +68,11 @@ def main(list_, conf_, verbose_, source_id):
         for source in sources.fetch_source_table(uri, selector=source_id):
             logging.debug("Found a source...%s : %s", source.crawler_source_id, source.source_name)
             fname = sources.download_geojson(source)
-            click.echo(fname)
+            if fname:
+                click.echo(f"Success !! --> {fname} ")
+            else:
+                click.echo("ABORTED")
+                sys.exit(-2)
         sys.exit(0)
 
 
