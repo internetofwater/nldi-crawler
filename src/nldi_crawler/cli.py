@@ -41,7 +41,7 @@ def main(list_, conf_, verbose_, source_id):
         logging.basicConfig(level=logging.INFO)
     if verbose_ >= 2:
         logging.basicConfig(level=logging.DEBUG)
-    logging.info("verbosity set to %s", verbose_)
+    logging.info("Verbosity set to %s", verbose_)
 
     cfg = DEFAULT_DB_INFO
     cfg.update(cfg_from_env())
@@ -49,20 +49,23 @@ def main(list_, conf_, verbose_, source_id):
         cfg.update(cfg_from_toml(conf_))
 
     if list_:
-        print("\nID : Source Name                                      : URI ")
-        print("==  ", "=" * 48, " ", "=" * 48)
-        for source in sources.fetch_source_table(db_url(cfg)):
+        uri = db_url(cfg)
+        print("\nID : Source Name                                    : Type  : URI ")
+        print("==  ", "=" * 46, "  =====  ", "=" * 48)
+        for source in sources.fetch_source_table(uri):
             print(
                 f"{source.crawler_source_id:2} :",
-                f"{source.source_name[0:48]:48} :",
+                f"{source.source_name[0:48]:46} :",
+                f"{source.ingest_type.upper():5} :",
                 f"{source.source_uri[0:48]:48}...",
             )
         sys.exit(0)
 
     if source_id:
         click.echo(f"Looking for source ID {source_id}")
+        uri = db_url(cfg)
         logging.info("Setting up to crawl source %s", source_id)
-        for source in sources.fetch_source_table(db_url(cfg), selector=source_id):
+        for source in sources.fetch_source_table(uri, selector=source_id):
             logging.debug("Found a source...%s : %s", source.crawler_source_id, source.source_name)
             fname = sources.download_geojson(source)
             click.echo(fname)
@@ -107,7 +110,7 @@ def cfg_from_toml(filepath: str) -> dict:
     ## We already know that filepath is valid and points to an existing file, thanks
     ## to click.Path() in the cmdline option spec.
     _section_ = "nldi-db"
-    logging.info("Parsing TOML config file %s", filepath)
+    logging.info("Parsing TOML config file %s for DB connection info...", filepath)
     retval = {}
     dbconfig = configparser.ConfigParser()
     _ = dbconfig.read(filepath)
@@ -136,7 +139,7 @@ def cfg_from_env() -> dict:
     :return: dictionary, populated with values.
     :rtype: dict
     """
-    logging.info("Fetching config from environment variables...")
+    logging.info("Consulting environment variables for DB connection info...")
     env_cfg = {}
     for (_k, _v) in DEFAULT_DB_INFO.items():
         env_cfg[_k] = os.environ.get(_k, _v)
