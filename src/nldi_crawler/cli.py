@@ -11,7 +11,7 @@ import os
 import logging
 import configparser
 import click
-
+import re
 
 from . import __version__
 from . import sources
@@ -69,7 +69,6 @@ def main(list_, conf_, verbose_, source_id):
         sys.exit(0)
 
 
-
 def db_url(conf: dict) -> str:
     """
     Formats the full database connection URL using the configuration dict.
@@ -85,9 +84,12 @@ def db_url(conf: dict) -> str:
     # trapping here.
     if "NLDI_DB_PASS" in conf:
         _url = f"postgresql://{conf['NLDI_DB_USER']}:{conf['NLDI_DB_PASS']}@{conf['NLDI_DB_HOST']}:{conf['NLDI_DB_PORT']}/{conf['NLDI_DB_NAME']}"
+        logging.info(
+            "Using DB connection URI: %s", re.sub(r"//([^:]+):.*@", r"//\g<1>:****@", _url)
+        )
     else:
         _url = f"postgresql://{conf['NLDI_DB_USER']}@{conf['NLDI_DB_HOST']}:{conf['NLDI_DB_PORT']}/{conf['NLDI_DB_NAME']}"
-    logging.info("Using DB Connect String %s", _url) ##<<< This will put the password into the log !!! change this.
+        logging.info("Using DB connection URI: %s", _url)
     return _url
 
 

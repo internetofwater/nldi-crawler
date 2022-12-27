@@ -70,6 +70,7 @@ def test_list_sources():
     srcs = sources.fetch_source_table(_url)
     assert len(srcs) >= 1
 
+
 def test_find_source():
     """get table of sources from db"""
     _test_dir = os.path.dirname(os.path.realpath(__file__))
@@ -78,6 +79,7 @@ def test_find_source():
     srcs = sources.fetch_source_table(_url, selector="13")
     assert len(srcs) == 1
 
+
 def test_no_such_source():
     """get table of sources from db"""
     _test_dir = os.path.dirname(os.path.realpath(__file__))
@@ -85,6 +87,7 @@ def test_no_such_source():
     _url = cli.db_url(cfg)
     srcs = sources.fetch_source_table(_url, selector="00")
     assert len(srcs) == 0
+
 
 def test_download_source():
     """get table of sources from db"""

@@ -42,6 +42,7 @@ def fetch_source_table(connect_string: str, selector="") -> list:
         """
         An ORM reflection of the crawler_source table
         """
+
         __table__ = Table(
             _tbl_name_,  ## <--- name of the table
             NldiBase.metadata,
@@ -51,9 +52,15 @@ def fetch_source_table(connect_string: str, selector="") -> list:
         )
 
     if selector == "":
-        stmt = select(CrawlerSource).order_by(CrawlerSource.crawler_source_id)  # pylint: disable=E1101
+        stmt = select(CrawlerSource).order_by(
+            CrawlerSource.crawler_source_id
+        )  # pylint: disable=E1101
     else:
-        stmt = select(CrawlerSource).where(CrawlerSource.crawler_source_id == selector).order_by(CrawlerSource.crawler_source_id)  # pylint: disable=E1101
+        stmt = (
+            select(CrawlerSource)
+            .where(CrawlerSource.crawler_source_id == selector)
+            .order_by(CrawlerSource.crawler_source_id)
+        )  # pylint: disable=E1101
 
     with Session(eng) as session:
         for source in session.scalars(stmt):
