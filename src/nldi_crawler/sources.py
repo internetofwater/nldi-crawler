@@ -14,7 +14,7 @@ import logging
 import httpx
 
 from sqlalchemy import create_engine, Table, select
-from sqlalchemy.orm import DeclarativeBase, Session
+from sqlalchemy.orm import DeclarativeBase, Session, mapped_column
 
 
 @dataclasses.dataclass
@@ -44,13 +44,40 @@ def fetch_source_table(connect_string: str, selector="") -> list:
         """
         An ORM reflection of the crawler_source table
         """
+        __tablename__ = "crawler_source"
+        __table_args__ = {"schema": "nldi_data"}
 
-        __table__ = Table(
-            _tbl_name_,  ## <--- name of the table
-            NldiBase.metadata,
-            autoload_with=eng,  ## <--- this is where the magic happens
-            schema=_schema_,  ## <--- only need this if the table is not in the default schema.
-        )
+        crawler_source_id = mapped_column(Integer, primary_key=True)
+        source_name = mapped_column(String(64))
+        source_suffix = mapped_column(String(16))
+        source_uri = mapped_column(String)
+        feature_id = mapped_column(String)
+        feature_name = mapped_column(String)
+        feature_uri = mapped_column(String)
+        feature_reach = mapped_column(String)
+        feature_measure = mapped_column(String)
+        ingest_type = mapped_column(String(16))
+        feature_type = mapped_column(String)
+        # __table__ = Table(
+        #     _tbl_name_,  ## <--- name of the table
+        #     NldiBase.metadata,
+        #     autoload_with=eng,  ## <--- this is where the magic happens
+        #     schema=_schema_,  ## <--- only need this if the table is not in the default schema.
+        # )
+        @property
+        def table_name(self):
+            return "feature_" + self.source_suffix
+
+        @property
+        def tmp_table_name(self):
+            return self.table_name + "_temp"
+
+        @property
+        def old_table_name(self):
+            return self.table_name + "_old"
+
+
+
 
     if selector == "":
         stmt = select(CrawlerSource).order_by(# pylint: disable=E1101
