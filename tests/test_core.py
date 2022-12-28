@@ -106,6 +106,6 @@ def test_source_properties():
     _url = cli.db_url(cfg)
     src = sources.fetch_source_table(_url, selector="10")[0]
     assert src.source_suffix == "vigil"
-    assert src.table_name == "feature_vigil"
-    assert src.tmp_table_name == "feature_vigil_temp"
-    assert src.old_table_name == "feature_vigil_old"
+    assert src.table_name() == "feature_vigil"
+    assert src.table_name("temp") == "feature_vigil_temp"
+    assert src.table_name("old") == "feature_vigil_old"

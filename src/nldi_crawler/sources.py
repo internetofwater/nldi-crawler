@@ -7,19 +7,76 @@
 routines to manage the table of crawler_sources
 """
 import os
-import sys
 import dataclasses
 import tempfile
 import logging
 import httpx
 
-from sqlalchemy import create_engine, Table, select
+import sqlalchemy
+#from sqlalchemy import create_engine, String, Integer, select
 from sqlalchemy.orm import DeclarativeBase, Session, mapped_column
 
 
 @dataclasses.dataclass
-class NldiBase(DeclarativeBase):
+class NLDI_Base(DeclarativeBase):
     """Base class used to create reflected ORM objects."""
+
+@dataclasses.dataclass
+class CrawlerSource(NLDI_Base):
+    """
+    An ORM reflection of the crawler_source table
+
+    The crawler_source table is held in the nldi_data schema in the NLDI PostGIS database.
+    The schema name and table name are hard-coded to reflect this.
+
+    This object maps properties to columns for a given row of that table. Once this object
+    is created, the row's data is instantiated within the object.
+
+    > stmt = select(CrawlerSource).order_by(CrawlerSource.crawler_source_id).where(CrawlerSource.crawler_source_id == 1)
+    > for src in session.scalars(stmt):
+    ... print(f"{src.crawler_source_id} == {src.source_name}")
+
+    """
+
+    __tablename__ = "crawler_source"
+    __table_args__ = {"schema": "nldi_data"}
+
+    crawler_source_id = mapped_column(sqlalchemy.Integer, primary_key=True)
+    source_name = mapped_column(sqlalchemy.String(64))
+    source_suffix = mapped_column(sqlalchemy.String(16))
+    source_uri = mapped_column(sqlalchemy.String)
+    feature_id = mapped_column(sqlalchemy.String)
+    feature_name = mapped_column(sqlalchemy.String)
+    feature_uri = mapped_column(sqlalchemy.String)
+    feature_reach = mapped_column(sqlalchemy.String)
+    feature_measure = mapped_column(sqlalchemy.String)
+    ingest_type = mapped_column(sqlalchemy.String(16))
+    feature_type = mapped_column(sqlalchemy.String)
+
+    def table_name(self, *args) -> str:
+        """
+        Getter-like function to return a formatted string representing the table name.
+
+        If an optional positional argument is given, that string is appended to the table name.
+        This lets us do things like:
+
+        > self.table_name()
+        feature_suffix
+        > self.table_name("temp")
+        feature_suffix_temp
+        > self.table_name("old")
+        feature_suffix_old
+
+        :return: name of the table for this crawler_source
+        :rtype: string
+        """
+        if args:
+            return "feature_" + self.source_suffix + "_" + args[0]
+        else:
+            return "feature_" + self.source_suffix
+
+
+
 
 
 def fetch_source_table(connect_string: str, selector="") -> list:
@@ -33,59 +90,20 @@ def fetch_source_table(connect_string: str, selector="") -> list:
     :return: A list of sources
     :rtype: list of CrawlerSource objects
     """
-    _tbl_name_ = "crawler_source"
-    _schema_ = "nldi_data"
 
-    eng = create_engine(connect_string, client_encoding="UTF-8", echo=False, future=True)
+    eng = sqlalchemy.create_engine(connect_string, client_encoding="UTF-8", echo=False, future=True)
     retval = []
-
-    @dataclasses.dataclass
-    class CrawlerSource(NldiBase):
-        """
-        An ORM reflection of the crawler_source table
-        """
-        __tablename__ = "crawler_source"
-        __table_args__ = {"schema": "nldi_data"}
-
-        crawler_source_id = mapped_column(Integer, primary_key=True)
-        source_name = mapped_column(String(64))
-        source_suffix = mapped_column(String(16))
-        source_uri = mapped_column(String)
-        feature_id = mapped_column(String)
-        feature_name = mapped_column(String)
-        feature_uri = mapped_column(String)
-        feature_reach = mapped_column(String)
-        feature_measure = mapped_column(String)
-        ingest_type = mapped_column(String(16))
-        feature_type = mapped_column(String)
-        # __table__ = Table(
-        #     _tbl_name_,  ## <--- name of the table
-        #     NldiBase.metadata,
-        #     autoload_with=eng,  ## <--- this is where the magic happens
-        #     schema=_schema_,  ## <--- only need this if the table is not in the default schema.
-        # )
-        @property
-        def table_name(self):
-            return "feature_" + self.source_suffix
-
-        @property
-        def tmp_table_name(self):
-            return self.table_name + "_temp"
-
-        @property
-        def old_table_name(self):
-            return self.table_name + "_old"
 
 
 
 
     if selector == "":
-        stmt = select(CrawlerSource).order_by(# pylint: disable=E1101
+        stmt = sqlalchemy.select(CrawlerSource).order_by(# pylint: disable=E1101
             CrawlerSource.crawler_source_id                    # pylint: disable=E1101
         )
     else:
         stmt = (
-            select(CrawlerSource)
+            sqlalchemy.select(CrawlerSource)
             .where(CrawlerSource.crawler_source_id == selector)# pylint: disable=E1101
             .order_by(CrawlerSource.crawler_source_id)         # pylint: disable=E1101
         )
