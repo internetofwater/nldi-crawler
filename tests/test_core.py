@@ -69,3 +69,32 @@ def test_list_sources():
     _url = cli.db_url(cfg)
     srcs = sources.fetch_source_table(_url)
     assert len(srcs) >= 1
+
+
+def test_find_source():
+    """get table of sources from db"""
+    _test_dir = os.path.dirname(os.path.realpath(__file__))
+    cfg = cli.cfg_from_toml(os.path.join(_test_dir, "..", r"nldi-crawler.toml"))
+    _url = cli.db_url(cfg)
+    srcs = sources.fetch_source_table(_url, selector="13")
+    assert len(srcs) == 1
+
+
+def test_no_such_source():
+    """get table of sources from db"""
+    _test_dir = os.path.dirname(os.path.realpath(__file__))
+    cfg = cli.cfg_from_toml(os.path.join(_test_dir, "..", r"nldi-crawler.toml"))
+    _url = cli.db_url(cfg)
+    srcs = sources.fetch_source_table(_url, selector="00")
+    assert len(srcs) == 0
+
+
+def test_download_source():
+    """get table of sources from db"""
+    _test_dir = os.path.dirname(os.path.realpath(__file__))
+    cfg = cli.cfg_from_toml(os.path.join(_test_dir, "..", r"nldi-crawler.toml"))
+    _url = cli.db_url(cfg)
+    srcs = sources.fetch_source_table(_url, selector="13")
+    fname = sources.download_geojson(srcs[-1])
+    assert os.path.exists(fname)
+    os.remove(fname)

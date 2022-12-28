@@ -1,0 +1,110 @@
+ 1 :: Water Quality Portal
+	 Source Suffix:  WQP
+	 Source URI:     https://www.waterqualitydata.us/data/Station/search?mimeType=geojson&minactivities=1&counts=no
+	 Feature ID:     MonitoringLocationIdentifier
+	 Feature Name:   MonitoringLocationName
+	 Feature URI:    siteUrl
+	 Feature Reach:  None
+	 Feature Measure:None
+	 Ingest Type:    point
+	 Feature Type    varies
+ 2 :: HUC12 Pour Points
+	 Source Suffix:  huc12pp
+	 Source URI:     https://www.sciencebase.gov/catalogMaps/mapping/ows/57336b02e4b0dae0d5dd619a?service=WFS&version=1.0.0&request=GetFeature&srsName=EPSG:4326&typeName=sb:fpp&outputFormat=json
+	 Feature ID:     HUC_12
+	 Feature Name:   HUC_12
+	 Feature URI:    HUC_12
+	 Feature Reach:  None
+	 Feature Measure:None
+	 Ingest Type:    point
+	 Feature Type    hydrolocation
+ 5 :: NWIS Surface Water Sites
+	 Source Suffix:  nwissite
+	 Source URI:     https://www.sciencebase.gov/catalog/file/get/60c7b895d34e86b9389b2a6c?name=usgs_nldi_gages.geojson
+	 Feature ID:     provider_id
+	 Feature Name:   name
+	 Feature URI:    subjectOf
+	 Feature Reach:  nhdpv2_REACHCODE
+	 Feature Measure:nhdpv2_REACH_measure
+	 Ingest Type:    reach
+	 Feature Type    hydrolocation
+ 6 :: Water Data Exchange 2.0 Sites
+	 Source Suffix:  wade
+	 Source URI:     https://www.hydroshare.org/resource/5f665b7b82d74476930712f7e423a0d2/data/contents/wade.geojson
+	 Feature ID:     feature_id
+	 Feature Name:   feature_name
+	 Feature URI:    feature_uri
+	 Feature Reach:  None
+	 Feature Measure:None
+	 Ingest Type:    point
+	 Feature Type    varies
+ 7 :: geoconnex.us reference gages
+	 Source Suffix:  ref_gage
+	 Source URI:     https://www.hydroshare.org/resource/3295a17b4cc24d34bd6a5c5aaf753c50/data/contents/nldi_gages.geojson
+	 Feature ID:     id
+	 Feature Name:   name
+	 Feature URI:    subjectOf
+	 Feature Reach:  nhdpv2_REACHCODE
+	 Feature Measure:nhdpv2_REACH_measure
+	 Ingest Type:    reach
+	 Feature Type    hydrolocation
+ 8 :: Streamgage catalog for CA SB19
+	 Source Suffix:  ca_gages
+	 Source URI:     https://sb19.linked-data.internetofwater.dev/collections/ca_gages/items?f=json&limit=10000
+	 Feature ID:     site_id
+	 Feature Name:   sitename
+	 Feature URI:    uri
+	 Feature Reach:  rchcd_medres
+	 Feature Measure:reach_measure
+	 Ingest Type:    reach
+	 Feature Type    hydrolocation
+ 9 :: USGS Geospatial Fabric V1.1 Poin
+	 Source Suffix:  gfv11_pois
+	 Source URI:     https://www.sciencebase.gov/catalogMaps/mapping/ows/609c8a63d34ea221ce3acfd3?service=WFS&version=1.0.0&request=GetFeature&srsName=EPSG:4326&typeName=sb::gfv11&outputFormat=json
+	 Feature ID:     prvdr_d
+	 Feature Name:   name
+	 Feature URI:    uri
+	 Feature Reach:  n2_REACHC
+	 Feature Measure:n2_REACH_
+	 Ingest Type:    reach
+	 Feature Type    hydrolocation
+10 :: Vigil Network Data
+	 Source Suffix:  vigil
+	 Source URI:     https://www.sciencebase.gov/catalog/file/get/60c7b895d34e86b9389b2a6c?name=vigil.geojson
+	 Feature ID:     SBID
+	 Feature Name:   Site Name
+	 Feature URI:    SBURL
+	 Feature Reach:  nhdpv2_REACHCODE
+	 Feature Measure:nhdpv2_REACH_measure
+	 Ingest Type:    reach
+	 Feature Type    hydrolocation
+11 :: NWIS Groundwater Sites
+	 Source Suffix:  nwisgw
+	 Source URI:     https://www.sciencebase.gov/catalog/file/get/60c7b895d34e86b9389b2a6c?name=nwis_wells.geojson
+	 Feature ID:     provider_id
+	 Feature Name:   name
+	 Feature URI:    subjectOf
+	 Feature Reach:  None
+	 Feature Measure:None
+	 Ingest Type:    point
+	 Feature Type    point
+12 :: New Mexico Water Data Initative
+	 Source Suffix:  nmwdi-st
+	 Source URI:     https://locations.newmexicowaterdata.org/collections/Things/items?f=json&limit=100000
+	 Feature ID:     id
+	 Feature Name:   name
+	 Feature URI:    geoconnex
+	 Feature Reach:  None
+	 Feature Measure:None
+	 Ingest Type:    point
+	 Feature Type    point
+13 :: geoconnex contribution demo site
+	 Source Suffix:  geoconnex-demo
+	 Source URI:     https://geoconnex-demo-pages.internetofwater.dev/collections/demo-gpkg/items?f=json&limit=10000
+	 Feature ID:     id
+	 Feature Name:   GNIS_NAME
+	 Feature URI:    uri
+	 Feature Reach:  NHDPv2ReachCode
+	 Feature Measure:NHDPv2Measure
+	 Ingest Type:    reach
+	 Feature Type    hydrolocation

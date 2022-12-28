@@ -10,11 +10,12 @@ import sys
 import os
 import logging
 import configparser
+import re
 import click
-
 
 from . import __version__
 from . import sources
+from . import ingestor
 
 DEFAULT_DB_INFO = {
     "NLDI_DB_HOST": "localhost",
@@ -28,8 +29,9 @@ DEFAULT_DB_INFO = {
 @click.option("-v", "verbose_", count=True, help="Verbose mode.")
 @click.option("--config", "conf_", type=click.Path(exists=True), help="location of config file.")
 @click.option("--list", "list_", is_flag=True, help="Show list of crawler sources and exit.")
+@click.option("--source", "source_id", help="The crawler_source_id to download and process.")
 @click.version_option(version=__version__)
-def main(list_, conf_, verbose_):
+def main(list_, conf_, verbose_, source_id):
     """
     CLI to launch NLDI crawler.
 
@@ -40,7 +42,7 @@ def main(list_, conf_, verbose_):
         logging.basicConfig(level=logging.INFO)
     if verbose_ >= 2:
         logging.basicConfig(level=logging.DEBUG)
-    logging.info("verbosity set to %s", verbose_)
+    logging.info("Verbosity set to %s", verbose_)
 
     cfg = DEFAULT_DB_INFO
     cfg.update(cfg_from_env())
@@ -48,14 +50,31 @@ def main(list_, conf_, verbose_):
         cfg.update(cfg_from_toml(conf_))
 
     if list_:
-        print("\nID : Source Name                                      : URI ")
-        print("==  ", "="*48, " ", "="*48)
-        for source in sources.fetch_source_table(db_url(cfg)):
+        uri = db_url(cfg)
+        print("\nID : Source Name                                    : Type  : URI ")
+        print("==  ", "=" * 46, "  =====  ", "=" * 48)
+        for source in sources.fetch_source_table(uri):
             print(
                 f"{source.crawler_source_id:2} :",
-                f"{source.source_name[0:48]:48} :",
+                f"{source.source_name[0:48]:46} :",
+                f"{source.ingest_type.upper():5} :",
                 f"{source.source_uri[0:48]:48}...",
             )
+        sys.exit(0)
+
+    if source_id:
+        click.echo(f"Looking for source ID {source_id}")
+        uri = db_url(cfg)
+        logging.info("Setting up to crawl source %s", source_id)
+        for source in sources.fetch_source_table(uri, selector=source_id):
+            logging.debug("Found a source...%s : %s", source.crawler_source_id, source.source_name)
+            fname = sources.download_geojson(source)
+            if fname:
+                click.echo(f"Success !! --> {fname} ")
+            else:
+                click.echo("ABORTED")
+                sys.exit(-2)
+            ingestor.ingest(source, fname)
         sys.exit(0)
 
 
@@ -65,14 +84,23 @@ def db_url(conf: dict) -> str:
 
     :param conf: config information retrieved from env variables or from toml file.
     :type conf: dict
-    :return: connection string
+    :return: connection string in URI format
     :rtype: str
     """
+    # NOTE: NLDI_DB_PASS may or may not be set, depending on whether the connection needs a password
+    # or not.  The other configurables are assumed to be set based on the defaults defined in the
+    # global dict DEFAULT_DB_INFO.  If that assumption is proven invalid, we need to do more error
+    # trapping here.
     if "NLDI_DB_PASS" in conf:
-        _url = f"postgresql://{conf['NLDI_DB_USER']}:{conf['NLDI_DB_PASS']}@{conf['NLDI_DB_HOST']}:{conf['NLDI_DB_PORT']}/{conf['NLDI_DB_NAME']}"
+        _url = f"postgresql://{conf['NLDI_DB_USER']}:{conf['NLDI_DB_PASS']}" + \
+            f"@{conf['NLDI_DB_HOST']}:{conf['NLDI_DB_PORT']}/{conf['NLDI_DB_NAME']}"
+        logging.info(
+            "Using DB connection URI: %s", re.sub(r"//([^:]+):.*@", r"//\g<1>:****@", _url)
+        )
     else:
-        _url = f"postgresql://{conf['NLDI_DB_USER']}@{conf['NLDI_DB_HOST']}:{conf['NLDI_DB_PORT']}/{conf['NLDI_DB_NAME']}"
-    logging.info("Using DB Connect String %s", _url)
+        _url = f"postgresql://{conf['NLDI_DB_USER']}@{conf['NLDI_DB_HOST']}:" + \
+            f"{conf['NLDI_DB_PORT']}/{conf['NLDI_DB_NAME']}"
+        logging.info("Using DB connection URI: %s", _url)
     return _url
 
 
@@ -90,7 +118,7 @@ def cfg_from_toml(filepath: str) -> dict:
     ## We already know that filepath is valid and points to an existing file, thanks
     ## to click.Path() in the cmdline option spec.
     _section_ = "nldi-db"
-    logging.info("Parsing TOML config file %s", filepath)
+    logging.info("Parsing TOML config file %s for DB connection info...", filepath)
     retval = {}
     dbconfig = configparser.ConfigParser()
     _ = dbconfig.read(filepath)
@@ -101,11 +129,11 @@ def cfg_from_toml(filepath: str) -> dict:
     retval["NLDI_DB_PORT"] = dbconfig[_section_].get("port").strip("'\"")
     retval["NLDI_DB_USER"] = dbconfig[_section_].get("username").strip("'\"")
     if dbconfig[_section_].get("password") is None:
-        logging.debug("No password in TOML file; good.")
+        logging.debug("No password in TOML file; This is good.")
     else:
         retval["NLDI_DB_PASS"] = dbconfig[_section_].get("password").strip("'\"")
         logging.warning(
-            "Pasword stored as plain text in %s. Consider passing as environment variable instead.",
+            "Password stored as plain text in %s. Consider passing as env variable instead.",
             os.path.basename(filepath),
         )
     retval["NLDI_DB_NAME"] = dbconfig[_section_].get("db_name").strip("'\"")
@@ -119,7 +147,7 @@ def cfg_from_env() -> dict:
     :return: dictionary, populated with values.
     :rtype: dict
     """
-    logging.info("Fetching config from environment variables...")
+    logging.info("Consulting environment variables for DB connection info...")
     env_cfg = {}
     for (_k, _v) in DEFAULT_DB_INFO.items():
         env_cfg[_k] = os.environ.get(_k, _v)
