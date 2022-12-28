@@ -13,13 +13,15 @@ import logging
 import httpx
 
 import sqlalchemy
-#from sqlalchemy import create_engine, String, Integer, select
+
+# from sqlalchemy import create_engine, String, Integer, select
 from sqlalchemy.orm import DeclarativeBase, Session, mapped_column
 
 
 @dataclasses.dataclass
-class NLDI_Base(DeclarativeBase):
+class NLDI_Base(DeclarativeBase):  # pylint: disable=invalid-name
     """Base class used to create reflected ORM objects."""
+
 
 @dataclasses.dataclass
 class CrawlerSource(NLDI_Base):
@@ -32,7 +34,9 @@ class CrawlerSource(NLDI_Base):
     This object maps properties to columns for a given row of that table. Once this object
     is created, the row's data is instantiated within the object.
 
-    > stmt = select(CrawlerSource).order_by(CrawlerSource.crawler_source_id).where(CrawlerSource.crawler_source_id == 1)
+    > stmt = select(CrawlerSource)
+        .order_by(CrawlerSource.crawler_source_id)
+        .where(CrawlerSource.crawler_source_id == 1)
     > for src in session.scalars(stmt):
     ... print(f"{src.crawler_source_id} == {src.source_name}")
 
@@ -72,11 +76,7 @@ class CrawlerSource(NLDI_Base):
         """
         if args:
             return "feature_" + self.source_suffix + "_" + args[0]
-        else:
-            return "feature_" + self.source_suffix
-
-
-
+        return "feature_" + self.source_suffix
 
 
 def fetch_source_table(connect_string: str, selector="") -> list:
@@ -94,18 +94,13 @@ def fetch_source_table(connect_string: str, selector="") -> list:
     eng = sqlalchemy.create_engine(connect_string, client_encoding="UTF-8", echo=False, future=True)
     retval = []
 
-
-
-
     if selector == "":
-        stmt = sqlalchemy.select(CrawlerSource).order_by(# pylint: disable=E1101
-            CrawlerSource.crawler_source_id                    # pylint: disable=E1101
-        )
+        stmt = sqlalchemy.select(CrawlerSource).order_by(CrawlerSource.crawler_source_id)
     else:
         stmt = (
             sqlalchemy.select(CrawlerSource)
-            .where(CrawlerSource.crawler_source_id == selector)# pylint: disable=E1101
-            .order_by(CrawlerSource.crawler_source_id)         # pylint: disable=E1101
+            .where(CrawlerSource.crawler_source_id == selector)
+            .order_by(CrawlerSource.crawler_source_id)
         )
 
     with Session(eng) as session:
@@ -113,7 +108,6 @@ def fetch_source_table(connect_string: str, selector="") -> list:
             retval.append(source)
     eng = None
     return retval
-
 
 
 def download_geojson(source) -> str:
@@ -126,7 +120,7 @@ def download_geojson(source) -> str:
     :rtype: str
     """
     logging.info("Downloading from %s ...", source.source_uri)
-    fname="_tmp"
+    fname = "_tmp"
     try:
         with tempfile.NamedTemporaryFile(
             suffix=".geojson",
@@ -137,7 +131,9 @@ def download_geojson(source) -> str:
             fname = tmp_fh.name
             logging.info("Writing to tmp file %s", tmp_fh.name)
             # timeout = 15sec  TODO: make this a tunable
-            with httpx.stream("GET", source.source_uri, timeout=15.0, follow_redirects=True) as response:
+            with httpx.stream(
+                "GET", source.source_uri, timeout=15.0, follow_redirects=True
+            ) as response:
                 for chunk in response.iter_bytes():
                     tmp_fh.write(chunk)
     except IOError:

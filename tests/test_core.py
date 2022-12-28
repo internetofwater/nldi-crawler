@@ -99,6 +99,7 @@ def test_download_source():
     assert os.path.exists(fname)
     os.remove(fname)
 
+
 def test_source_properties():
     """property methods"""
     _test_dir = os.path.dirname(os.path.realpath(__file__))
