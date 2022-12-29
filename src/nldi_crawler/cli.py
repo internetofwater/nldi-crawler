@@ -12,7 +12,7 @@ import configparser
 import re
 import click
 
-from . import sources
+from . import source
 from . import ingestor
 
 DEFAULT_DB_INFO = {
@@ -23,21 +23,59 @@ DEFAULT_DB_INFO = {
 }
 
 
-
 @click.group(invoke_without_command=True)
 @click.option("-v", "verbose_", count=True, help="Verbose mode.")
 @click.option("--config", "conf_", type=click.Path(exists=True), help="Location of config file.")
 def main(verbose_, conf_):
-    click.echo(f"VERBOSE is {'ON' if verbose_ else 'OFF'}  ({verbose_})")
+    """
+    CLI to launch NLDI crawler.
+
+    The database connection string is assembled from information in environment variables, or
+    from a config file.  If neither are set, will attempt a connection with generic defaults.
+    """
+    if verbose_:
+        click.echo(f"VERBOSE is {'ON' if verbose_ else 'OFF'}  ({verbose_})")
     if conf_:
         click.echo(f"CONFIG : {conf_}")
 
+
 @main.command()
-def list():
+def sources():
     """
-    List all available crawler sources.
+    List all available crawler sources and exit.
     """
-    click.echo('LIST sub-command.')
+    click.echo("LIST sub-command.")
+
+
+@main.command()
+@click.argument("source_id", nargs=1, type=click.STRING, required=False)
+def validate(source_id):
+    """
+    Connect to data source(s) to verify that they can supply data in GeoJSON format.
+    """
+    click.echo("VALIDATE sub-command")
+    if source_id:
+        click.echo(f"Working on source {source_id}")
+    else:
+        click.echo("Validating all sources")
+
+
+@main.command()
+@click.argument("source_id", nargs=1, type=click.STRING)
+def download(source_id):
+    """
+    Download the data associated with a named data source.
+    """
+    click.echo("DOWNLOAD sub-command")
+    click.echo(f"Downloading from source_id {source_id}")
+
+
+@main.command()
+@click.argument("source_id", nargs=1, type=click.STRING)
+def ingest(source_id):
+    """
+    Download and process data associated with a named data source.
+    """
 
 
 # @click.command()
