@@ -26,7 +26,8 @@ DEFAULT_DB_INFO = {
 @click.group(invoke_without_command=True)
 @click.option("-v", "verbose_", count=True, help="Verbose mode.")
 @click.option("--config", "conf_", type=click.Path(exists=True), help="Location of config file.")
-def main(verbose_, conf_):
+@click.pass_context
+def main(ctx, verbose_, conf_):
     """
     CLI to launch NLDI crawler.
 
@@ -37,7 +38,12 @@ def main(verbose_, conf_):
         click.echo(f"VERBOSE is {'ON' if verbose_ else 'OFF'}  ({verbose_})")
     if conf_:
         click.echo(f"CONFIG : {conf_}")
-
+    if ctx.invoked_subcommand is None:
+        ## We can redefine what should happen if no sub-command is given.  Here, I just fall
+        ## back to usage.  But we could also have a default behavior, such as listing sources.
+        ## TODO: decide what should the default behavior be
+        click.echo(f"\nYou must supply a COMMAND: {ctx.command.list_commands(ctx)}\n")
+        click.echo(ctx.get_help())
 
 @main.command()
 def sources():
@@ -51,7 +57,7 @@ def sources():
 @click.argument("source_id", nargs=1, type=click.STRING, required=False)
 def validate(source_id):
     """
-    Connect to data source(s) to verify that they can supply data in GeoJSON format.
+    Connect to data source(s) to verify that they can supply data in JSON format.
     """
     click.echo("VALIDATE sub-command")
     if source_id:
@@ -76,6 +82,8 @@ def ingest(source_id):
     """
     Download and process data associated with a named data source.
     """
+    click.echo("INGEST sub-command")
+    click.echo(f"Working on source {source_id}")
 
 
 # @click.command()
