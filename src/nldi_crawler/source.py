@@ -11,6 +11,7 @@ import dataclasses
 import tempfile
 import logging
 import httpx
+import ijson
 
 import sqlalchemy
 
@@ -144,3 +145,32 @@ def download_geojson(source) -> str:
         os.remove(fname)
         return None
     return fname
+
+
+def validate_src(src: CrawlerSource) -> tuple:
+    try:
+        with httpx.Client() as client:
+            with client.stream(
+                "GET", src.source_uri, timeout=5.0, follow_redirects=True
+            ) as response:
+                chunk = response.iter_bytes(2048)
+                for itm in ijson.items(next(chunk), 'features.item'):
+                    if src.feature_reach not in itm['properties']:
+                        return (False, f"Column not found for 'feature_reach' : {src.feature_reach}")
+                    if src.feature_measure not in itm['properties']:
+                        return (False, f"Column not found for 'feature_measure' : {src.feature_measure}")
+                    if src.feature_name not in itm['properties']:
+                        return (False, f"Column not found for 'feature_name' : {src.feature_name}")
+                    if src.feature_id not in itm['properties']:
+                        return (False, f"Column not found for 'feature_id' : {src.feature_id}")
+                    if src.feature_uri not in itm['properties']:
+                        return (False, f"Column not found for 'feature_uri' : {src.feature_measure}")
+                    break
+    except httpx.ReadTimeout:
+        return (False, "Network Timeout")
+    except KeyError:
+        return (False, "Key Error")
+    except ijson.JSONError:
+        return (False, "Invalid JSON")
+
+    return (True, "")

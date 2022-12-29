@@ -73,21 +73,26 @@ def sources(ctx):
 
 
 @main.command()
-@click.argument("source_id", nargs=1, type=click.STRING, required=False)
+@click.argument("source_id", nargs=1, type=click.STRING)
 @click.pass_context
 def validate(ctx, source_id):
     """
     Connect to data source(s) to verify that they can supply data in JSON format.
     """
     logging.info("Validating data source(s)")
-    if source_id:
+    if source_id.upper() == "ALL":
+        source_list = source.fetch_source_table(ctx.obj["DB_URL"])
+    else:
         source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=source_id)
         if len(source_list) == 0:
             click.echo(f"No source found with ID {source_id}")
-    else:
-        source_list = source.fetch_source_table(ctx.obj["DB_URL"])
     for src in source_list:
-        logging.info("\t%s", src.source_name)
+        print(f"{src.crawler_source_id} : Checking {src.source_name}... ", end="")
+        result = source.validate_src(src)
+        if result[0]:
+            print(" [PASS]")
+        else:
+            print(f" [FAIL] : {result[1]}")
 
 
 @main.command()
@@ -107,7 +112,32 @@ def download(ctx, source_id):
         click.echo(f"Source {source_id} downloaded to {fname}")
     else:
         logging.warning("Download FAILED for source %s", source_id)
+        click.echo(f"Download FAILED for source {source_id}")
         sys.exit(-1)
+
+
+@main.command()
+@click.argument("source_id", nargs=1, type=click.STRING)
+@click.pass_context
+def display(ctx, source_id):
+    """
+    Show details for named source.
+    """
+    source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=source_id)
+    if len(source_list) == 0:
+        click.echo(f"No source found with ID {source_id}")
+        return
+    for src in source_list:
+        print(f"{src.crawler_source_id:2} :: {src.source_name[0:32]:32}")
+        print(f"  Source Suffix:  {src.source_suffix}")
+        print(f"  Source URI:     {src.source_uri}")
+        print(f"  Feature ID:     {src.feature_id}")
+        print(f"  Feature Name:   {src.feature_name}")
+        print(f"  Feature URI:    {src.feature_uri}")
+        print(f"  Feature Reach:  {src.feature_reach}")
+        print(f"  Feature Measure:{src.feature_measure}")
+        print(f"  Ingest Type:    {src.ingest_type}")
+        print(f"  Feature Type    {src.feature_type}")
 
 
 @main.command()
@@ -119,22 +149,6 @@ def ingest(ctx, source_id):
     """
     click.echo("INGEST sub-command")
     click.echo(f"Working on source {source_id}")
-
-
-#     if source_id:
-#         click.echo(f"Looking for source ID {source_id}")
-#         uri = db_url(cfg)
-#         logging.info("Setting up to crawl source %s", source_id)
-#         for source in sources.fetch_source_table(uri, selector=source_id):
-#             logging.debug("Found a source...%s : %s", source.crawler_source_id, source.source_name)
-#             fname = sources.download_geojson(source)
-#             if fname:
-#                 click.echo(f"Success !! --> {fname} ")
-#             else:
-#                 click.echo("ABORTED")
-#                 sys.exit(-2)
-#             ingestor.ingest(source, fname)
-#         sys.exit(0)
 
 
 def db_url(conf: dict) -> str:
@@ -156,14 +170,14 @@ def db_url(conf: dict) -> str:
             + f"@{conf['NLDI_DB_HOST']}:{conf['NLDI_DB_PORT']}/{conf['NLDI_DB_NAME']}"
         )
         logging.info(
-            "Using DB connection URI: %s", re.sub(r"//([^:]+):.*@", r"//\g<1>:****@", _url)
+            " Using DB connection URI: %s", re.sub(r"//([^:]+):.*@", r"//\g<1>:****@", _url)
         )
     else:
         _url = (
             f"postgresql://{conf['NLDI_DB_USER']}@{conf['NLDI_DB_HOST']}:"
             + f"{conf['NLDI_DB_PORT']}/{conf['NLDI_DB_NAME']}"
         )
-        logging.info("Using DB connection URI: %s", _url)
+        logging.info(" Using DB connection URI: %s", _url)
     return _url
 
 
