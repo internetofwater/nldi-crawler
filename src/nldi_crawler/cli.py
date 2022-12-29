@@ -92,14 +92,18 @@ def db_url(conf: dict) -> str:
     # global dict DEFAULT_DB_INFO.  If that assumption is proven invalid, we need to do more error
     # trapping here.
     if "NLDI_DB_PASS" in conf:
-        _url = f"postgresql://{conf['NLDI_DB_USER']}:{conf['NLDI_DB_PASS']}" + \
-            f"@{conf['NLDI_DB_HOST']}:{conf['NLDI_DB_PORT']}/{conf['NLDI_DB_NAME']}"
+        _url = (
+            f"postgresql://{conf['NLDI_DB_USER']}:{conf['NLDI_DB_PASS']}"
+            + f"@{conf['NLDI_DB_HOST']}:{conf['NLDI_DB_PORT']}/{conf['NLDI_DB_NAME']}"
+        )
         logging.info(
             "Using DB connection URI: %s", re.sub(r"//([^:]+):.*@", r"//\g<1>:****@", _url)
         )
     else:
-        _url = f"postgresql://{conf['NLDI_DB_USER']}@{conf['NLDI_DB_HOST']}:" + \
-            f"{conf['NLDI_DB_PORT']}/{conf['NLDI_DB_NAME']}"
+        _url = (
+            f"postgresql://{conf['NLDI_DB_USER']}@{conf['NLDI_DB_HOST']}:"
+            + f"{conf['NLDI_DB_PORT']}/{conf['NLDI_DB_NAME']}"
+        )
         logging.info("Using DB connection URI: %s", _url)
     return _url
 

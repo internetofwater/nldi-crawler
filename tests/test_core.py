@@ -94,7 +94,19 @@ def test_download_source():
     _test_dir = os.path.dirname(os.path.realpath(__file__))
     cfg = cli.cfg_from_toml(os.path.join(_test_dir, "..", r"nldi-crawler.toml"))
     _url = cli.db_url(cfg)
-    srcs = sources.fetch_source_table(_url, selector="13")
+    srcs = sources.fetch_source_table(_url, selector="10")
     fname = sources.download_geojson(srcs[-1])
     assert os.path.exists(fname)
     os.remove(fname)
+
+
+def test_source_properties():
+    """property methods"""
+    _test_dir = os.path.dirname(os.path.realpath(__file__))
+    cfg = cli.cfg_from_toml(os.path.join(_test_dir, "..", r"nldi-crawler.toml"))
+    _url = cli.db_url(cfg)
+    src = sources.fetch_source_table(_url, selector="10")[0]
+    assert src.source_suffix == "vigil"
+    assert src.table_name() == "feature_vigil"
+    assert src.table_name("temp") == "feature_vigil_temp"
+    assert src.table_name("old") == "feature_vigil_old"
