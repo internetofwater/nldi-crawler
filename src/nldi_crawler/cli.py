@@ -78,6 +78,7 @@ def sources(ctx):
 def validate(ctx, source_id):
     """
     Connect to data source(s) to verify that they can supply data in JSON format.
+    
     """
     logging.info("Validating data source(s)")
     if source_id.upper() == "ALL":
@@ -121,23 +122,23 @@ def download(ctx, source_id):
 @click.pass_context
 def display(ctx, source_id):
     """
-    Show details for named source.
+    Show details for named data source.
     """
     source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=source_id)
     if len(source_list) == 0:
         click.echo(f"No source found with ID {source_id}")
         return
     for src in source_list:
-        print(f"{src.crawler_source_id:2} :: {src.source_name[0:32]:32}")
-        print(f"  Source Suffix:  {src.source_suffix}")
-        print(f"  Source URI:     {src.source_uri}")
-        print(f"  Feature ID:     {src.feature_id}")
-        print(f"  Feature Name:   {src.feature_name}")
-        print(f"  Feature URI:    {src.feature_uri}")
-        print(f"  Feature Reach:  {src.feature_reach}")
-        print(f"  Feature Measure:{src.feature_measure}")
-        print(f"  Ingest Type:    {src.ingest_type}")
-        print(f"  Feature Type    {src.feature_type}")
+        print(f"ID={src.crawler_source_id:2} :: {src.source_name}")
+        print(f"  Source Suffix  : {src.source_suffix}")
+        print(f"  Source URI     : {src.source_uri}")
+        print(f"  Feature ID     : {src.feature_id}")
+        print(f"  Feature Name   : {src.feature_name}")
+        print(f"  Feature URI    : {src.feature_uri}")
+        print(f"  Feature Reach  : {src.feature_reach}")
+        print(f"  Feature Measure: {src.feature_measure}")
+        print(f"  Ingest Type    : {src.ingest_type}")
+        print(f"  Feature Type   : {src.feature_type}")
 
 
 @main.command()
@@ -147,8 +148,19 @@ def ingest(ctx, source_id):
     """
     Download and process data associated with a named data source.
     """
-    click.echo("INGEST sub-command")
-    click.echo(f"Working on source {source_id}")
+    source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=source_id)
+    if len(source_list) == 0:
+        click.echo(f"No source found with ID {source_id}")
+        return
+    fname = source.download_geojson(source_list[0])
+    if fname:
+        logging.info(" Source %s dowloaded to %s", source_id, fname)
+    else:
+        logging.warning(" Download FAILED for source %s", source_id)
+        sys.exit(-1)
+    ingestor.ingest_from_file(source_list[0], fname)
+    os.remove(fname)
+
 
 
 def db_url(conf: dict) -> str:

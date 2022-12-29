@@ -10,7 +10,7 @@ import logging
 import ijson
 
 
-def ingest(src, fname: str):
+def ingest_from_file(src, fname: str):
     """
     Takes in a source dataset, and processes it to insert into the NLDI-DB feature table
 
@@ -20,7 +20,7 @@ def ingest(src, fname: str):
     :type fname: str
     """
     logging.info(
-        "Ingesting from %s source: %s / %s",
+        " Ingesting from %s source: %s / %s",
         src.ingest_type.upper(),
         src.crawler_source_id,
         src.source_name,
@@ -30,6 +30,6 @@ def ingest(src, fname: str):
             i = 1
             for itm in ijson.items(read_fh, "features.item"):
                 i += 1
-        logging.info("Processed %s features", i - 1)
+        logging.info(" Processed %s features from %s", i - 1, src.source_name)
     except ijson.JSONError:
-        logging.warning("Parsing error; stopping after %s features read", i - 1)
+        logging.warning(" Parsing error; stopping after %s features read", i - 1)

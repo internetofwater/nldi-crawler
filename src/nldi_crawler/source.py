@@ -120,7 +120,7 @@ def download_geojson(source) -> str:
     :return: path name to temporary file
     :rtype: str
     """
-    logging.info("Downloading data from %s ...", source.source_uri)
+    logging.info(" Downloading data from %s ...", source.source_uri)
     fname = "_tmp"
     try:
         with tempfile.NamedTemporaryFile(
@@ -138,10 +138,10 @@ def download_geojson(source) -> str:
                 for chunk in response.iter_bytes(1024):
                     tmp_fh.write(chunk)
     except IOError:
-        logging.exception("I/O Error while downloading from %s to %s", source.source_uri, fname)
+        logging.exception(" I/O Error while downloading from %s to %s", source.source_uri, fname)
         raise
     except httpx.ReadTimeout:
-        logging.critical("Read TimeOut attempting to download from %s", source.source_uri)
+        logging.critical(" Read TimeOut attempting to download from %s", source.source_uri)
         os.remove(fname)
         return None
     return fname
@@ -153,17 +153,17 @@ def validate_src(src: CrawlerSource) -> tuple:
             with client.stream(
                 "GET", src.source_uri, timeout=5.0, follow_redirects=True
             ) as response:
-                chunk = response.iter_bytes(2048)
+                chunk = response.iter_bytes(2048)  # read 2k bytes, to be sure we get a complete feature.
                 for itm in ijson.items(next(chunk), 'features.item'):
-                    if src.feature_reach not in itm['properties']:
+                    if src.feature_reach is not None and src.feature_reach not in itm['properties']:
                         return (False, f"Column not found for 'feature_reach' : {src.feature_reach}")
-                    if src.feature_measure not in itm['properties']:
+                    if src.feature_measure is not None and src.feature_measure not in itm['properties']:
                         return (False, f"Column not found for 'feature_measure' : {src.feature_measure}")
-                    if src.feature_name not in itm['properties']:
+                    if src.feature_name is not None and src.feature_name not in itm['properties']:
                         return (False, f"Column not found for 'feature_name' : {src.feature_name}")
-                    if src.feature_id not in itm['properties']:
+                    if src.feature_id is not None and src.feature_id not in itm['properties']:
                         return (False, f"Column not found for 'feature_id' : {src.feature_id}")
-                    if src.feature_uri not in itm['properties']:
+                    if src.feature_uri is not None and src.feature_uri not in itm['properties']:
                         return (False, f"Column not found for 'feature_uri' : {src.feature_measure}")
                     break
     except httpx.ReadTimeout:
