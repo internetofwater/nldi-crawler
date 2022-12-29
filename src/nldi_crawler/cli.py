@@ -6,76 +6,91 @@
 """
 Command Line Interface for launching the NLDI web crawler.
 """
-import sys
 import os
 import logging
 import configparser
 import re
 import click
 
-from . import __version__
 from . import sources
 from . import ingestor
 
 DEFAULT_DB_INFO = {
     "NLDI_DB_HOST": "localhost",
     "NLDI_DB_PORT": "5432",
-    "NLDI_DB_USER": "nldi_schema_owner",
+    "NLDI_DB_USER": "read_only_user",
     "NLDI_DB_NAME": "nldi",
 }
 
 
-@click.command()
+
+@click.group(invoke_without_command=True)
 @click.option("-v", "verbose_", count=True, help="Verbose mode.")
-@click.option("--config", "conf_", type=click.Path(exists=True), help="location of config file.")
-@click.option("--list", "list_", is_flag=True, help="Show list of crawler sources and exit.")
-@click.option("--source", "source_id", help="The crawler_source_id to download and process.")
-@click.version_option(version=__version__)
-def main(list_, conf_, verbose_, source_id):
-    """
-    CLI to launch NLDI crawler.
-
-    The database connection string is assembled from information in environment variables, or
-    from a config file.  If neither are set, will attempt a connection with generic defaults.
-    """
-    if verbose_ == 1:
-        logging.basicConfig(level=logging.INFO)
-    if verbose_ >= 2:
-        logging.basicConfig(level=logging.DEBUG)
-    logging.info("Verbosity set to %s", verbose_)
-
-    cfg = DEFAULT_DB_INFO
-    cfg.update(cfg_from_env())
+@click.option("--config", "conf_", type=click.Path(exists=True), help="Location of config file.")
+def main(verbose_, conf_):
+    click.echo(f"VERBOSE is {'ON' if verbose_ else 'OFF'}  ({verbose_})")
     if conf_:
-        cfg.update(cfg_from_toml(conf_))
+        click.echo(f"CONFIG : {conf_}")
 
-    if list_:
-        uri = db_url(cfg)
-        print("\nID : Source Name                                    : Type  : URI ")
-        print("==  ", "=" * 46, "  =====  ", "=" * 48)
-        for source in sources.fetch_source_table(uri):
-            print(
-                f"{source.crawler_source_id:2} :",
-                f"{source.source_name[0:48]:46} :",
-                f"{source.ingest_type.upper():5} :",
-                f"{source.source_uri[0:48]:48}...",
-            )
-        sys.exit(0)
+@main.command()
+def list():
+    """
+    List all available crawler sources.
+    """
+    click.echo('LIST sub-command.')
 
-    if source_id:
-        click.echo(f"Looking for source ID {source_id}")
-        uri = db_url(cfg)
-        logging.info("Setting up to crawl source %s", source_id)
-        for source in sources.fetch_source_table(uri, selector=source_id):
-            logging.debug("Found a source...%s : %s", source.crawler_source_id, source.source_name)
-            fname = sources.download_geojson(source)
-            if fname:
-                click.echo(f"Success !! --> {fname} ")
-            else:
-                click.echo("ABORTED")
-                sys.exit(-2)
-            ingestor.ingest(source, fname)
-        sys.exit(0)
+
+# @click.command()
+# @click.option("-v", "verbose_", count=True, help="Verbose mode.")
+# @click.option("--config", "conf_", type=click.Path(exists=True), help="location of config file.")
+# @click.option("--list", "list_", is_flag=True, help="Show list of crawler sources and exit.")
+# @click.option("--source", "source_id", help="The crawler_source_id to download and process.")
+# @click.version_option(version=__version__)
+# def main(list_, conf_, verbose_, source_id):
+#     """
+#     CLI to launch NLDI crawler.
+
+#     The database connection string is assembled from information in environment variables, or
+#     from a config file.  If neither are set, will attempt a connection with generic defaults.
+#     """
+#     if verbose_ == 1:
+#         logging.basicConfig(level=logging.INFO)
+#     if verbose_ >= 2:
+#         logging.basicConfig(level=logging.DEBUG)
+#     logging.info("Verbosity set to %s", verbose_)
+
+#     cfg = DEFAULT_DB_INFO
+#     cfg.update(cfg_from_env())
+#     if conf_:
+#         cfg.update(cfg_from_toml(conf_))
+
+#     if list_:
+#         uri = db_url(cfg)
+#         print("\nID : Source Name                                    : Type  : URI ")
+#         print("==  ", "=" * 46, "  =====  ", "=" * 48)
+#         for source in sources.fetch_source_table(uri):
+#             print(
+#                 f"{source.crawler_source_id:2} :",
+#                 f"{source.source_name[0:48]:46} :",
+#                 f"{source.ingest_type.upper():5} :",
+#                 f"{source.source_uri[0:48]:48}...",
+#             )
+#         sys.exit(0)
+
+#     if source_id:
+#         click.echo(f"Looking for source ID {source_id}")
+#         uri = db_url(cfg)
+#         logging.info("Setting up to crawl source %s", source_id)
+#         for source in sources.fetch_source_table(uri, selector=source_id):
+#             logging.debug("Found a source...%s : %s", source.crawler_source_id, source.source_name)
+#             fname = sources.download_geojson(source)
+#             if fname:
+#                 click.echo(f"Success !! --> {fname} ")
+#             else:
+#                 click.echo("ABORTED")
+#                 sys.exit(-2)
+#             ingestor.ingest(source, fname)
+#         sys.exit(0)
 
 
 def db_url(conf: dict) -> str:
