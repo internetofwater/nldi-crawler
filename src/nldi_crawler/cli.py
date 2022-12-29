@@ -7,6 +7,7 @@
 Command Line Interface for launching the NLDI web crawler.
 """
 import os
+import sys
 import logging
 import configparser
 import re
@@ -31,97 +32,94 @@ def main(ctx, verbose_, conf_):
     """
     CLI to launch NLDI crawler.
 
-    The database connection string is assembled from information in environment variables, or
-    from a config file.  If neither are set, will attempt a connection with generic defaults.
     """
-    if verbose_:
-        click.echo(f"VERBOSE is {'ON' if verbose_ else 'OFF'}  ({verbose_})")
-    if conf_:
-        click.echo(f"CONFIG : {conf_}")
     if ctx.invoked_subcommand is None:
         ## We can redefine what should happen if no sub-command is given.  Here, I just fall
         ## back to usage.  But we could also have a default behavior, such as listing sources.
         ## TODO: decide what should the default behavior be
         click.echo(f"\nYou must supply a COMMAND: {ctx.command.list_commands(ctx)}\n")
         click.echo(ctx.get_help())
+        sys.exit(0)
+
+    if verbose_ == 1:
+        logging.basicConfig(level=logging.INFO)
+    if verbose_ >= 2:
+        logging.basicConfig(level=logging.DEBUG)
+    logging.info("VERBOSE is %s", verbose_)
+
+    cfg = DEFAULT_DB_INFO
+    cfg.update(cfg_from_env())
+    if conf_:
+        cfg.update(cfg_from_toml(conf_))
+    ctx.ensure_object(dict)
+    ctx.obj["DB_URL"] = db_url(cfg)
+
 
 @main.command()
-def sources():
+@click.pass_context
+def sources(ctx):
     """
     List all available crawler sources and exit.
     """
-    click.echo("LIST sub-command.")
+    print("\nID : Source Name                                    : Type  : URI ")
+    print("==  ", "=" * 46, "  =====  ", "=" * 48)
+    for src in source.fetch_source_table(ctx.obj["DB_URL"]):
+        print(
+            f"{src.crawler_source_id:2} :",
+            f"{src.source_name[0:48]:46} :",
+            f"{src.ingest_type.upper():5} :",
+            f"{src.source_uri[0:48]:48}...",
+        )
 
 
 @main.command()
 @click.argument("source_id", nargs=1, type=click.STRING, required=False)
-def validate(source_id):
+@click.pass_context
+def validate(ctx, source_id):
     """
     Connect to data source(s) to verify that they can supply data in JSON format.
     """
-    click.echo("VALIDATE sub-command")
+    logging.info("Validating data source(s)")
     if source_id:
-        click.echo(f"Working on source {source_id}")
+        source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=source_id)
+        if len(source_list) == 0:
+            click.echo(f"No source found with ID {source_id}")
     else:
-        click.echo("Validating all sources")
+        source_list = source.fetch_source_table(ctx.obj["DB_URL"])
+    for src in source_list:
+        logging.info("\t%s", src.source_name)
 
 
 @main.command()
 @click.argument("source_id", nargs=1, type=click.STRING)
-def download(source_id):
+@click.pass_context
+def download(ctx, source_id):
     """
     Download the data associated with a named data source.
     """
-    click.echo("DOWNLOAD sub-command")
-    click.echo(f"Downloading from source_id {source_id}")
+    logging.info(" Downloading source %s ", source_id)
+    source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=source_id)
+    if len(source_list) == 0:
+        click.echo(f"No source found with ID {source_id}")
+        return
+    fname = source.download_geojson(source_list[0])
+    if fname:
+        click.echo(f"Source {source_id} downloaded to {fname}")
+    else:
+        logging.warning("Download FAILED for source %s", source_id)
+        sys.exit(-1)
 
 
 @main.command()
 @click.argument("source_id", nargs=1, type=click.STRING)
-def ingest(source_id):
+@click.pass_context
+def ingest(ctx, source_id):
     """
     Download and process data associated with a named data source.
     """
     click.echo("INGEST sub-command")
     click.echo(f"Working on source {source_id}")
 
-
-# @click.command()
-# @click.option("-v", "verbose_", count=True, help="Verbose mode.")
-# @click.option("--config", "conf_", type=click.Path(exists=True), help="location of config file.")
-# @click.option("--list", "list_", is_flag=True, help="Show list of crawler sources and exit.")
-# @click.option("--source", "source_id", help="The crawler_source_id to download and process.")
-# @click.version_option(version=__version__)
-# def main(list_, conf_, verbose_, source_id):
-#     """
-#     CLI to launch NLDI crawler.
-
-#     The database connection string is assembled from information in environment variables, or
-#     from a config file.  If neither are set, will attempt a connection with generic defaults.
-#     """
-#     if verbose_ == 1:
-#         logging.basicConfig(level=logging.INFO)
-#     if verbose_ >= 2:
-#         logging.basicConfig(level=logging.DEBUG)
-#     logging.info("Verbosity set to %s", verbose_)
-
-#     cfg = DEFAULT_DB_INFO
-#     cfg.update(cfg_from_env())
-#     if conf_:
-#         cfg.update(cfg_from_toml(conf_))
-
-#     if list_:
-#         uri = db_url(cfg)
-#         print("\nID : Source Name                                    : Type  : URI ")
-#         print("==  ", "=" * 46, "  =====  ", "=" * 48)
-#         for source in sources.fetch_source_table(uri):
-#             print(
-#                 f"{source.crawler_source_id:2} :",
-#                 f"{source.source_name[0:48]:46} :",
-#                 f"{source.ingest_type.upper():5} :",
-#                 f"{source.source_uri[0:48]:48}...",
-#             )
-#         sys.exit(0)
 
 #     if source_id:
 #         click.echo(f"Looking for source ID {source_id}")
@@ -183,12 +181,12 @@ def cfg_from_toml(filepath: str) -> dict:
     ## We already know that filepath is valid and points to an existing file, thanks
     ## to click.Path() in the cmdline option spec.
     _section_ = "nldi-db"
-    logging.info("Parsing TOML config file %s for DB connection info...", filepath)
+    logging.info(" Parsing TOML config file %s for DB connection info...", filepath)
     retval = {}
     dbconfig = configparser.ConfigParser()
     _ = dbconfig.read(filepath)
     if _section_ not in dbconfig.sections():
-        logging.info("No '%s' section in configuration file %s.", _section_, filepath)
+        logging.info(" No '%s' section in configuration file %s.", _section_, filepath)
         return retval
     retval["NLDI_DB_HOST"] = dbconfig[_section_].get("hostname").strip("'\"")
     retval["NLDI_DB_PORT"] = dbconfig[_section_].get("port").strip("'\"")
@@ -212,7 +210,7 @@ def cfg_from_env() -> dict:
     :return: dictionary, populated with values.
     :rtype: dict
     """
-    logging.info("Consulting environment variables for DB connection info...")
+    logging.info(" Consulting environment variables for DB connection info...")
     env_cfg = {}
     for (_k, _v) in DEFAULT_DB_INFO.items():
         env_cfg[_k] = os.environ.get(_k, _v)

@@ -106,7 +106,7 @@ def fetch_source_table(connect_string: str, selector="") -> list:
     with Session(eng) as session:
         for source in session.scalars(stmt):
             retval.append(source)
-    eng = None
+    eng.dispose()
     return retval
 
 
@@ -119,7 +119,7 @@ def download_geojson(source) -> str:
     :return: path name to temporary file
     :rtype: str
     """
-    logging.info("Downloading from %s ...", source.source_uri)
+    logging.info("Downloading data from %s ...", source.source_uri)
     fname = "_tmp"
     try:
         with tempfile.NamedTemporaryFile(
@@ -134,7 +134,7 @@ def download_geojson(source) -> str:
             with httpx.stream(
                 "GET", source.source_uri, timeout=15.0, follow_redirects=True
             ) as response:
-                for chunk in response.iter_bytes():
+                for chunk in response.iter_bytes(1024):
                     tmp_fh.write(chunk)
     except IOError:
         logging.exception("I/O Error while downloading from %s to %s", source.source_uri, fname)
