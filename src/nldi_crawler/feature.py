@@ -9,9 +9,9 @@ routines to manage the table of crawler_sources
 import dataclasses
 import logging
 
-import sqlalchemy
-import geoalchemy2
+from sqlalchemy import Integer, String, Numeric, Column, Table, create_engine, MetaData
 from sqlalchemy.orm import DeclarativeBase
+from geoalchemy2 import Geography
 
 
 @dataclasses.dataclass
@@ -32,20 +32,20 @@ def init_feature_table(db_url: str, tablename, geom_type="POINT"):
     """
     logging.info("Creating empty feature table %s", tablename)
 
-    engine = sqlalchemy.create_engine(db_url, client_encoding="UTF-8", echo=True, future=True)
-    meta = sqlalchemy.MetaData()
+    engine = create_engine(db_url, client_encoding="UTF-8", echo=True, future=True)
+    meta = MetaData()
 
-    feature_test = sqlalchemy.Table( # pylint: disable=W0612
+    feature_test = Table(  # pylint: disable=W0612
         tablename,
         meta,
-        sqlalchemy.Column("comid", sqlalchemy.Integer, primary_key=True, autoincrement=False),
-        sqlalchemy.Column("crawler_source_id", sqlalchemy.Integer),
-        sqlalchemy.Column("name", sqlalchemy.String),
-        sqlalchemy.Column("uri", sqlalchemy.String),
-        sqlalchemy.Column("location", sqlalchemy.String),
-        sqlalchemy.Column("reachcode", sqlalchemy.String),
-        sqlalchemy.Column("measure", sqlalchemy.Numeric),
-        sqlalchemy.Column("shape", geoalchemy2.Geography(geom_type)),
+        Column("comid", Integer, primary_key=True, autoincrement=False),
+        Column("crawler_source_id", Integer),
+        Column("name", String),
+        Column("uri", String),
+        Column("location", String),
+        Column("reachcode", String),
+        Column("measure", Numeric),
+        Column("shape", Geography(geom_type)),
         schema="nldi_data",
     )
     meta.create_all(engine)

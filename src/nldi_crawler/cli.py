@@ -77,8 +77,7 @@ def sources(ctx):
 @click.pass_context
 def validate(ctx, source_id):
     """
-    Connect to data source(s) to verify that
-    they can supply data in JSON format.
+    Connect to data source(s) to verify they can return JSON data.
     """
     logging.info("Validating data source(s)")
     if source_id.upper() == "ALL":

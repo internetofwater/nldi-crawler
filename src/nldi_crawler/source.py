@@ -7,15 +7,15 @@
 routines to manage the table of crawler_sources
 """
 import os
+import sys
 import dataclasses
 import tempfile
 import logging
 import httpx
-import ijson
+from ijson import items, JSONError
 
-import sqlalchemy
 
-# from sqlalchemy import create_engine, String, Integer, select
+from sqlalchemy import create_engine, String, Integer, select
 from sqlalchemy.orm import DeclarativeBase, Session, mapped_column
 
 
@@ -46,17 +46,17 @@ class CrawlerSource(NLDI_Base):
     __tablename__ = "crawler_source"
     __table_args__ = {"schema": "nldi_data"}
 
-    crawler_source_id = mapped_column(sqlalchemy.Integer, primary_key=True)
-    source_name = mapped_column(sqlalchemy.String(64))
-    source_suffix = mapped_column(sqlalchemy.String(16))
-    source_uri = mapped_column(sqlalchemy.String)
-    feature_id = mapped_column(sqlalchemy.String)
-    feature_name = mapped_column(sqlalchemy.String)
-    feature_uri = mapped_column(sqlalchemy.String)
-    feature_reach = mapped_column(sqlalchemy.String)
-    feature_measure = mapped_column(sqlalchemy.String)
-    ingest_type = mapped_column(sqlalchemy.String(16))
-    feature_type = mapped_column(sqlalchemy.String)
+    crawler_source_id = mapped_column(Integer, primary_key=True)
+    source_name = mapped_column(String(64))
+    source_suffix = mapped_column(String(16))
+    source_uri = mapped_column(String)
+    feature_id = mapped_column(String)
+    feature_name = mapped_column(String)
+    feature_uri = mapped_column(String)
+    feature_reach = mapped_column(String)
+    feature_measure = mapped_column(String)
+    ingest_type = mapped_column(String(16))
+    feature_type = mapped_column(String)
 
     def table_name(self, *args) -> str:
         """
@@ -92,22 +92,28 @@ def fetch_source_table(connect_string: str, selector="") -> list:
     :rtype: list of CrawlerSource objects
     """
 
-    eng = sqlalchemy.create_engine(connect_string, client_encoding="UTF-8", echo=False, future=True)
+    eng = create_engine(connect_string, client_encoding="UTF-8", echo=False, future=True)
     retval = []
 
     if selector == "":
-        stmt = sqlalchemy.select(CrawlerSource).order_by(CrawlerSource.crawler_source_id)
+        stmt = select(CrawlerSource).order_by(CrawlerSource.crawler_source_id)
     else:
         stmt = (
-            sqlalchemy.select(CrawlerSource)
+            select(CrawlerSource)
             .where(CrawlerSource.crawler_source_id == selector)
             .order_by(CrawlerSource.crawler_source_id)
         )
 
-    with Session(eng) as session:
-        for source in session.scalars(stmt):
-            retval.append(source)
-    eng.dispose()
+    try:
+        with Session(eng) as session:
+            for source in session.scalars(stmt):
+                retval.append(source)
+    except Exception as exc:
+        logging.warning("Database connection error")
+        logging.warning(exc)
+        raise ConnectionError from exc
+    finally:
+        eng.dispose()
     return retval
 
 
@@ -166,7 +172,7 @@ def validate_src(src: CrawlerSource) -> tuple:
             ) as response:
                 chunk = response.iter_bytes(2048)
                 # read 2k bytes, to be sure we get a complete feature.
-                for itm in ijson.items(next(chunk), "features.item"):
+                for itm in items(next(chunk), "features.item"):
                     fail = None
                     if src.feature_reach is not None and src.feature_reach not in itm["properties"]:
                         fail = (
@@ -197,7 +203,7 @@ def validate_src(src: CrawlerSource) -> tuple:
         return (False, "Network Timeout")
     except KeyError:
         return (False, "Key Error")
-    except ijson.JSONError:
+    except JSONError:
         return (False, "Invalid JSON")
 
     return (True, "")

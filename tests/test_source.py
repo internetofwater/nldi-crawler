@@ -5,6 +5,7 @@
 Test source table functions.
 """
 import os
+import pytest
 
 from nldi_crawler import source
 
@@ -42,3 +43,10 @@ def test_source_properties(connect_string):
     assert src.table_name() == "feature_vigil"
     assert src.table_name("temp") == "feature_vigil_temp"
     assert src.table_name("old") == "feature_vigil_old"
+
+
+def test_failed_db_connection(connect_string):
+    """ Failed db connection raises ConnectionError """
+    _uri = connect_string.replace("changeMe", "noPass")
+    with pytest.raises(ConnectionError):
+        _ = source.fetch_source_table(_uri)

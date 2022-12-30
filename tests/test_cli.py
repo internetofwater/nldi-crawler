@@ -45,4 +45,3 @@ def test_env_config():
     cfg = cli.cfg_from_env()
     assert cfg["NLDI_DB_NAME"] == "SET"
     assert cfg["NLDI_DB_PASS"] == "secret"
-

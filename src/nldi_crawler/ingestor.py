@@ -7,7 +7,7 @@
 routines to manage the ingestion of crawler sources
 """
 import logging
-import ijson
+from ijson import JSONError, items
 
 
 def ingest_from_file(src, fname: str):
@@ -28,8 +28,8 @@ def ingest_from_file(src, fname: str):
     try:
         with open(fname, "r", encoding="UTF-8") as read_fh:
             i = 1
-            for itm in ijson.items(read_fh, "features.item"):
+            for itm in items(read_fh, "features.item"):
                 i += 1
         logging.info(" Processed %s features from %s", i - 1, src.source_name)
-    except ijson.JSONError:
+    except JSONError:
         logging.warning(" Parsing error; stopping after %s features read", i - 1)
