@@ -17,6 +17,8 @@ from ijson import items, JSONError
 
 from sqlalchemy import create_engine, String, Integer, select
 from sqlalchemy.orm import DeclarativeBase, Session, mapped_column
+from sqlalchemy.exc import OperationalError
+
 
 
 @dataclasses.dataclass
@@ -108,7 +110,7 @@ def fetch_source_table(connect_string: str, selector="") -> list:
         with Session(eng) as session:
             for source in session.scalars(stmt):
                 retval.append(source)
-    except Exception as exc:
+    except OperationalError as exc:
         logging.warning("Database connection error")
         logging.warning(exc)
         raise ConnectionError from exc

@@ -63,14 +63,16 @@ def sources(ctx):
     """
     print("\nID : Source Name                                    : Type  : URI ")
     print("==  ", "=" * 46, "  =====  ", "=" * 48)
-    for src in source.fetch_source_table(ctx.obj["DB_URL"]):
-        print(
-            f"{src.crawler_source_id:2} :",
-            f"{src.source_name[0:48]:46} :",
-            f"{src.ingest_type.upper():5} :",
-            f"{src.source_uri[0:48]:48}...",
-        )
-
+    try:
+        for src in source.fetch_source_table(ctx.obj["DB_URL"]):
+            print(
+                f"{src.crawler_source_id:2} :",
+                f"{src.source_name[0:48]:46} :",
+                f"{src.ingest_type.upper():5} :",
+                f"{src.source_uri[0:48]:48}...",
+            )
+    except ConnectionError:
+        sys.exit(-2)
 
 @main.command()
 @click.argument("source_id", nargs=1, type=click.STRING)
@@ -80,12 +82,16 @@ def validate(ctx, source_id):
     Connect to data source(s) to verify they can return JSON data.
     """
     logging.info("Validating data source(s)")
-    if source_id.upper() == "ALL":
-        source_list = source.fetch_source_table(ctx.obj["DB_URL"])
-    else:
-        source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=source_id)
-        if len(source_list) == 0:
-            click.echo(f"No source found with ID {source_id}")
+    try:
+        if source_id.upper() == "ALL":
+            source_list = source.fetch_source_table(ctx.obj["DB_URL"])
+        else:
+            source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=source_id)
+            if len(source_list) == 0:
+                click.echo(f"No source found with ID {source_id}")
+    except ConnectionError:
+        sys.exit(-2)
+
     for src in source_list:
         print(f"{src.crawler_source_id} : Checking {src.source_name}... ", end="")
         result = source.validate_src(src)
@@ -103,7 +109,11 @@ def download(ctx, source_id):
     Download the data associated with a named data source.
     """
     logging.info(" Downloading source %s ", source_id)
-    source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=source_id)
+    try:
+        source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=source_id)
+    except ConnectionError:
+        sys.exit(-2)
+
     if len(source_list) == 0:
         click.echo(f"No source found with ID {source_id}")
         return
@@ -123,7 +133,11 @@ def display(ctx, source_id):
     """
     Show details for named data source.
     """
-    source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=source_id)
+    try:
+        source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=source_id)
+    except ConnectionError:
+        sys.exit(-2)
+        
     if len(source_list) == 0:
         click.echo(f"No source found with ID {source_id}")
         return
@@ -147,7 +161,11 @@ def ingest(ctx, source_id):
     """
     Download and process data associated with a named data source.
     """
-    source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=source_id)
+    try:
+        source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=source_id)
+    except ConnectionError:
+        sys.exit(-2)
+
     if len(source_list) == 0:
         click.echo(f"No source found with ID {source_id}")
         return

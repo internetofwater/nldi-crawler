@@ -46,7 +46,7 @@ def test_source_properties(connect_string):
 
 
 def test_failed_db_connection(connect_string):
-    """ Failed db connection raises ConnectionError """
+    """Failed db connection raises ConnectionError"""
     _uri = connect_string.replace("changeMe", "noPass")
     with pytest.raises(ConnectionError):
         _ = source.fetch_source_table(_uri)
