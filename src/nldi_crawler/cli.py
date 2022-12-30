@@ -109,21 +109,22 @@ def download(ctx, source_id):
     """
     Download the data associated with a named data source.
     """
+    cid = sanitize_cid(source_id)
     logging.info(" Downloading source %s ", source_id)
     try:
-        source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=source_id)
+        source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=cid )
     except ConnectionError:
         sys.exit(-2)
 
     if len(source_list) == 0:
-        click.echo(f"No source found with ID {source_id}")
+        click.echo(f"No source found with ID {cid}")
         return
     fname = source.download_geojson(source_list[0])
     if fname:
-        click.echo(f"Source {source_id} downloaded to {fname}")
+        click.echo(f"Source {cid} downloaded to {fname}")
     else:
-        logging.warning("Download FAILED for source %s", source_id)
-        click.echo(f"Download FAILED for source {source_id}")
+        logging.warning("Download FAILED for source %s", cid)
+        click.echo(f"Download FAILED for source {cid}")
         sys.exit(-1)
 
 
@@ -134,6 +135,10 @@ def display(ctx, source_id):
     """
     Show details for named data source.
     """
+    cid = sanitize_cid(source_id)
+    if not cid:
+        return
+    
     try:
         source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=source_id)
     except ConnectionError:
@@ -261,3 +266,6 @@ def cfg_from_env() -> dict:
         # password is a special case.  There is no default; it must be explicitly set.
         env_cfg["NLDI_DB_PASS"] = os.environ.get("NLDI_DB_PASS")
     return env_cfg
+
+def sanitize_cid(input:str) -> str:
+    return re.sub( "\D*(\d+)\D*", "\g<1>", input)
