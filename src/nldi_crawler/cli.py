@@ -83,13 +83,14 @@ def validate(ctx, source_id):
     Connect to data source(s) to verify they can return JSON data.
     """
     logging.info("Validating data source(s)")
+    cid = sanitize_cid(source_id)
     try:
-        if source_id.upper() == "ALL":
+        if source_id.upper() == "ALL" or cid == "":
             source_list = source.fetch_source_table(ctx.obj["DB_URL"])
         else:
-            source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=source_id)
+            source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=cid)
             if len(source_list) == 0:
-                click.echo(f"No source found with ID {source_id}")
+                click.echo(f"No source found with ID {cid}")
     except ConnectionError:
         sys.exit(-2)
 
@@ -112,7 +113,7 @@ def download(ctx, source_id):
     cid = sanitize_cid(source_id)
     logging.info(" Downloading source %s ", source_id)
     try:
-        source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=cid )
+        source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=cid)
     except ConnectionError:
         sys.exit(-2)
 
@@ -138,14 +139,14 @@ def display(ctx, source_id):
     cid = sanitize_cid(source_id)
     if not cid:
         return
-    
+
     try:
-        source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=source_id)
+        source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=cid)
     except ConnectionError:
         sys.exit(-2)
 
     if len(source_list) == 0:
-        click.echo(f"No source found with ID {source_id}")
+        click.echo(f"No source found with ID {cid}")
         return
     for src in source_list:
         print(f"ID={src.crawler_source_id:2} :: {src.source_name}")
@@ -167,19 +168,21 @@ def ingest(ctx, source_id):
     """
     Download and process data associated with a named data source.
     """
+    cid = sanitize_cid(source_id)
+
     try:
-        source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=source_id)
+        source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=cid)
     except ConnectionError:
         sys.exit(-2)
 
     if len(source_list) == 0:
-        click.echo(f"No source found with ID {source_id}")
+        click.echo(f"No source found with ID {cid}")
         return
     fname = source.download_geojson(source_list[0])
     if fname:
-        logging.info(" Source %s dowloaded to %s", source_id, fname)
+        logging.info(" Source %s dowloaded to %s", cid, fname)
     else:
-        logging.warning(" Download FAILED for source %s", source_id)
+        logging.warning(" Download FAILED for source %s", cid)
         sys.exit(-1)
     ingestor.ingest_from_file(source_list[0], fname)
     os.remove(fname)
@@ -267,5 +270,12 @@ def cfg_from_env() -> dict:
         env_cfg["NLDI_DB_PASS"] = os.environ.get("NLDI_DB_PASS")
     return env_cfg
 
-def sanitize_cid(input:str) -> str:
-    return re.sub( "\D*(\d+)\D*", "\g<1>", input)
+
+def sanitize_cid(source_id: str) -> int:
+    """
+    Attempts to sanitize a source id to extract just its digit characters.
+    The string is cast as an integer -- the crawler_source_id column is an INTEGER in
+    the crawler_source table.
+    """
+    _tmp = re.sub("\D*(\d+)\D*", "\g<1>", source_id)
+    return int(_tmp)
