@@ -148,23 +148,50 @@ def download_geojson(source) -> str:
 
 
 def validate_src(src: CrawlerSource) -> tuple:
+    """
+    Examines a specified source to ensure that it downloads, and the returned data is
+    proprly formatted and attributed.
+
+    :param src: the source to examine
+    :type src: CrawlerSource
+    :return: a tuple of two values: A boolean to indicate if validated, and a string holding
+             a description of the reason for failure. If validated is True, the reason string
+             is zero-length.
+    :rtype: tuple
+    """
     try:
         with httpx.Client() as client:
             with client.stream(
                 "GET", src.source_uri, timeout=5.0, follow_redirects=True
             ) as response:
-                chunk = response.iter_bytes(2048)  # read 2k bytes, to be sure we get a complete feature.
-                for itm in ijson.items(next(chunk), 'features.item'):
-                    if src.feature_reach is not None and src.feature_reach not in itm['properties']:
-                        return (False, f"Column not found for 'feature_reach' : {src.feature_reach}")
-                    if src.feature_measure is not None and src.feature_measure not in itm['properties']:
-                        return (False, f"Column not found for 'feature_measure' : {src.feature_measure}")
-                    if src.feature_name is not None and src.feature_name not in itm['properties']:
-                        return (False, f"Column not found for 'feature_name' : {src.feature_name}")
-                    if src.feature_id is not None and src.feature_id not in itm['properties']:
-                        return (False, f"Column not found for 'feature_id' : {src.feature_id}")
-                    if src.feature_uri is not None and src.feature_uri not in itm['properties']:
-                        return (False, f"Column not found for 'feature_uri' : {src.feature_measure}")
+                chunk = response.iter_bytes(2048)
+                # read 2k bytes, to be sure we get a complete feature.
+                for itm in ijson.items(next(chunk), "features.item"):
+                    fail = None
+                    if src.feature_reach is not None and src.feature_reach not in itm["properties"]:
+                        fail = (
+                            False,
+                            f"Column not found for 'feature_reach' : {src.feature_reach}",
+                        )
+                    if (
+                        src.feature_measure is not None
+                        and src.feature_measure not in itm["properties"]
+                    ):
+                        fail = (
+                            False,
+                            f"Column not found for 'feature_measure' : {src.feature_measure}",
+                        )
+                    if src.feature_name is not None and src.feature_name not in itm["properties"]:
+                        fail = (False, f"Column not found for 'feature_name' : {src.feature_name}")
+                    if src.feature_id is not None and src.feature_id not in itm["properties"]:
+                        fail = (False, f"Column not found for 'feature_id' : {src.feature_id}")
+                    if src.feature_uri is not None and src.feature_uri not in itm["properties"]:
+                        fail = (
+                            False,
+                            f"Column not found for 'feature_uri' : {src.feature_measure}",
+                        )
+                    if fail is not None:
+                        return fail
                     break
     except httpx.ReadTimeout:
         return (False, "Network Timeout")

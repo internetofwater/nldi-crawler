@@ -77,8 +77,8 @@ def sources(ctx):
 @click.pass_context
 def validate(ctx, source_id):
     """
-    Connect to data source(s) to verify that they can supply data in JSON format.
-    
+    Connect to data source(s) to verify that
+    they can supply data in JSON format.
     """
     logging.info("Validating data source(s)")
     if source_id.upper() == "ALL":
@@ -160,7 +160,6 @@ def ingest(ctx, source_id):
         sys.exit(-1)
     ingestor.ingest_from_file(source_list[0], fname)
     os.remove(fname)
-
 
 
 def db_url(conf: dict) -> str:
