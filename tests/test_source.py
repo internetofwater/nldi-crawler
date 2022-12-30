@@ -46,7 +46,14 @@ def test_source_properties(connect_string):
 
 
 def test_failed_db_connection(connect_string):
-    """ Failed db connection raises ConnectionError """
+    """Failed db connection raises ConnectionError"""
     _uri = connect_string.replace("changeMe", "noPass")
     with pytest.raises(ConnectionError):
         _ = source.fetch_source_table(_uri)
+
+
+def test_validate_single_source_fail(connect_string):
+    src = source.fetch_source_table(connect_string, selector="1")[0]
+    # source ID=1 is known to timeout and fail validation
+    result = source.validate_src(src)
+    assert result[0] == False

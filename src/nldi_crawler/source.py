@@ -17,6 +17,7 @@ from ijson import items, JSONError
 
 from sqlalchemy import create_engine, String, Integer, select
 from sqlalchemy.orm import DeclarativeBase, Session, mapped_column
+from sqlalchemy.exc import OperationalError
 
 
 @dataclasses.dataclass
@@ -108,7 +109,7 @@ def fetch_source_table(connect_string: str, selector="") -> list:
         with Session(eng) as session:
             for source in session.scalars(stmt):
                 retval.append(source)
-    except Exception as exc:
+    except OperationalError as exc:
         logging.warning("Database connection error")
         logging.warning(exc)
         raise ConnectionError from exc
@@ -143,9 +144,10 @@ def download_geojson(source) -> str:
             ) as response:
                 for chunk in response.iter_bytes(1024):
                     tmp_fh.write(chunk)
-    except IOError:
+    except IOError as exc:
         logging.exception(" I/O Error while downloading from %s to %s", source.source_uri, fname)
-        raise
+        print(exc)
+        sys.exit(-1)
     except httpx.ReadTimeout:
         logging.critical(" Read TimeOut attempting to download from %s", source.source_uri)
         os.remove(fname)
@@ -166,39 +168,23 @@ def validate_src(src: CrawlerSource) -> tuple:
     :rtype: tuple
     """
     try:
-        with httpx.Client() as client:
-            with client.stream(
-                "GET", src.source_uri, timeout=5.0, follow_redirects=True
-            ) as response:
-                chunk = response.iter_bytes(2048)
-                # read 2k bytes, to be sure we get a complete feature.
-                for itm in items(next(chunk), "features.item"):
-                    fail = None
-                    if src.feature_reach is not None and src.feature_reach not in itm["properties"]:
-                        fail = (
-                            False,
-                            f"Column not found for 'feature_reach' : {src.feature_reach}",
-                        )
-                    if (
-                        src.feature_measure is not None
-                        and src.feature_measure not in itm["properties"]
-                    ):
-                        fail = (
-                            False,
-                            f"Column not found for 'feature_measure' : {src.feature_measure}",
-                        )
-                    if src.feature_name is not None and src.feature_name not in itm["properties"]:
-                        fail = (False, f"Column not found for 'feature_name' : {src.feature_name}")
-                    if src.feature_id is not None and src.feature_id not in itm["properties"]:
-                        fail = (False, f"Column not found for 'feature_id' : {src.feature_id}")
-                    if src.feature_uri is not None and src.feature_uri not in itm["properties"]:
-                        fail = (
-                            False,
-                            f"Column not found for 'feature_uri' : {src.feature_measure}",
-                        )
-                    if fail is not None:
-                        return fail
-                    break
+        with httpx.stream("GET", src.source_uri, timeout=5.0, follow_redirects=True) as response:
+            chunk = response.iter_bytes(2048)
+            # read 2k bytes, to be sure we get a complete feature.
+            itm = next(items(next(chunk), "features.item"))
+            fail = None
+            if src.feature_reach is not None and src.feature_reach not in itm["properties"]:
+                fail = (False, f"Column not found for 'feature_reach' : {src.feature_reach}")
+            if src.feature_measure is not None and src.feature_measure not in itm["properties"]:
+                fail = (False, f"Column not found for 'feature_measure' : {src.feature_measure}")
+            if src.feature_name is not None and src.feature_name not in itm["properties"]:
+                fail = (False, f"Column not found for 'feature_name' : {src.feature_name}")
+            if src.feature_id is not None and src.feature_id not in itm["properties"]:
+                fail = (False, f"Column not found for 'feature_id' : {src.feature_id}")
+            if src.feature_uri is not None and src.feature_uri not in itm["properties"]:
+                fail = (False, f"Column not found for 'feature_uri' : {src.feature_measure}")
+            if fail is not None:
+                return fail
     except httpx.ReadTimeout:
         return (False, "Network Timeout")
     except KeyError:
