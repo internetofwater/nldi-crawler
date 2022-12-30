@@ -85,7 +85,7 @@ def validate(ctx, source_id):
     logging.info("Validating data source(s)")
     cid = sanitize_cid(source_id)
     try:
-        if source_id.upper() == "ALL" or cid == "":
+        if source_id.upper() == "ALL" or cid == 0:
             source_list = source.fetch_source_table(ctx.obj["DB_URL"])
         else:
             source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=cid)
@@ -278,4 +278,8 @@ def sanitize_cid(source_id: str) -> int:
     the crawler_source table.
     """
     _tmp = re.sub("\D*(\d+)\D*", "\g<1>", source_id)
-    return int(_tmp)
+    try:
+        return int(_tmp)
+    except ValueError:
+        ## if _tmp contains no digits
+        return 0
