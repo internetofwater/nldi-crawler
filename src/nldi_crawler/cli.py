@@ -74,6 +74,7 @@ def sources(ctx):
     except ConnectionError:
         sys.exit(-2)
 
+
 @main.command()
 @click.argument("source_id", nargs=1, type=click.STRING)
 @click.pass_context
@@ -137,7 +138,7 @@ def display(ctx, source_id):
         source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=source_id)
     except ConnectionError:
         sys.exit(-2)
-        
+
     if len(source_list) == 0:
         click.echo(f"No source found with ID {source_id}")
         return
