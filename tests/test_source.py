@@ -8,6 +8,7 @@ import os
 import pytest
 
 from nldi_crawler import source
+from nldi_crawler import cli
 
 
 def test_list_sources(connect_string):
@@ -57,3 +58,13 @@ def test_validate_single_source_fail(connect_string):
     # source ID=1 is known to timeout and fail validation
     result = source.validate_src(src)
     assert result[0] == False
+
+
+@pytest.mark.parametrize(
+    "source_id",
+    ["13", "013", "a 13", "13 a", "13; drop table features"],
+)
+def test_sanitize_cid(source_id):
+    """tests sanitization scheme for crawler_source_id"""
+    # Note -- sanitize_cid returns an integer, give a string input
+    assert cli.sanitize_cid(source_id) == 13
