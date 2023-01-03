@@ -15,6 +15,7 @@ import click
 
 from . import source
 from . import ingestor
+from sqlalchemy.exc import SQLAlchemyError
 
 DEFAULT_DB_INFO = {
     "NLDI_DB_HOST": "localhost",
@@ -71,7 +72,7 @@ def sources(ctx):
                 f"{src.ingest_type.upper():5} :",
                 f"{src.source_uri[0:48]:48}...",
             )
-    except ConnectionError:
+    except SQLAlchemyError:
         sys.exit(-2)
 
 
@@ -91,7 +92,7 @@ def validate(ctx, source_id):
             source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=cid)
             if len(source_list) == 0:
                 click.echo(f"No source found with ID {cid}")
-    except ConnectionError:
+    except SQLAlchemyError:
         sys.exit(-2)
 
     for src in source_list:
@@ -142,7 +143,7 @@ def display(ctx, source_id):
 
     try:
         source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=cid)
-    except ConnectionError:
+    except SQLAlchemyError:
         sys.exit(-2)
 
     if len(source_list) == 0:
@@ -172,7 +173,7 @@ def ingest(ctx, source_id):
 
     try:
         source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=cid)
-    except ConnectionError:
+    except SQLAlchemyError:
         sys.exit(-2)
 
     if len(source_list) == 0:
@@ -277,7 +278,7 @@ def sanitize_cid(source_id: str) -> int:
     The string is cast as an integer -- the crawler_source_id column is an INTEGER in
     the crawler_source table.
     """
-    _tmp = re.sub("\D*(\d+)\D*", "\g<1>", source_id)
+    _tmp = re.sub(r"\D*(\d+)\D*", r"\g<1>", source_id)
     try:
         return int(_tmp)
     except ValueError:

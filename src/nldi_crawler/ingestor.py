@@ -9,7 +9,9 @@ routines to manage the ingestion of crawler sources
 import logging
 from ijson import JSONError, items
 
-DEFAULT_SRS = 4269  # NAD83
+_NAD_83 = 4269
+_WGS_84 = 4326
+DEFAULT_SRS = _WGS_84
 
 
 def ingest_from_file(src, fname: str):
@@ -28,8 +30,8 @@ def ingest_from_file(src, fname: str):
         src.source_name,
     )
     try:
+        i = 1
         with open(fname, "r", encoding="UTF-8") as read_fh:
-            i = 1
             for itm in items(read_fh, "features.item"):
                 i += 1
         logging.info(" Processed %s features from %s", i - 1, src.source_name)
