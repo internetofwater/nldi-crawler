@@ -9,6 +9,8 @@ routines to manage the ingestion of crawler sources
 import logging
 from ijson import JSONError, items
 
+DEFAULT_SRS = 4269  # NAD83
+
 
 def ingest_from_file(src, fname: str):
     """
