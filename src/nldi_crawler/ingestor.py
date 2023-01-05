@@ -13,6 +13,8 @@ from ijson import JSONError, items
 import sqlalchemy.types
 from sqlalchemy import create_engine, Integer, Numeric
 from sqlalchemy.orm import Session, mapped_column
+from sqlalchemy.sql import text
+
 
 from shapely import from_geojson, to_wkt
 from geoalchemy2.elements import WKTElement
@@ -20,8 +22,10 @@ from geoalchemy2 import Geometry
 
 from .source import CrawlerSource, NLDI_Base
 
+### EPSG codes for coordinate reference systems we might use.
 _NAD_83 = 4269
 _WGS_84 = 4326
+###
 DEFAULT_SRS = _NAD_83
 
 class StrippedString(sqlalchemy.types.TypeDecorator):
@@ -59,7 +63,7 @@ def ingest_from_file(src, fname: str, connect_string:str):
         uri = mapped_column(StrippedString)
         reachcode = mapped_column(StrippedString)
         measure = mapped_column(Numeric(precision=38, scale=10))
-        location = mapped_column(Geometry('POINT', srid=4269))
+        location = mapped_column(Geometry('POINT', srid=DEFAULT_SRS))
 
     logging.info(
         " Ingesting from %s source: %s / %s",
@@ -73,8 +77,7 @@ def ingest_from_file(src, fname: str, connect_string:str):
     _reachmeas = src.feature_measure
     _uri = src.feature_uri
 
-    eng = create_engine(connect_string, client_encoding="UTF-8", echo=True, future=True)
-
+    eng = create_engine(connect_string, client_encoding="UTF-8", echo=False, future=True)
     try:
         i = 1
         with open(fname, "r", encoding="UTF-8") as read_fh:
@@ -86,8 +89,9 @@ def ingest_from_file(src, fname: str, connect_string:str):
                     logging.debug("%s : %s", itm['properties'][_name], to_wkt(shp))
                     try:
                         m = float(itm['properties'][_reachmeas])
-                    except:
+                    except (ValueError, NameError, KeyError, TypeError):
                         m = 0.0
+
                     f = NLDI_Feature(
                         identifier = itm['properties'][_id],
                         crawler_source_id = 10,
@@ -95,9 +99,8 @@ def ingest_from_file(src, fname: str, connect_string:str):
                         uri = itm['properties'][_uri],
                         location = elmnt,
                         reachcode = itm['properties'][_reachcode],
-                        measure = m,
-                        shape = elmnt
-                    )
+                        measure = m
+                        )
                     session.add(f)
                     session.commit()
         logging.info(" Processed %s features from %s", i - 1, src.source_name)
@@ -120,7 +123,8 @@ def create_tmp_table(connect_string:str, src:CrawlerSource):
             (LIKE nldi_data.feature INCLUDING INDEXES);
     """
     with Session(eng) as session:
-        session.execute(stmt)
+        session.execute(text(stmt))
+        session.commit()
     eng.dispose()
 
 
@@ -144,16 +148,19 @@ def install_data(connect_string:str, src:CrawlerSource):
     old = src.table_name("old")
     tmp = src.table_name("tmp")
     table = src.table_name()
+    schema = "nldi_data"
 
-    eng = create_engine(connect_string, client_encoding="UTF-8", echo=False, future=True)
+    eng = create_engine(connect_string, client_encoding="UTF-8", echo=True, future=True)
     stmt = f"""
+        set search_path = {schema};
         DROP TABLE IF EXISTS {old};
         ALTER TABLE IF EXISTS {table} NO INHERIT feature;
-        ALTER TABLE {tmp} IF EXISTS {table} RENAME TO {old};
+        ALTER TABLE IF EXISTS {table} RENAME TO {old};
         ALTER TABLE {tmp} RENAME TO {table};
         ALTER TABLE {table} INHERIT feature;
         DROP TABLE IF EXISTS {old}
     """
     with Session(eng) as session:
-        session.execute(stmt)
+        session.execute(text(stmt))
+        session.commit()
     eng.dispose()

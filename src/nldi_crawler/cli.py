@@ -185,8 +185,9 @@ def ingest(ctx, source_id):
     else:
         logging.warning(" Download FAILED for source %s", cid)
         sys.exit(-1)
-    #ingestor.create_tmp_table(ctx.obj["DB_URL"], source_list[0])
-    # ingestor.ingest_from_file(source_list[0], fname, ctx.obj["DB_URL"])
+    ingestor.create_tmp_table(ctx.obj["DB_URL"], source_list[0])
+    ingestor.ingest_from_file(source_list[0], fname, ctx.obj["DB_URL"])
+    ingestor.install_data(ctx.obj["DB_URL"], source_list[0])
     os.remove(fname)
 
 

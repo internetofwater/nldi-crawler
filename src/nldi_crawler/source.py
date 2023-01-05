@@ -20,12 +20,10 @@ from sqlalchemy.orm import DeclarativeBase, Session, mapped_column
 from sqlalchemy.exc import OperationalError, DataError, SQLAlchemyError
 
 
-@dataclasses.dataclass
 class NLDI_Base(DeclarativeBase):  # pylint: disable=invalid-name
     """Base class used to create reflected ORM objects."""
 
 
-@dataclasses.dataclass
 class CrawlerSource(NLDI_Base):
     """
     An ORM reflection of the crawler_source table
