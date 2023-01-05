@@ -1,6 +1,6 @@
 [nldi-db]
 hostname: 172.18.0.1
 port: 5432
-username: nldi_schema_owner
+username: nldi
 password: changeMe
 db_name: nldi
