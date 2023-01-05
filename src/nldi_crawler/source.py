@@ -17,15 +17,13 @@ from ijson import items, JSONError
 
 from sqlalchemy import create_engine, String, Integer, select
 from sqlalchemy.orm import DeclarativeBase, Session, mapped_column
-from sqlalchemy.exc import OperationalError, DataError
+from sqlalchemy.exc import OperationalError, DataError, SQLAlchemyError
 
 
-@dataclasses.dataclass
 class NLDI_Base(DeclarativeBase):  # pylint: disable=invalid-name
     """Base class used to create reflected ORM objects."""
 
 
-@dataclasses.dataclass
 class CrawlerSource(NLDI_Base):
     """
     An ORM reflection of the crawler_source table
@@ -112,11 +110,11 @@ def fetch_source_table(connect_string: str, selector="") -> list:
     except OperationalError as exc:
         logging.warning("Database connection error")
         logging.warning(exc)
-        raise ConnectionError from exc
+        raise SQLAlchemyError from exc
     except DataError as exc:
         logging.warning("Error with SELECT query")
         logging.warning(exc)
-        raise ConnectionError from exc
+        raise SQLAlchemyError from exc
     finally:
         eng.dispose()
     return retval
