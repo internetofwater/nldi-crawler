@@ -181,8 +181,10 @@ def validate_src(src: CrawlerSource) -> tuple:
                 fail = (False, f"Column not found for 'feature_measure' : {src.feature_measure}")
             if src.feature_name is not None and src.feature_name not in itm["properties"]:
                 fail = (False, f"Column not found for 'feature_name' : {src.feature_name}")
-            if src.feature_id is not None and src.feature_id not in itm["properties"]:
-                fail = (False, f"Column not found for 'feature_id' : {src.feature_id}")
+            # A unique feature ID does not have to be in the properties member.  If present, 
+            # the `id` member is a sibling of `properties`.
+            # if src.feature_id is not None and src.feature_id not in itm["properties"]:
+            #     fail = (False, f"Column not found for 'feature_id' : {src.feature_id}")
             if src.feature_uri is not None and src.feature_uri not in itm["properties"]:
                 fail = (False, f"Column not found for 'feature_uri' : {src.feature_measure}")
             if fail is not None:

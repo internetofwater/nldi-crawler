@@ -34,7 +34,7 @@ class StrippedString(sqlalchemy.types.TypeDecorator):
     from the input string. Some non-printables (including backspace and delete), if included
     in the String, can mess with the SQL submitted by the connection engine.
     """
-    impl = sqlalchemy.types.String ## SQLAlchemy wants us to do it this way instead of subclassing String
+    impl = sqlalchemy.types.String ## SQLAlchemy wants it this way instead of subclassing String
     cache_ok = True
     def process_bind_param(self, value, dialect):
         if value is None:
@@ -91,10 +91,14 @@ def ingest_from_file(src, fname: str, connect_string:str):
                         m = float(itm['properties'][_reachmeas])
                     except (ValueError, NameError, KeyError, TypeError):
                         m = 0.0
+                    try:
+                        _my_id = itm['id']
+                    except KeyError:
+                        _my_id = itm['properties'][_id]
 
                     f = NLDI_Feature(
-                        identifier = itm['properties'][_id],
-                        crawler_source_id = 10,
+                        identifier = _my_id,
+                        crawler_source_id = src.crawler_source_id,
                         name = itm['properties'][_name],
                         uri = itm['properties'][_uri],
                         location = elmnt,
