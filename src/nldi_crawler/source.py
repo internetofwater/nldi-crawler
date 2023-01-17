@@ -142,7 +142,7 @@ def download_geojson(source) -> str:
             logging.info("Writing to tmp file %s", tmp_fh.name)
             # timeout = 15sec  TODO: make this a tunable
             with httpx.stream(
-                "GET", source.source_uri, timeout=15.0, follow_redirects=True
+                "GET", source.source_uri, timeout=60.0, follow_redirects=True
             ) as response:
                 for chunk in response.iter_bytes(1024):
                     tmp_fh.write(chunk)
@@ -170,8 +170,8 @@ def validate_src(src: CrawlerSource) -> tuple:
     :rtype: tuple
     """
     try:
-        with httpx.stream("GET", src.source_uri, timeout=5.0, follow_redirects=True) as response:
-            chunk = response.iter_bytes(2048)
+        with httpx.stream("GET", src.source_uri, timeout=60.0, follow_redirects=True) as response:
+            chunk = response.iter_bytes(2*2*1024)
             # read 2k bytes, to be sure we get a complete feature.
             itm = next(items(next(chunk), "features.item"))
             fail = None
