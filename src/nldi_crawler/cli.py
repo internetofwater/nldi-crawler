@@ -13,9 +13,10 @@ import configparser
 import re
 import click
 
+from sqlalchemy.exc import SQLAlchemyError
+
 from . import source
 from . import ingestor
-from sqlalchemy.exc import SQLAlchemyError
 
 DEFAULT_DB_INFO = {
     "NLDI_DB_HOST": "localhost",
