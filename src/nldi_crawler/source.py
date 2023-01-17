@@ -171,7 +171,7 @@ def validate_src(src: CrawlerSource) -> tuple:
     """
     try:
         with httpx.stream("GET", src.source_uri, timeout=60.0, follow_redirects=True) as response:
-            chunk = response.iter_bytes(2*2*1024)
+            chunk = response.iter_bytes(2 * 2 * 1024)
             # read 2k bytes, to be sure we get a complete feature.
             itm = next(items(next(chunk), "features.item"))
             fail = None
@@ -181,7 +181,7 @@ def validate_src(src: CrawlerSource) -> tuple:
                 fail = (False, f"Column not found for 'feature_measure' : {src.feature_measure}")
             if src.feature_name is not None and src.feature_name not in itm["properties"]:
                 fail = (False, f"Column not found for 'feature_name' : {src.feature_name}")
-            # A unique feature ID does not have to be in the properties member.  If present, 
+            # A unique feature ID does not have to be in the properties member.  If present,
             # the `id` member is a sibling of `properties`.
             # if src.feature_id is not None and src.feature_id not in itm["properties"]:
             #     fail = (False, f"Column not found for 'feature_id' : {src.feature_id}")
