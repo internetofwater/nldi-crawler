@@ -171,7 +171,7 @@ def validate_src(src: CrawlerSource) -> tuple:
     """
     try:
         with httpx.stream("GET", src.source_uri, timeout=60.0, follow_redirects=True) as response:
-            chunk = response.iter_bytes(2048)
+            chunk = response.iter_bytes(2*2*1024)
             # read 2k bytes, to be sure we get a complete feature.
             itm = next(items(next(chunk), "features.item"))
             fail = None
