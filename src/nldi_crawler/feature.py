@@ -10,10 +10,10 @@ routines to manage the table of crawler_sources
 import logging
 
 from sqlalchemy import Integer, String, Numeric, Column, Table, create_engine, MetaData
+from sqlalchemy.exc import SQLAlchemyError
 
 # from sqlalchemy.orm import DeclarativeBase
 from geoalchemy2 import Geometry
-from sqlalchemy.exc import SQLAlchemyError
 
 _NAD_83 = 4269
 _WGS_84 = 4326
