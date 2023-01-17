@@ -8,7 +8,7 @@ routines to manage the table of crawler_sources
 """
 import os
 import sys
-import dataclasses
+import re
 import tempfile
 import logging
 import httpx
@@ -74,9 +74,11 @@ class CrawlerSource(NLDI_Base):
         :return: name of the table for this crawler_source
         :rtype: string
         """
+        # Sanitize the suffix name... only 'word' characters allowed.
+        _s = re.sub(r"\W", "_", self.source_suffix)
         if args:
-            return "feature_" + self.source_suffix + "_" + args[0]
-        return "feature_" + self.source_suffix
+            return "feature_" + _s + "_" + args[0]
+        return "feature_" + _s
 
 
 def fetch_source_table(connect_string: str, selector="") -> list:
