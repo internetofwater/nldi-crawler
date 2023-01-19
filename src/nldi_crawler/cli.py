@@ -76,23 +76,20 @@ def sources(ctx):
 
 
 @main.command()
-@click.argument("source_id", nargs=1, type=click.STRING)
+@click.argument("source_id", required=False, type=click.INT)
 @click.pass_context
 def validate(ctx, source_id):
     """
     Connect to data source(s) to verify they can return JSON data.
     """
     logging.info("Validating data source(s)")
-    cid = sanitize_cid(source_id)
-    try:
-        if source_id.upper() == "ALL" or cid == 0:
-            source_list = source.list_sources(ctx.obj["DAL"])
-        else:
-            source_list = source.list_sources(ctx.obj["DAL"], selector=cid)
-            if len(source_list) == 0:
-                click.echo(f"No source found with ID {cid}")
-    except SQLAlchemyError:
-        sys.exit(-2)
+
+    if source_id is None:
+        source_list = source.list_sources(ctx.obj["DAL"])
+    else:
+        source_list = source.list_sources(ctx.obj["DAL"], selector=source_id)
+    if len(source_list) == 0:
+        click.echo(f"No source found.")
 
     for src in source_list:
         print(f"{src.crawler_source_id} : Checking {src.source_name}... ", end="")
@@ -104,50 +101,48 @@ def validate(ctx, source_id):
 
 
 @main.command()
-@click.argument("source_id", nargs=1, type=click.STRING)
+@click.argument("source_id", required=True, type=click.INT)
 @click.pass_context
 def download(ctx, source_id):
     """
     Download the data associated with a named data source.
     """
-    cid = sanitize_cid(source_id)
     logging.info(" Downloading source %s ", source_id)
     try:
-        source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=cid)
+        source_list = source.list_sources(ctx.obj["DAL"], selector=source_id)
     except ConnectionError:
         sys.exit(-2)
 
     if len(source_list) == 0:
-        click.echo(f"No source found with ID {cid}")
+        click.echo(f"No source found with ID {source_id}")
         return
     fname = source.download_geojson(source_list[0])
     if fname:
-        click.echo(f"Source {cid} downloaded to {fname}")
+        click.echo(f"Source {source_id} downloaded to {fname}")
     else:
-        logging.warning("Download FAILED for source %s", cid)
-        click.echo(f"Download FAILED for source {cid}")
+        logging.warning("Download FAILED for source %s", source_id)
+        click.echo(f"Download FAILED for source {source_id}")
         sys.exit(-1)
 
 
 @main.command()
-@click.argument("source_id", nargs=1, type=click.STRING)
+@click.argument("source_id", required=True, type=click.INT)
 @click.pass_context
 def display(ctx, source_id):
     """
     Show details for named data source.
     """
-    cid = sanitize_cid(source_id)
-    if not cid:
+    if not source_id:
         return
-
     try:
-        source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=cid)
+        source_list = source.list_sources(ctx.obj["DAL"], selector=source_id)
     except SQLAlchemyError:
         sys.exit(-2)
 
     if len(source_list) == 0:
-        click.echo(f"No source found with ID {cid}")
+        click.echo(f"\nNo source found with ID {source_id}")
         return
+
     for src in source_list:
         print(f"ID={src.crawler_source_id:2} :: {src.source_name}")
         print(f"  Source Suffix  : {src.source_suffix}")
@@ -162,27 +157,25 @@ def display(ctx, source_id):
 
 
 @main.command()
-@click.argument("source_id", nargs=1, type=click.STRING)
+@click.argument("source_id", required=True, type=click.INT)
 @click.pass_context
 def ingest(ctx, source_id):
     """
     Download and process data associated with a named data source.
     """
-    cid = sanitize_cid(source_id)
-
     try:
-        source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=cid)
+        source_list = source.list_sources(ctx.obj["DAL"], selector=source_id)
     except SQLAlchemyError:
         sys.exit(-2)
 
     if len(source_list) == 0:
-        click.echo(f"No source found with ID {cid}")
+        click.echo(f"No source found with ID {source_id}")
         return
     fname = source.download_geojson(source_list[0])
     if fname:
-        logging.info(" Source %s dowloaded to %s", cid, fname)
+        logging.info(" Source %s dowloaded to %s", source_id, fname)
     else:
-        logging.warning(" Download FAILED for source %s", cid)
+        logging.warning(" Download FAILED for source %s", source_id)
         sys.exit(-1)
     ingestor.create_tmp_table(ctx.obj["DB_URL"], source_list[0])
     ingestor.ingest_from_file(source_list[0], fname, ctx.obj["DB_URL"])
@@ -241,17 +234,3 @@ def cfg_from_env() -> dict:
         # password is a special case.  There is no default; it must be explicitly set.
         env_cfg["NLDI_DB_PASS"] = os.environ.get("NLDI_DB_PASS")
     return env_cfg
-
-
-def sanitize_cid(source_id: str) -> int:
-    """
-    Attempts to sanitize a source id to extract just its digit characters.
-    The string is cast as an integer -- the crawler_source_id column is an INTEGER in
-    the crawler_source table.
-    """
-    _tmp = re.sub(r"\D*(\d+)\D*", r"\g<1>", source_id)
-    try:
-        return int(_tmp)
-    except ValueError:
-        ## if _tmp contains no digits
-        return 0

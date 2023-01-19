@@ -15,8 +15,8 @@ import httpx
 from ijson import items, JSONError
 
 
-from sqlalchemy import create_engine, String, Integer, select
-from sqlalchemy.orm import Session, mapped_column
+from sqlalchemy import  String, Integer, select
+from sqlalchemy.orm import  mapped_column
 from sqlalchemy.exc import OperationalError, DataError, SQLAlchemyError
 
 from .db import NLDI_Base, DataAccessLayer
