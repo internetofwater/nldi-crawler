@@ -10,7 +10,6 @@ import os
 import sys
 import logging
 import configparser
-import re
 import click
 
 from sqlalchemy.exc import SQLAlchemyError
