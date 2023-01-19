@@ -5,8 +5,9 @@
 Test CLI.
 """
 import os
-import click.testing
+import logging
 import pytest
+import click.testing
 
 
 from nldi_crawler import cli
@@ -17,6 +18,15 @@ def test_main_succeeds():
     runner = click.testing.CliRunner()
     result = runner.invoke(cli.main)
     assert result.exit_code == 0
+
+
+def test_verbose():
+    """sets verbose level"""
+    runner = click.testing.CliRunner()
+    _ = runner.invoke(cli.main, "-vv")
+    assert logging.root.level == logging.DEBUG
+    ## NOTE: logging.root details are only modified wif the
+    #  call to basicConfig within the invoked command includes 'force=True'
 
 
 def test_toml_config():

@@ -14,16 +14,11 @@ import re
 import click
 
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.engine import URL
 
+from . import db
 from . import source
 from . import ingestor
-
-DEFAULT_DB_INFO = {
-    "NLDI_DB_HOST": "localhost",
-    "NLDI_DB_PORT": "5432",
-    "NLDI_DB_USER": "read_only_user",
-    "NLDI_DB_NAME": "nldi",
-}
 
 
 @click.group(invoke_without_command=True)
@@ -32,29 +27,32 @@ DEFAULT_DB_INFO = {
 @click.pass_context
 def main(ctx, verbose_, conf_):
     """
-    CLI to launch NLDI crawler.
-
+    Command-line interface to launch NLDI crawler.
     """
+    _lvl = logging.WARNING - (10 * verbose_)
+    logging.basicConfig(level=_lvl, force=True)
+    logging.info("VERBOSE is %s", verbose_)
+    logging.debug("logging.level is %s", logging.root.level)
+
     if ctx.invoked_subcommand is None:
-        ## We can redefine what should happen if no sub-command is given.  Here, I just fall
-        ## back to usage.  But we could also have a default behavior, such as listing sources.
-        ## TODO: decide what should the default behavior be
         click.echo(f"\nYou must supply a COMMAND: {ctx.command.list_commands(ctx)}\n")
         click.echo(ctx.get_help())
         sys.exit(0)
 
-    if verbose_ == 1:
-        logging.basicConfig(level=logging.INFO)
-    if verbose_ >= 2:
-        logging.basicConfig(level=logging.DEBUG)
-    logging.info("VERBOSE is %s", verbose_)
-
-    cfg = DEFAULT_DB_INFO
-    cfg.update(cfg_from_env())
+    cfg = cfg_from_env()  # pull from env
     if conf_:
-        cfg.update(cfg_from_toml(conf_))
+        cfg.update(cfg_from_toml(conf_))  # .toml file overrides env
     ctx.ensure_object(dict)
-    ctx.obj["DB_URL"] = db_url(cfg)
+    ctx.obj["DB_URI"] = URL.create(
+        "postgresql+psycopg",
+        username=cfg["NLDI_DB_USER"],
+        password=cfg.get("NLDI_DB_PASS", ""),
+        host=cfg["NLDI_DB_HOST"],
+        port=cfg["NLDI_DB_PORT"],
+        database=cfg["NLDI_DB_NAME"],
+    )
+    logging.debug(" Using DB connection URI: %s", ctx.obj["DB_URI"])
+    ctx.obj['DAL'] = db.DataAccessLayer(ctx.obj["DB_URI"])
 
 
 @main.command()
@@ -66,7 +64,7 @@ def sources(ctx):
     print("\nID : Source Name                                    : Type  : URI ")
     print("==  ", "=" * 46, "  =====  ", "=" * 48)
     try:
-        for src in source.fetch_source_table(ctx.obj["DB_URL"]):
+        for src in source.list_sources(ctx.obj["DAL"]):
             print(
                 f"{src.crawler_source_id:2} :",
                 f"{src.source_name[0:48]:46} :",
@@ -88,9 +86,9 @@ def validate(ctx, source_id):
     cid = sanitize_cid(source_id)
     try:
         if source_id.upper() == "ALL" or cid == 0:
-            source_list = source.fetch_source_table(ctx.obj["DB_URL"])
+            source_list = source.list_sources(ctx.obj["DAL"])
         else:
-            source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=cid)
+            source_list = source.list_sources(ctx.obj["DAL"], selector=cid)
             if len(source_list) == 0:
                 click.echo(f"No source found with ID {cid}")
     except SQLAlchemyError:
@@ -192,36 +190,6 @@ def ingest(ctx, source_id):
     os.remove(fname)
 
 
-def db_url(conf: dict) -> str:
-    """
-    Formats the full database connection URL using the configuration dict.
-
-    :param conf: config information retrieved from env variables or from toml file.
-    :type conf: dict
-    :return: connection string in URI format
-    :rtype: str
-    """
-    # NOTE: NLDI_DB_PASS may or may not be set, depending on whether the connection needs a password
-    # or not.  The other configurables are assumed to be set based on the defaults defined in the
-    # global dict DEFAULT_DB_INFO.  If that assumption is proven invalid, we need to do more error
-    # trapping here.
-    if "NLDI_DB_PASS" in conf:
-        _url = (
-            f"postgresql://{conf['NLDI_DB_USER']}:{conf['NLDI_DB_PASS']}"
-            + f"@{conf['NLDI_DB_HOST']}:{conf['NLDI_DB_PORT']}/{conf['NLDI_DB_NAME']}"
-        )
-        logging.info(
-            " Using DB connection URI: %s", re.sub(r"//([^:]+):.*@", r"//\g<1>:****@", _url)
-        )
-    else:
-        _url = (
-            f"postgresql://{conf['NLDI_DB_USER']}@{conf['NLDI_DB_HOST']}:"
-            + f"{conf['NLDI_DB_PORT']}/{conf['NLDI_DB_NAME']}"
-        )
-        logging.info(" Using DB connection URI: %s", _url)
-    return _url
-
-
 def cfg_from_toml(filepath: str) -> dict:
     """
     Read key configuration values from a TOML-formatted configuration file.
@@ -267,7 +235,7 @@ def cfg_from_env() -> dict:
     """
     logging.info(" Consulting environment variables for DB connection info...")
     env_cfg = {}
-    for (_k, _v) in DEFAULT_DB_INFO.items():
+    for (_k, _v) in db.DEFAULT_DB_INFO.items():
         env_cfg[_k] = os.environ.get(_k, _v)
     if "NLDI_DB_PASS" in os.environ:
         # password is a special case.  There is no default; it must be explicitly set.

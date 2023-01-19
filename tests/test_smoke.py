@@ -8,6 +8,7 @@ functional testing will take place here.
 
 import nldi_crawler
 
+
 def test_smoke():
     """Does the module import at all?"""
     assert nldi_crawler.__version__ is not None

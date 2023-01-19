@@ -60,6 +60,7 @@ class DataAccessLayer:
         if self.engine is None:
             logging.warning("Attempt to close a connection that isn't open.")
         else:
+            self.engine.dispose()
             self.engine = None
 
     def Session(self):  # pytlint: disable=invalid-name

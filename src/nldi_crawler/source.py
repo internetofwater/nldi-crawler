@@ -19,7 +19,7 @@ from sqlalchemy import create_engine, String, Integer, select
 from sqlalchemy.orm import Session, mapped_column
 from sqlalchemy.exc import OperationalError, DataError, SQLAlchemyError
 
-from .db import NLDI_Base
+from .db import NLDI_Base, DataAccessLayer
 
 
 class CrawlerSource(NLDI_Base):
@@ -79,7 +79,7 @@ class CrawlerSource(NLDI_Base):
         return "feature_" + _s
 
 
-def fetch_source_table(connect_string: str, selector="") -> list:
+def list_sources(dal: DataAccessLayer, selector="") -> list:
     """
     Fetches a list of crawler sources from the master NLDI-DB database.  The returned list
     holds one or mor CrawlerSource() objects, which are reflected from the database using
@@ -90,8 +90,7 @@ def fetch_source_table(connect_string: str, selector="") -> list:
     :return: A list of sources
     :rtype: list of CrawlerSource objects
     """
-
-    eng = create_engine(connect_string, client_encoding="UTF-8", echo=False, future=True)
+    dal.connect()
     retval = []
 
     if selector == "":
@@ -104,7 +103,7 @@ def fetch_source_table(connect_string: str, selector="") -> list:
         )
 
     try:
-        with Session(eng) as session:
+        with dal.Session() as session:
             for source in session.scalars(stmt):
                 retval.append(source)
     except OperationalError as exc:
@@ -116,7 +115,7 @@ def fetch_source_table(connect_string: str, selector="") -> list:
         logging.warning(exc)
         raise SQLAlchemyError from exc
     finally:
-        eng.dispose()
+        dal.disconnect()
     return retval
 
 
