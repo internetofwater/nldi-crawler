@@ -16,12 +16,10 @@ from ijson import items, JSONError
 
 
 from sqlalchemy import create_engine, String, Integer, select
-from sqlalchemy.orm import DeclarativeBase, Session, mapped_column
+from sqlalchemy.orm import Session, mapped_column
 from sqlalchemy.exc import OperationalError, DataError, SQLAlchemyError
 
-
-class NLDI_Base(DeclarativeBase):  # pylint: disable=invalid-name
-    """Base class used to create reflected ORM objects."""
+from .db import NLDI_Base
 
 
 class CrawlerSource(NLDI_Base):

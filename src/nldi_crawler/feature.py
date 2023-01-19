@@ -12,16 +12,11 @@ import logging
 from sqlalchemy import Integer, String, Numeric, Column, Table, create_engine, MetaData
 from sqlalchemy.exc import SQLAlchemyError
 
-# from sqlalchemy.orm import DeclarativeBase
 from geoalchemy2 import Geometry
 
 _NAD_83 = 4269
 _WGS_84 = 4326
 DEFAULT_SRS = _WGS_84
-
-# @dataclasses.dataclass
-# class NLDI_Base(DeclarativeBase):  # pylint: disable=invalid-name
-#     """Base class used to create reflected ORM objects."""
 
 
 def init_feature_table(db_url: str, tablename, geom_type="POINT"):

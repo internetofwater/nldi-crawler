@@ -20,7 +20,8 @@ from shapely import from_geojson, to_wkt
 from geoalchemy2.elements import WKTElement
 from geoalchemy2 import Geometry
 
-from .source import CrawlerSource, NLDI_Base
+from .db import NLDI_Base
+from .source import CrawlerSource
 
 ### EPSG codes for coordinate reference systems we might use.
 _NAD_83 = 4269
