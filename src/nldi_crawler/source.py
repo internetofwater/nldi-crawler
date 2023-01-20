@@ -114,8 +114,8 @@ def list_sources(dal: DataAccessLayer, selector="") -> list:
         logging.warning("Error with SELECT query")
         logging.warning(exc)
         raise SQLAlchemyError from exc
-    finally:
-        dal.disconnect()
+
+    dal.disconnect()
     return retval
 
 
@@ -145,11 +145,11 @@ def download_geojson(source) -> str:
             ) as response:
                 for chunk in response.iter_bytes(1024):
                     tmp_fh.write(chunk)
-    except IOError as exc:
+    except IOError as exc: # pragma: no coverage
         logging.exception(" I/O Error while downloading from %s to %s", source.source_uri, fname)
         print(exc)
         sys.exit(-1)
-    except httpx.ReadTimeout:
+    except httpx.ReadTimeout: # pragma: no coverage
         logging.critical(" Read TimeOut attempting to download from %s", source.source_uri)
         os.remove(fname)
         return None
