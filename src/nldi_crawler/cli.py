@@ -51,7 +51,7 @@ def main(ctx, verbose_, conf_):
         database=cfg["NLDI_DB_NAME"],
     )
     logging.debug(" Using DB connection URI: %s", ctx.obj["DB_URI"])
-    ctx.obj['DAL'] = db.DataAccessLayer(ctx.obj["DB_URI"])
+    ctx.obj["DAL"] = db.DataAccessLayer(ctx.obj["DB_URI"])
 
 
 @main.command()

@@ -12,3 +12,13 @@ import nldi_crawler
 def test_smoke():
     """Does the module import at all?"""
     assert nldi_crawler.__version__ is not None
+
+
+def test_dummy_src(dummy_source):
+    """verifying that the dummy source fixture works"""
+    assert dummy_source is not None
+
+
+def test_data_access_layer(dal):
+    """verifying at the dal fixture works"""
+    assert dal is not None
