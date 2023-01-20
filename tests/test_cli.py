@@ -55,3 +55,53 @@ def test_env_config():
     cfg = cli.cfg_from_env()
     assert cfg["NLDI_DB_NAME"] == "SET"
     assert cfg["NLDI_DB_PASS"] == "secret"
+
+
+def test_cli_download(dal):
+    """download via cli"""
+    os.environ["NLDI_DB_PASS"] = dal.uri.password
+    os.environ["NLDI_DB_USER"] = dal.uri.username
+    os.environ["NLDI_DB_HOST"] = dal.uri.host
+    os.environ["NLDI_DB_PORT"] = str(dal.uri.port)
+    os.environ["NLDI_DB_NAME"] = dal.uri.database
+    runner = click.testing.CliRunner()
+    result = runner.invoke(cli.main, args=["download", "13"], env=os.environ)
+    assert result.exit_code == 0
+
+def test_cli_sources(dal):
+    """download via cli"""
+    os.environ["NLDI_DB_PASS"] = dal.uri.password
+    os.environ["NLDI_DB_USER"] = dal.uri.username
+    os.environ["NLDI_DB_HOST"] = dal.uri.host
+    os.environ["NLDI_DB_PORT"] = str(dal.uri.port)
+    os.environ["NLDI_DB_NAME"] = dal.uri.database
+    runner = click.testing.CliRunner()
+    result = runner.invoke(cli.main, args=["sources"], env=os.environ)
+    assert result.exit_code == 0
+    assert "ID : Source Name                                    : Type  : URI" in result.output
+
+
+def test_cli_validate(dal):
+    """download via cli"""
+    os.environ["NLDI_DB_PASS"] = dal.uri.password
+    os.environ["NLDI_DB_USER"] = dal.uri.username
+    os.environ["NLDI_DB_HOST"] = dal.uri.host
+    os.environ["NLDI_DB_PORT"] = str(dal.uri.port)
+    os.environ["NLDI_DB_NAME"] = dal.uri.database
+    runner = click.testing.CliRunner()
+    result = runner.invoke(cli.main, args=["validate", "13"], env=os.environ)
+    assert result.exit_code == 0
+    assert "PASS" in result.output
+
+
+def test_cli_display(dal):
+    """download via cli"""
+    os.environ["NLDI_DB_PASS"] = dal.uri.password
+    os.environ["NLDI_DB_USER"] = dal.uri.username
+    os.environ["NLDI_DB_HOST"] = dal.uri.host
+    os.environ["NLDI_DB_PORT"] = str(dal.uri.port)
+    os.environ["NLDI_DB_NAME"] = dal.uri.database
+    runner = click.testing.CliRunner()
+    result = runner.invoke(cli.main, args=["display", "13"], env=os.environ)
+    assert result.exit_code == 0
+    assert "ID=13" in result.output

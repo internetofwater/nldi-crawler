@@ -70,7 +70,7 @@ def sources(ctx):
                 f"{src.ingest_type.upper():5} :",
                 f"{src.source_uri[0:48]:48}...",
             )
-    except SQLAlchemyError:
+    except SQLAlchemyError: #pragma: no coverage
         sys.exit(-2)
 
 
@@ -109,7 +109,7 @@ def download(ctx, source_id):
     logging.info(" Downloading source %s ", source_id)
     try:
         source_list = source.list_sources(ctx.obj["DAL"], selector=source_id)
-    except ConnectionError:
+    except SQLAlchemyError:
         sys.exit(-2)
 
     if len(source_list) == 0:
