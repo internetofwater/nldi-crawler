@@ -7,12 +7,11 @@
 routines to manage the table of crawler_sources
 """
 import os
-import sys
 import re
 import tempfile
 import logging
 import httpx
-from ijson import items, JSONError
+import ijson
 
 
 from sqlalchemy import String, Integer, select
@@ -171,7 +170,7 @@ def validate_src(src: CrawlerSource) -> tuple:
         with httpx.stream("GET", src.source_uri, timeout=60.0, follow_redirects=True) as response:
             chunk = response.iter_bytes(2 * 2 * 1024)
             # read 2k bytes, to be sure we get a complete feature.
-            itm = next(items(next(chunk), "features.item"))
+            itm = next(ijson.items(next(chunk), "features.item"))
             fail = None
             if src.feature_reach is not None and src.feature_reach not in itm["properties"]:
                 fail = (False, f"Column not found for 'feature_reach' : {src.feature_reach}")
@@ -191,7 +190,7 @@ def validate_src(src: CrawlerSource) -> tuple:
         return (False, "Network Timeout")
     except KeyError:
         return (False, "Key Error")
-    except JSONError:
+    except ijson.JSONError:
         return (False, "Invalid JSON")
 
     return (True, "")

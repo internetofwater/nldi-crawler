@@ -10,6 +10,7 @@ import copy
 import pytest
 from unittest import mock
 
+import ijson
 import httpx
 from pytest_httpx import HTTPXMock
 from nldi_crawler import source
@@ -55,6 +56,20 @@ def test_validation_fail(dummy_source):
     assert result[0] is False
 
 
+def test_validation_timeout(httpx_mock: HTTPXMock, dummy_source):
+    """force network timeout."""
+    httpx_mock.add_exception(httpx.ReadTimeout("Unable to read within timeout"))
+    result = source.validate_src(dummy_source)
+    assert result[0] is False
+
+
+def test_validation_json_error(dummy_source):
+    """force JSON error"""
+    with mock.patch("ijson.items", side_effect=ijson.JSONError("ERROR")):
+        result = source.validate_src(dummy_source)
+        assert result[0] is False
+
+
 def test_validation_success(dummy_source):
     """finally, one that works."""
     result = source.validate_src(dummy_source)
@@ -67,15 +82,17 @@ def test_download(dummy_source):
     assert os.path.exists(fname)
     os.remove(fname)
 
-def test_network_timeout(httpx_mock:HTTPXMock, dummy_source):
-    """ force network timeout.  """
+
+def test_download_network_timeout(httpx_mock: HTTPXMock, dummy_source):
+    """force network timeout."""
     httpx_mock.add_exception(httpx.ReadTimeout("Unable to read within timeout"))
     fname = source.download_geojson(dummy_source)
     ## timeout is handled within download_geojson, which should return None in that case.
     assert fname is None
 
+
 def test_raises_io_error(dummy_source):
-    """ force IO error on write to file """
-    with mock.patch('tempfile.NamedTemporaryFile', side_effect=IOError('ERROR')):
+    """force IO error on write to file"""
+    with mock.patch("tempfile.NamedTemporaryFile", side_effect=IOError("ERROR")):
         fname = source.download_geojson(dummy_source)
         assert fname is None
