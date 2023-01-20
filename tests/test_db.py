@@ -28,13 +28,16 @@ def test_failed_db_connection():
         _ = session.execute(text("SELECT crawler_source_id FROM nldi_data.crawler_source"))
     assert True  ## if we get to here, then this did not XFAIL.  Problem.
 
+
 def test_dal(dal):
     """
     Exercises the data access layer connection.
     Note that this requires a valid database up and running for us to connect to.
     """
     dal.connect()
-    dal.connect() ##<<< should log a message, but not an error.
+    dal.connect()  ##<<< should log a message, but not an error.
     dal.disconnect()
-    s = dal.Session() ##<< creating a session without a connection should log a message, but not error.
+    s = (
+        dal.Session()
+    )  ##<< creating a session without a connection should log a message, but not error.
     assert s is not None

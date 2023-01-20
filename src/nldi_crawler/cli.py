@@ -88,7 +88,7 @@ def validate(ctx, source_id):
     else:
         source_list = source.list_sources(ctx.obj["DAL"], selector=source_id)
     if len(source_list) == 0:
-        click.echo(f"No source found.")
+        click.echo("No source found.")
 
     for src in source_list:
         print(f"{src.crawler_source_id} : Checking {src.source_name}... ", end="")

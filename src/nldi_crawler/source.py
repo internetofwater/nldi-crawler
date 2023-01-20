@@ -145,11 +145,10 @@ def download_geojson(source) -> str:
             ) as response:
                 for chunk in response.iter_bytes(1024):
                     tmp_fh.write(chunk)
-    except IOError as exc: # pragma: no coverage
+    except IOError:
         logging.exception(" I/O Error while downloading from %s to %s", source.source_uri, fname)
-        print(exc)
-        sys.exit(-1)
-    except httpx.ReadTimeout: # pragma: no coverage
+        return None
+    except httpx.ReadTimeout:
         logging.critical(" Read TimeOut attempting to download from %s", source.source_uri)
         os.remove(fname)
         return None
