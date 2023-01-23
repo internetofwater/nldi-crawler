@@ -10,6 +10,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from nldi_crawler import source
 
+
 def test_list_sources(dal):
     """get table of sources from db"""
     srcs = source.list_sources(dal)
@@ -30,10 +31,9 @@ def test_no_such_source(dal):
 
 @pytest.mark.xfail(raises=SQLAlchemyError)
 def test_failed_db_session(dal):
-    """ force exceptions"""
-    with mock.patch.object(dal, 'Session', side_effect = SQLAlchemyError("Error")) :
+    """force exceptions"""
+    with mock.patch.object(dal, "Session", side_effect=SQLAlchemyError("Error")):
         srcs = source.list_sources(dal)
-
 
 
 def test_source_attributes(dal):

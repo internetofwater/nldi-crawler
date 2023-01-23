@@ -6,6 +6,8 @@ Test CLI.
 """
 import os
 import logging
+import re
+
 import pytest
 import click.testing
 
@@ -67,6 +69,10 @@ def test_cli_download(dal):
     runner = click.testing.CliRunner()
     result = runner.invoke(cli.main, args=["download", "13"], env=os.environ)
     assert result.exit_code == 0
+    fname = re.sub("Source \d+ downloaded to ", "", result.output).strip()
+    assert os.path.exists(fname)
+    os.remove(fname)
+
 
 def test_cli_sources(dal):
     """download via cli"""

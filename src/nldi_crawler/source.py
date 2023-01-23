@@ -16,7 +16,7 @@ import ijson
 
 from sqlalchemy import String, Integer, select
 from sqlalchemy.orm import mapped_column
-from sqlalchemy.exc import OperationalError, DataError, SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError
 
 from .db import NLDI_Base, DataAccessLayer
 

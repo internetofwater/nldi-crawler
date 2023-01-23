@@ -70,7 +70,7 @@ def sources(ctx):
                 f"{src.ingest_type.upper():5} :",
                 f"{src.source_uri[0:48]:48}...",
             )
-    except SQLAlchemyError: #pragma: no coverage
+    except SQLAlchemyError:  # pragma: no coverage
         sys.exit(-2)
 
 
@@ -176,9 +176,9 @@ def ingest(ctx, source_id):
     else:
         logging.warning(" Download FAILED for source %s", source_id)
         sys.exit(-1)
-    ingestor.create_tmp_table(ctx.obj["DB_URL"], source_list[0])
-    ingestor.ingest_from_file(source_list[0], fname, ctx.obj["DB_URL"])
-    ingestor.install_data(ctx.obj["DB_URL"], source_list[0])
+    ingestor.create_tmp_table(ctx.obj["DAL"], source_list[0])
+    ingestor.ingest_from_file(source_list[0], fname, ctx.obj["DAL"])
+    ingestor.install_data(ctx.obj["DAL"], source_list[0])
     os.remove(fname)
 
 
