@@ -9,18 +9,20 @@ routines to manage the ingestion of crawler sources
 import logging
 import json
 
-from ijson import JSONError, items
+import ijson
 import sqlalchemy.types
 from sqlalchemy import create_engine, Integer, Numeric
 from sqlalchemy.orm import Session, mapped_column
 from sqlalchemy.sql import text
+from sqlalchemy.exc import SQLAlchemyError
 
 
 from shapely import from_geojson, to_wkt
 from geoalchemy2.elements import WKTElement
 from geoalchemy2 import Geometry
 
-from .source import CrawlerSource, NLDI_Base
+from .db import NLDI_Base
+from .source import CrawlerSource
 
 ### EPSG codes for coordinate reference systems we might use.
 _NAD_83 = 4269
@@ -45,7 +47,7 @@ class StrippedString(sqlalchemy.types.TypeDecorator):
         return value.encode("ascii", errors="replace").decode("utf-8")
 
 
-def ingest_from_file(src, fname: str, connect_string: str):
+def ingest_from_file(src, fname: str, dal) -> int:
     """
     Takes in a source dataset, and processes it to insert into the NLDI-DB feature table
 
@@ -54,11 +56,17 @@ def ingest_from_file(src, fname: str, connect_string: str):
     :param fname: The name of the local copy of the dataset.
     :type fname: str
     """
+
     tmp = src.table_name("tmp")
 
-    class NLDI_Feature(NLDI_Base):
+    class NLDI_Feature(NLDI_Base):  # pylint: disable=invalid-name
+        """
+        ORM mapping object to connect with the nldi_data.feature table
+
+        """
+
         __tablename__ = tmp
-        __table_args__ = {"schema": "nldi_data"}
+        __table_args__ = {"schema": "nldi_data", "keep_existing": True}
         comid = mapped_column(Integer)
         identifier = mapped_column(StrippedString, primary_key=True)
         crawler_source_id = mapped_column(Integer, primary_key=True)
@@ -80,12 +88,12 @@ def ingest_from_file(src, fname: str, connect_string: str):
     _reachmeas = src.feature_measure
     _uri = src.feature_uri
 
-    eng = create_engine(connect_string, client_encoding="UTF-8", echo=False, future=True)
+    dal.connect()
     try:
         i = 1
         with open(fname, "r", encoding="UTF-8") as read_fh:
-            with Session(eng) as session:
-                for itm in items(read_fh, "features.item", use_float=True):
+            with dal.Session() as session:
+                for itm in ijson.items(read_fh, "features.item", use_float=True):
                     i += 1
                     shp = from_geojson(json.dumps(itm["geometry"]))
                     elmnt = WKTElement(to_wkt(shp), srid=DEFAULT_SRS)
@@ -111,11 +119,15 @@ def ingest_from_file(src, fname: str, connect_string: str):
                     session.add(f)
                     session.commit()
         logging.info(" Processed %s features from %s", i - 1, src.source_name)
-    except JSONError:
+    except ijson.JSONError:
         logging.warning(" Parsing error; stopping after %s features read", i - 1)
+    except SQLAlchemyError:
+        logging.warning(" Database session error. Stopping")
+    dal.disconnect()
+    return i - 1
 
 
-def create_tmp_table(connect_string: str, src: CrawlerSource):
+def create_tmp_table(dal, src):
     """
     This method of creating the temp table relies completely on the postgress dialect of SQL to
     do the work. We could use sqlalchemy mechanisms to achieve something similar, but this is
@@ -124,19 +136,19 @@ def create_tmp_table(connect_string: str, src: CrawlerSource):
     among tables later.
     """
     tmp = src.table_name("tmp")
-    eng = create_engine(connect_string, client_encoding="UTF-8", echo=False, future=True)
+    dal.connect()
     stmt = f"""
         DROP TABLE IF EXISTS nldi_data.{tmp};
         CREATE TABLE IF NOT EXISTS nldi_data.{tmp}
             (LIKE nldi_data.feature INCLUDING INDEXES);
     """
-    with Session(eng) as session:
+    with dal.Session() as session:
         session.execute(text(stmt))
         session.commit()
-    eng.dispose()
+    dal.disconnect()
 
 
-def install_data(connect_string: str, src: CrawlerSource):
+def install_data(dal, src: CrawlerSource):
     """
     To 'install' the ingested data, we will manipulate table names and inheritance.
 
@@ -158,7 +170,7 @@ def install_data(connect_string: str, src: CrawlerSource):
     table = src.table_name()
     schema = "nldi_data"
 
-    eng = create_engine(connect_string, client_encoding="UTF-8", echo=True, future=True)
+    dal.connect()
     stmt = f"""
         set search_path = {schema};
         DROP TABLE IF EXISTS {old};
@@ -168,7 +180,7 @@ def install_data(connect_string: str, src: CrawlerSource):
         ALTER TABLE {table} INHERIT feature;
         DROP TABLE IF EXISTS {old}
     """
-    with Session(eng) as session:
+    with dal.Session() as session:
         session.execute(text(stmt))
         session.commit()
-    eng.dispose()
+    dal.disconnect()

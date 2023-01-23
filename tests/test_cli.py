@@ -5,8 +5,11 @@
 Test CLI.
 """
 import os
-import click.testing
+import logging
+import re
+
 import pytest
+import click.testing
 
 
 from nldi_crawler import cli
@@ -17,6 +20,15 @@ def test_main_succeeds():
     runner = click.testing.CliRunner()
     result = runner.invoke(cli.main)
     assert result.exit_code == 0
+
+
+def test_verbose():
+    """sets verbose level"""
+    runner = click.testing.CliRunner()
+    _ = runner.invoke(cli.main, "-vv")
+    assert logging.root.level == logging.DEBUG
+    ## NOTE: logging.root details are only modified wif the
+    #  call to basicConfig within the invoked command includes 'force=True'
 
 
 def test_toml_config():
@@ -45,3 +57,57 @@ def test_env_config():
     cfg = cli.cfg_from_env()
     assert cfg["NLDI_DB_NAME"] == "SET"
     assert cfg["NLDI_DB_PASS"] == "secret"
+
+
+def test_cli_download(dal):
+    """download via cli"""
+    os.environ["NLDI_DB_PASS"] = dal.uri.password
+    os.environ["NLDI_DB_USER"] = dal.uri.username
+    os.environ["NLDI_DB_HOST"] = dal.uri.host
+    os.environ["NLDI_DB_PORT"] = str(dal.uri.port)
+    os.environ["NLDI_DB_NAME"] = dal.uri.database
+    runner = click.testing.CliRunner()
+    result = runner.invoke(cli.main, args=["download", "13"], env=os.environ)
+    assert result.exit_code == 0
+    fname = re.sub("Source \d+ downloaded to ", "", result.output).strip()
+    assert os.path.exists(fname)
+    os.remove(fname)
+
+
+def test_cli_sources(dal):
+    """download via cli"""
+    os.environ["NLDI_DB_PASS"] = dal.uri.password
+    os.environ["NLDI_DB_USER"] = dal.uri.username
+    os.environ["NLDI_DB_HOST"] = dal.uri.host
+    os.environ["NLDI_DB_PORT"] = str(dal.uri.port)
+    os.environ["NLDI_DB_NAME"] = dal.uri.database
+    runner = click.testing.CliRunner()
+    result = runner.invoke(cli.main, args=["sources"], env=os.environ)
+    assert result.exit_code == 0
+    assert "ID : Source Name                                    : Type  : URI" in result.output
+
+
+def test_cli_validate(dal):
+    """download via cli"""
+    os.environ["NLDI_DB_PASS"] = dal.uri.password
+    os.environ["NLDI_DB_USER"] = dal.uri.username
+    os.environ["NLDI_DB_HOST"] = dal.uri.host
+    os.environ["NLDI_DB_PORT"] = str(dal.uri.port)
+    os.environ["NLDI_DB_NAME"] = dal.uri.database
+    runner = click.testing.CliRunner()
+    result = runner.invoke(cli.main, args=["validate", "13"], env=os.environ)
+    assert result.exit_code == 0
+    assert "PASS" in result.output
+
+
+def test_cli_display(dal):
+    """download via cli"""
+    os.environ["NLDI_DB_PASS"] = dal.uri.password
+    os.environ["NLDI_DB_USER"] = dal.uri.username
+    os.environ["NLDI_DB_HOST"] = dal.uri.host
+    os.environ["NLDI_DB_PORT"] = str(dal.uri.port)
+    os.environ["NLDI_DB_NAME"] = dal.uri.database
+    runner = click.testing.CliRunner()
+    result = runner.invoke(cli.main, args=["display", "13"], env=os.environ)
+    assert result.exit_code == 0
+    assert "ID=13" in result.output

@@ -10,20 +10,14 @@ import os
 import sys
 import logging
 import configparser
-import re
 import click
 
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.engine import URL
 
+from . import db
 from . import source
 from . import ingestor
-
-DEFAULT_DB_INFO = {
-    "NLDI_DB_HOST": "localhost",
-    "NLDI_DB_PORT": "5432",
-    "NLDI_DB_USER": "read_only_user",
-    "NLDI_DB_NAME": "nldi",
-}
 
 
 @click.group(invoke_without_command=True)
@@ -32,29 +26,32 @@ DEFAULT_DB_INFO = {
 @click.pass_context
 def main(ctx, verbose_, conf_):
     """
-    CLI to launch NLDI crawler.
-
+    Command-line interface to launch NLDI crawler.
     """
+    _lvl = logging.WARNING - (10 * verbose_)
+    logging.basicConfig(level=_lvl, force=True)
+    logging.info("VERBOSE is %s", verbose_)
+    logging.debug("logging.level is %s", logging.root.level)
+
     if ctx.invoked_subcommand is None:
-        ## We can redefine what should happen if no sub-command is given.  Here, I just fall
-        ## back to usage.  But we could also have a default behavior, such as listing sources.
-        ## TODO: decide what should the default behavior be
         click.echo(f"\nYou must supply a COMMAND: {ctx.command.list_commands(ctx)}\n")
         click.echo(ctx.get_help())
         sys.exit(0)
 
-    if verbose_ == 1:
-        logging.basicConfig(level=logging.INFO)
-    if verbose_ >= 2:
-        logging.basicConfig(level=logging.DEBUG)
-    logging.info("VERBOSE is %s", verbose_)
-
-    cfg = DEFAULT_DB_INFO
-    cfg.update(cfg_from_env())
+    cfg = cfg_from_env()  # pull from env
     if conf_:
-        cfg.update(cfg_from_toml(conf_))
+        cfg.update(cfg_from_toml(conf_))  # .toml file overrides env
     ctx.ensure_object(dict)
-    ctx.obj["DB_URL"] = db_url(cfg)
+    ctx.obj["DB_URI"] = URL.create(
+        "postgresql+psycopg",
+        username=cfg["NLDI_DB_USER"],
+        password=cfg.get("NLDI_DB_PASS", ""),
+        host=cfg["NLDI_DB_HOST"],
+        port=cfg["NLDI_DB_PORT"],
+        database=cfg["NLDI_DB_NAME"],
+    )
+    logging.debug(" Using DB connection URI: %s", ctx.obj["DB_URI"])
+    ctx.obj["DAL"] = db.DataAccessLayer(ctx.obj["DB_URI"])
 
 
 @main.command()
@@ -66,35 +63,32 @@ def sources(ctx):
     print("\nID : Source Name                                    : Type  : URI ")
     print("==  ", "=" * 46, "  =====  ", "=" * 48)
     try:
-        for src in source.fetch_source_table(ctx.obj["DB_URL"]):
+        for src in source.list_sources(ctx.obj["DAL"]):
             print(
                 f"{src.crawler_source_id:2} :",
                 f"{src.source_name[0:48]:46} :",
                 f"{src.ingest_type.upper():5} :",
                 f"{src.source_uri[0:48]:48}...",
             )
-    except SQLAlchemyError:
+    except SQLAlchemyError:  # pragma: no coverage
         sys.exit(-2)
 
 
 @main.command()
-@click.argument("source_id", nargs=1, type=click.STRING)
+@click.argument("source_id", required=False, type=click.INT)
 @click.pass_context
 def validate(ctx, source_id):
     """
     Connect to data source(s) to verify they can return JSON data.
     """
     logging.info("Validating data source(s)")
-    cid = sanitize_cid(source_id)
-    try:
-        if source_id.upper() == "ALL" or cid == 0:
-            source_list = source.fetch_source_table(ctx.obj["DB_URL"])
-        else:
-            source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=cid)
-            if len(source_list) == 0:
-                click.echo(f"No source found with ID {cid}")
-    except SQLAlchemyError:
-        sys.exit(-2)
+
+    if source_id is None:
+        source_list = source.list_sources(ctx.obj["DAL"])
+    else:
+        source_list = source.list_sources(ctx.obj["DAL"], selector=source_id)
+    if len(source_list) == 0:
+        click.echo("No source found.")
 
     for src in source_list:
         print(f"{src.crawler_source_id} : Checking {src.source_name}... ", end="")
@@ -106,50 +100,48 @@ def validate(ctx, source_id):
 
 
 @main.command()
-@click.argument("source_id", nargs=1, type=click.STRING)
+@click.argument("source_id", required=True, type=click.INT)
 @click.pass_context
 def download(ctx, source_id):
     """
     Download the data associated with a named data source.
     """
-    cid = sanitize_cid(source_id)
     logging.info(" Downloading source %s ", source_id)
     try:
-        source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=cid)
-    except ConnectionError:
+        source_list = source.list_sources(ctx.obj["DAL"], selector=source_id)
+    except SQLAlchemyError:
         sys.exit(-2)
 
     if len(source_list) == 0:
-        click.echo(f"No source found with ID {cid}")
+        click.echo(f"No source found with ID {source_id}")
         return
     fname = source.download_geojson(source_list[0])
     if fname:
-        click.echo(f"Source {cid} downloaded to {fname}")
+        click.echo(f"Source {source_id} downloaded to {fname}")
     else:
-        logging.warning("Download FAILED for source %s", cid)
-        click.echo(f"Download FAILED for source {cid}")
+        logging.warning("Download FAILED for source %s", source_id)
+        click.echo(f"Download FAILED for source {source_id}")
         sys.exit(-1)
 
 
 @main.command()
-@click.argument("source_id", nargs=1, type=click.STRING)
+@click.argument("source_id", required=True, type=click.INT)
 @click.pass_context
 def display(ctx, source_id):
     """
     Show details for named data source.
     """
-    cid = sanitize_cid(source_id)
-    if not cid:
+    if not source_id:
         return
-
     try:
-        source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=cid)
+        source_list = source.list_sources(ctx.obj["DAL"], selector=source_id)
     except SQLAlchemyError:
         sys.exit(-2)
 
     if len(source_list) == 0:
-        click.echo(f"No source found with ID {cid}")
+        click.echo(f"\nNo source found with ID {source_id}")
         return
+
     for src in source_list:
         print(f"ID={src.crawler_source_id:2} :: {src.source_name}")
         print(f"  Source Suffix  : {src.source_suffix}")
@@ -164,62 +156,30 @@ def display(ctx, source_id):
 
 
 @main.command()
-@click.argument("source_id", nargs=1, type=click.STRING)
+@click.argument("source_id", required=True, type=click.INT)
 @click.pass_context
 def ingest(ctx, source_id):
     """
     Download and process data associated with a named data source.
     """
-    cid = sanitize_cid(source_id)
-
     try:
-        source_list = source.fetch_source_table(ctx.obj["DB_URL"], selector=cid)
+        source_list = source.list_sources(ctx.obj["DAL"], selector=source_id)
     except SQLAlchemyError:
         sys.exit(-2)
 
     if len(source_list) == 0:
-        click.echo(f"No source found with ID {cid}")
+        click.echo(f"No source found with ID {source_id}")
         return
     fname = source.download_geojson(source_list[0])
     if fname:
-        logging.info(" Source %s dowloaded to %s", cid, fname)
+        logging.info(" Source %s dowloaded to %s", source_id, fname)
     else:
-        logging.warning(" Download FAILED for source %s", cid)
+        logging.warning(" Download FAILED for source %s", source_id)
         sys.exit(-1)
-    ingestor.create_tmp_table(ctx.obj["DB_URL"], source_list[0])
-    ingestor.ingest_from_file(source_list[0], fname, ctx.obj["DB_URL"])
-    ingestor.install_data(ctx.obj["DB_URL"], source_list[0])
+    ingestor.create_tmp_table(ctx.obj["DAL"], source_list[0])
+    ingestor.ingest_from_file(source_list[0], fname, ctx.obj["DAL"])
+    ingestor.install_data(ctx.obj["DAL"], source_list[0])
     os.remove(fname)
-
-
-def db_url(conf: dict) -> str:
-    """
-    Formats the full database connection URL using the configuration dict.
-
-    :param conf: config information retrieved from env variables or from toml file.
-    :type conf: dict
-    :return: connection string in URI format
-    :rtype: str
-    """
-    # NOTE: NLDI_DB_PASS may or may not be set, depending on whether the connection needs a password
-    # or not.  The other configurables are assumed to be set based on the defaults defined in the
-    # global dict DEFAULT_DB_INFO.  If that assumption is proven invalid, we need to do more error
-    # trapping here.
-    if "NLDI_DB_PASS" in conf:
-        _url = (
-            f"postgresql://{conf['NLDI_DB_USER']}:{conf['NLDI_DB_PASS']}"
-            + f"@{conf['NLDI_DB_HOST']}:{conf['NLDI_DB_PORT']}/{conf['NLDI_DB_NAME']}"
-        )
-        logging.info(
-            " Using DB connection URI: %s", re.sub(r"//([^:]+):.*@", r"//\g<1>:****@", _url)
-        )
-    else:
-        _url = (
-            f"postgresql://{conf['NLDI_DB_USER']}@{conf['NLDI_DB_HOST']}:"
-            + f"{conf['NLDI_DB_PORT']}/{conf['NLDI_DB_NAME']}"
-        )
-        logging.info(" Using DB connection URI: %s", _url)
-    return _url
 
 
 def cfg_from_toml(filepath: str) -> dict:
@@ -267,23 +227,9 @@ def cfg_from_env() -> dict:
     """
     logging.info(" Consulting environment variables for DB connection info...")
     env_cfg = {}
-    for (_k, _v) in DEFAULT_DB_INFO.items():
+    for (_k, _v) in db.DEFAULT_DB_INFO.items():
         env_cfg[_k] = os.environ.get(_k, _v)
     if "NLDI_DB_PASS" in os.environ:
         # password is a special case.  There is no default; it must be explicitly set.
         env_cfg["NLDI_DB_PASS"] = os.environ.get("NLDI_DB_PASS")
     return env_cfg
-
-
-def sanitize_cid(source_id: str) -> int:
-    """
-    Attempts to sanitize a source id to extract just its digit characters.
-    The string is cast as an integer -- the crawler_source_id column is an INTEGER in
-    the crawler_source table.
-    """
-    _tmp = re.sub(r"\D*(\d+)\D*", r"\g<1>", source_id)
-    try:
-        return int(_tmp)
-    except ValueError:
-        ## if _tmp contains no digits
-        return 0

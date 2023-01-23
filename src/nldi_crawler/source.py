@@ -7,21 +7,18 @@
 routines to manage the table of crawler_sources
 """
 import os
-import sys
 import re
 import tempfile
 import logging
 import httpx
-from ijson import items, JSONError
+import ijson
 
 
-from sqlalchemy import create_engine, String, Integer, select
-from sqlalchemy.orm import DeclarativeBase, Session, mapped_column
-from sqlalchemy.exc import OperationalError, DataError, SQLAlchemyError
+from sqlalchemy import String, Integer, select
+from sqlalchemy.orm import mapped_column
+from sqlalchemy.exc import SQLAlchemyError
 
-
-class NLDI_Base(DeclarativeBase):  # pylint: disable=invalid-name
-    """Base class used to create reflected ORM objects."""
+from .db import NLDI_Base, DataAccessLayer
 
 
 class CrawlerSource(NLDI_Base):
@@ -81,7 +78,7 @@ class CrawlerSource(NLDI_Base):
         return "feature_" + _s
 
 
-def fetch_source_table(connect_string: str, selector="") -> list:
+def list_sources(dal: DataAccessLayer, selector="") -> list:
     """
     Fetches a list of crawler sources from the master NLDI-DB database.  The returned list
     holds one or mor CrawlerSource() objects, which are reflected from the database using
@@ -92,8 +89,7 @@ def fetch_source_table(connect_string: str, selector="") -> list:
     :return: A list of sources
     :rtype: list of CrawlerSource objects
     """
-
-    eng = create_engine(connect_string, client_encoding="UTF-8", echo=False, future=True)
+    dal.connect()
     retval = []
 
     if selector == "":
@@ -106,19 +102,15 @@ def fetch_source_table(connect_string: str, selector="") -> list:
         )
 
     try:
-        with Session(eng) as session:
+        with dal.Session() as session:
             for source in session.scalars(stmt):
                 retval.append(source)
-    except OperationalError as exc:
-        logging.warning("Database connection error")
+    except SQLAlchemyError as exc:
+        logging.warning("Database session error")
         logging.warning(exc)
-        raise SQLAlchemyError from exc
-    except DataError as exc:
-        logging.warning("Error with SELECT query")
-        logging.warning(exc)
-        raise SQLAlchemyError from exc
-    finally:
-        eng.dispose()
+        raise
+
+    dal.disconnect()
     return retval
 
 
@@ -148,10 +140,9 @@ def download_geojson(source) -> str:
             ) as response:
                 for chunk in response.iter_bytes(1024):
                     tmp_fh.write(chunk)
-    except IOError as exc:
+    except IOError:
         logging.exception(" I/O Error while downloading from %s to %s", source.source_uri, fname)
-        print(exc)
-        sys.exit(-1)
+        return None
     except httpx.ReadTimeout:
         logging.critical(" Read TimeOut attempting to download from %s", source.source_uri)
         os.remove(fname)
@@ -175,7 +166,7 @@ def validate_src(src: CrawlerSource) -> tuple:
         with httpx.stream("GET", src.source_uri, timeout=60.0, follow_redirects=True) as response:
             chunk = response.iter_bytes(2 * 2 * 1024)
             # read 2k bytes, to be sure we get a complete feature.
-            itm = next(items(next(chunk), "features.item"))
+            itm = next(ijson.items(next(chunk), "features.item"))
             fail = None
             if src.feature_reach is not None and src.feature_reach not in itm["properties"]:
                 fail = (False, f"Column not found for 'feature_reach' : {src.feature_reach}")
@@ -195,7 +186,7 @@ def validate_src(src: CrawlerSource) -> tuple:
         return (False, "Network Timeout")
     except KeyError:
         return (False, "Key Error")
-    except JSONError:
+    except ijson.JSONError:
         return (False, "Invalid JSON")
 
     return (True, "")
