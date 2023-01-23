@@ -105,14 +105,10 @@ def list_sources(dal: DataAccessLayer, selector="") -> list:
         with dal.Session() as session:
             for source in session.scalars(stmt):
                 retval.append(source)
-    except OperationalError as exc:
-        logging.warning("Database connection error")
+    except SQLAlchemyError as exc:
+        logging.warning("Database session error")
         logging.warning(exc)
-        raise SQLAlchemyError from exc
-    except DataError as exc:
-        logging.warning("Error with SELECT query")
-        logging.warning(exc)
-        raise SQLAlchemyError from exc
+        raise
 
     dal.disconnect()
     return retval

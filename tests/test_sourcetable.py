@@ -4,9 +4,11 @@
 """
 Test source table functions.
 """
+import pytest
+from unittest import mock
+from sqlalchemy.exc import SQLAlchemyError
 
 from nldi_crawler import source
-
 
 def test_list_sources(dal):
     """get table of sources from db"""
@@ -24,6 +26,14 @@ def test_no_such_source(dal):
     """get table of sources from db"""
     srcs = source.list_sources(dal, selector=100)
     assert len(srcs) == 0
+
+
+@pytest.mark.xfail(raises=SQLAlchemyError)
+def test_failed_db_session(dal):
+    """ force exceptions"""
+    with mock.patch.object(dal, 'Session', side_effect = SQLAlchemyError("Error")) :
+        srcs = source.list_sources(dal)
+
 
 
 def test_source_attributes(dal):
