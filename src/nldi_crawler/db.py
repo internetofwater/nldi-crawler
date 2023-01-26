@@ -32,7 +32,7 @@ class DataAccessLayer:
     """
 
     DEFAULT_DB_URI = URL.create(
-        "postgresql+psycopg",
+        "postgresql+psycopg2",
         username=DEFAULT_DB_INFO["NLDI_DB_USER"],
         host=DEFAULT_DB_INFO["NLDI_DB_HOST"],
         port=DEFAULT_DB_INFO["NLDI_DB_PORT"],
