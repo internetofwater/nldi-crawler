@@ -30,7 +30,7 @@ ENV PIP_CERT="/etc/ssl/certs/ca-certificates.crt" \
 FROM root-cert as ubuntu-base
 
 RUN apt-get update
-RUN apt-get install -q=2 --fix-missing --no-install-recommeds \
+RUN apt-get install -q=2 --fix-missing --no-install-recommends \
 curl \
 python3-pip \
 python3-venv \
