@@ -1,0 +1,14 @@
+services:
+  cli:
+    image: nldicrawlerpy:slim
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      NLDI_DB_HOST: ${NLDI_DB_HOST}
+      NLDI_DB_PORT: ${NLDI_DB_PORT}
+      NLDI_DB_USER: ${NLDI_DB_USER}
+      NLDI_DB_PASS: ${NLDI_DB_PASS}
+      NLDI_DB_NAME: ${NLDI_DB_NAME}
+    command: 'poetry run nldi-cli -vv sources'
+    container_name: nldi-cli

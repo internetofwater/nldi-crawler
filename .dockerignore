@@ -1,1 +1,15 @@
-# Empty (for now!)
+.git
+.vscode
+.coverage
+.pytype
+.nox
+.pytest_cache
+.ipynb_checkpoints
+*.geojson
+__pycache__
+docs/_build
+*.gpkg
+tests
+notebooks
+.env
+docker-compose.yml
