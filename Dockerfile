@@ -23,7 +23,7 @@ ENV PIP_CERT="/etc/ssl/certs/ca-certificates.crt" \
 ########################################################################################
 # Set up Ubuntu Linux Environment now that certs are in order
 FROM root-cert as ubuntu-base
-
+RUN apt-get update && apt-get install -q=2 --no-install-recommends telnet
 RUN pip install -U pip setuptools
 RUN pip install poetry
 
