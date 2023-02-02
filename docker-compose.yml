@@ -3,7 +3,7 @@ version: '3.3'
 services:
 
   cli:
-    image: nldicrawlerpy:slim 
+    image: nldicrawlerpy:test 
     build:
       context: .
       dockerfile: ./docker/Dockerfile
