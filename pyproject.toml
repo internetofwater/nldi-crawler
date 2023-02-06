@@ -18,6 +18,7 @@ ijson = "^3.1.4"
 geoalchemy2 = "^0.12.5"
 shapely = "^2.0.0"
 psycopg = "^3.1.7"
+psycopg-binary = "^3.1.8"
 
 [tool.poetry.scripts]
 nldi-cli = "nldi_crawler.cli:main"
