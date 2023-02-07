@@ -1,6 +1,6 @@
 # Usage Examples
 
-Launch the tool with no arguments to get a help message.  You get the same thing if you launce with `--help` option.
+Launch the tool with no arguments to get a help message.  You get the same thing if you launch with `--help` option.
 
 ```text
 # nldi-cli
@@ -66,11 +66,11 @@ should look like this:
 
 ```toml
 [nldi-db]
-hostname: 172.18.0.1
-port: 5432
-username: username
-password: secret
-db_name: nldi
+hostname: "172.18.0.1"
+port: "5432"
+username: "username"
+password: "secret"
+db_name: "nldi"
 ```
 
 Use this option with the `--config` switch on the CLI tool:
@@ -135,10 +135,10 @@ Checking Water Quality Portal...  [FAIL] : Network Timeout
 Checking geoconnex contribution demo sites...  [PASS]
 ```
 
-You can also validate all sources at once:
+You can also validate all sources at once, by not specifying a specific source:
 
 ```text
-# nldi-cli -v  validate all
+# nldi-cli -v  validate
 INFO:root: VERBOSE is 1
 INFO:root: Consulting environment variables for DB connection info...
 INFO:root: Parsing TOML config file ./nldi-crawler.toml for DB connection info...
@@ -167,7 +167,7 @@ the GeoJSON from that source to a local file.
 Source 10 downloaded to /home/trantham/nldi-crawler-py/CrawlerData_10_w2_08yh5.geojson
 ```
 
-The filename is `CrawlerData_`, the source number, then a unique random string from the tempfile library, `.geojson`.
+The filename is `CrawlerData_`, plus the the source number, plus a unique random string from the tempfile library, plus `.geojson`.
 
 ## Ingesting Source Data
 
@@ -175,7 +175,7 @@ This is the main function of this tool.  It will download source data, then pars
 which it will then insert into the master features table in the nldi database.
 
 ```text
-trantham:~/nldi-crawler-py> poetry run nldi-cli -vv --config ./crawler.toml ingest 10
+# nldi-cli -vv --config ./crawler.toml ingest 10
 INFO:root:VERBOSE is 2
 INFO:root: Consulting environment variables for DB connection info...
 INFO:root: Parsing TOML config file ./nldi-crawler.toml for DB connection info...
@@ -183,7 +183,6 @@ WARNING:root:Password stored as plain text in nldi-crawler.toml. Consider passin
 INFO:root: Using DB connection URI: postgresql://username:****@172.18.0.1:5432/nldi
 INFO:root: Downloading data from https://www.sciencebase.gov/catalog/file/get/60c7b895d34e86b9389b2a6c?name=vigil.geojson ...
 INFO:root:Writing to tmp file /home/trantham/nldi-crawler-py/CrawlerData_10_wbkl40e2.geojson
-DEBUG:httpx._client:HTTP Request: GET https://www.sciencebase.gov/catalog/file/get/60c7b895d34e86b9389b2a6c?name=vigil.geojson "HTTP/1.1 200 200"
 INFO:root: Source 10 dowloaded to /home/trantham/nldi-crawler-py/CrawlerData_10_wbkl40e2.geojson
 INFO:root: Ingesting from REACH source: 10 / Vigil Network Data
 INFO:root: Processed 70 features from Vigil Network Data

@@ -3,7 +3,7 @@ Configuration for SPHINX document generator
 """
 project = "NLDI Crawler"
 author = "USGS"
-copyright = f"2022, {author}"
+copyright = f"2023, {author}"
 extensions= [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
