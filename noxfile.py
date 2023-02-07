@@ -47,5 +47,5 @@ def test(session):
 def docs(session):
     """Rudimentary doc build system using sphinx.    TODO: enhance with mkdocs."""
     session.run("poetry", "install", external=True)
-    session.install("sphinx", "sphinx-autodoc-typehints")
+    session.install("sphinx", "sphinx-autodoc-typehints", "sphinx-rtd-theme", "sphinxcontrib-mermaid")
     session.run("sphinx-build", "docs", "docs/_build")

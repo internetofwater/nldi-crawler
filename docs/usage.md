@@ -1,6 +1,6 @@
 # Usage Examples
 
-Launch the tool with no arguments to get a help message.  You get the same thing if you launce with `--help` option.
+Launch the tool with no arguments to get a help message.  You get the same thing if you launch with `--help` option.
 
 ```text
 # nldi-cli
@@ -66,11 +66,11 @@ should look like this:
 
 ```toml
 [nldi-db]
-hostname: 172.18.0.1
-port: 5432
-username: username
-password: secret
-db_name: nldi
+hostname: "172.18.0.1"
+port: "5432"
+username: "username"
+password: "secret"
+db_name: "nldi"
 ```
 
 Use this option with the `--config` switch on the CLI tool:
@@ -175,7 +175,7 @@ This is the main function of this tool.  It will download source data, then pars
 which it will then insert into the master features table in the nldi database.
 
 ```text
-> nldi-cli -vv --config ./crawler.toml ingest 10
+# nldi-cli -vv --config ./crawler.toml ingest 10
 INFO:root:VERBOSE is 2
 INFO:root: Consulting environment variables for DB connection info...
 INFO:root: Parsing TOML config file ./nldi-crawler.toml for DB connection info...

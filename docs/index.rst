@@ -2,8 +2,12 @@ NLDI Crawler
 ==========================
 
 .. toctree::
-	source_table
-	workflow
+	LICENSE
+	CODE_OF_CONDUCT
+	CONTRIBUTING
+
 	usage
+	workflow
+	source_table
 
-
+	reference
