@@ -16,12 +16,12 @@ Annotations for the `crawler_source` table, which holds information for finding 
 | string  | ingest_type | The type of feature to be parsed.  This string should be one of [ `reach` , `point` ] |
 | string  | feature_type | Unknown.  This string is one of [ `hydrolocation` , `point` , `varies` ]
 
-
 ## Example
 
 ```sql
 SELECT * from nldi_data.crawler_source where crawler_source_id = 10
 ```
+
 |Source number `10` contains the following data:
 
 |Column | Value |
@@ -46,6 +46,3 @@ If we fetch the GeoJSON for this source, we see that the feature table looks lik
 5fe39807d34ea5387deb4970 | Armells Creek, Montana, USA | https://www.sciencebase.gov/catalog/item/5fe39807d34ea5387deb4970 | 10100001000709 | 90.193048735368549 | Yellowstone River Basin, Southeastern Montana, USA | Point() | ... |
 |...|
 |...|
-
-
-
