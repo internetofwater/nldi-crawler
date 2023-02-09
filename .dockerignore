@@ -11,5 +11,3 @@ docs/_build
 *.gpkg
 tests
 notebooks
-.env
-docker-compose.yml

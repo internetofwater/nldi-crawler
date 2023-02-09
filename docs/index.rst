@@ -1,8 +1,13 @@
-SS-Delineate Documentation
+NLDI Crawler
 ==========================
 
 .. toctree::
-    :hidden:
+	LICENSE
+	CODE_OF_CONDUCT
+	CONTRIBUTING
 
-	source_table
+	usage
 	workflow
+	source_table
+
+	reference

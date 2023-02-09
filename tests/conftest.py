@@ -16,7 +16,7 @@ from nldi_crawler.source import CrawlerSource
 def dal():
     """Data Access Layer fixture to ease connections"""
     url = URL.create(
-        "postgresql+psycopg",
+        "postgresql+psycopg2",
         username="nldi_schema_owner",
         password="changeMe",
         host="172.18.0.1",
