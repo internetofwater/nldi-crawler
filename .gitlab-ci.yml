@@ -36,5 +36,9 @@ push-job:
   extends:
     - .init-variables
   stage: push-image
+  before_script:
+    - apk add --update python3
+    - python3 -m ensurepip --upgrade
+    - pip install awscli
   script:
     - aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin $ECR_DEV_REGISTRY
