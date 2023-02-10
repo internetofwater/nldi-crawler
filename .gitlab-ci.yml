@@ -29,8 +29,8 @@ test-job:
     - .init-variables
   stage: test-image
   script:
-    -echo $ECR_PROD_REGISTRY_URL
-    -echo $ECR_DEV_REGISTRY_URL
+    - echo $ECR_PROD_REGISTRY_URL
+    - echo $ECR_DEV_REGISTRY_URL
 
 push-job:
   extends:
