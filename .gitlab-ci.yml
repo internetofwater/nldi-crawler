@@ -1,11 +1,40 @@
-build-job:
-  stage: build
-  script: 
-    - echo "This is to test the mirror pipeline activation"
+image: artifactory.wma.chs.usgs.gov/docker-official-mirror/docker:20.10.10
 
-deploy-aws:
-  stage: deploy
-  variables:
-    TEST_VAR: "TEST TEXT"
+stages:
+  - build-image
+  - test-image
+  - push-image
+
+services:
+  - name: artifactory.wma.chs.usgs.gov/docker-official-mirror/docker:20.10.10-dind
+    alias: docker
+
+.init-variables:
+    variables:
+      AWS_PROD_NUM: 579777464052
+      AWS_DEV_NUM: 807615458658
+      ECR_PROD_REGISTRY_URL: "${AWS_PROD_NUM}.dkr.ecr.us-west-2.amazonaws.com"
+      ECR_DEV_REGISTRY_URL: "${AWS_DEV_NUM}.dkr.ecr.us-west-2.amazonaws.com"
+      
+
+build-job:
+  stage: build-image
+  script: 
+    - echo "--- START BUILD JOB ---"
+    - docker build -t myimage .
+    - echo "--- END BUILD JOB ---"
+
+test-job:
+  extends: 
+    - .init-variables
+  stage: test-image
   script:
-    - echo "This part will deploy image to AWS"
+    -echo $ECR_PROD_REGISTRY_URL
+    -echo $ECR_DEV_REGISTRY_URL
+
+push-job:
+  extends:
+    - .init-variables
+  stage: push-image
+  script:
+    - aws ecr get-login-password --region us-west-2 | docker login --username AWS --password.stdin $ECR_DEV_REGISTRY
