@@ -3,7 +3,7 @@ build-job:
   script: 
     - echo "This is to test the mirror pipeline activation"
 
-.deploy-aws:
+deploy-aws:
   stage: deploy
   variables:
     TEST_VAR: "TEST TEXT"
