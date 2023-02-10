@@ -37,4 +37,4 @@ push-job:
     - .init-variables
   stage: push-image
   script:
-    - aws ecr get-login-password --region us-west-2 | docker login --username AWS --password.stdin $ECR_DEV_REGISTRY
+    - aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin $ECR_DEV_REGISTRY
