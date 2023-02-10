@@ -24,9 +24,6 @@ ENV PIP_CERT="/etc/ssl/certs/ca-certificates.crt" \
 # Set up Ubuntu Linux Environment now that certs are in order
 FROM root-cert as ubuntu-base
 
-RUN pip install -U pip setuptools
-RUN pip install poetry
-
 RUN mkdir -p /nldi-crawler-py
 WORKDIR /nldi-crawler-py
 RUN pip install -U pip setuptools
