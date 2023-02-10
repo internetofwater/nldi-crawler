@@ -1,0 +1,11 @@
+build-job:
+  stage: build
+  script: 
+    - echo "This is to test the mirror pipeline activation"
+
+.deploy-aws:
+  stage: deploy
+  variables:
+    TEST_VAR: "TEST TEXT"
+  script:
+    - echo "This part will deploy image to AWS"
