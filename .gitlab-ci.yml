@@ -41,4 +41,4 @@ push-job:
     - python3 -m ensurepip --upgrade
     - pip3 install awscli
   script:
-    - aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin $ECR_DEV_REGISTRY
+    - aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 807615458658.dkr.ecr.us-west-2.amazonaws.com
