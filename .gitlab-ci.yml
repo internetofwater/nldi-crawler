@@ -21,7 +21,7 @@ build-job:
   stage: build-image
   script: 
     - echo "--- START BUILD JOB ---"
-    - docker build -t nldi-crawler-py ./docker/
+    - docker build -t nldi-crawler-py .
     - echo "--- END BUILD JOB ---"
 
 test-job:
