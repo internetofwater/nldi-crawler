@@ -24,7 +24,7 @@ workflow:
       ECR_PROD_REGISTRY_URL: "${AWS_PROD_NUM}.dkr.ecr.us-west-2.amazonaws.com"
       ECR_DEV_REGISTRY_URL: "${AWS_DEV_NUM}.dkr.ecr.us-west-2.amazonaws.com"
       
-.dev-env
+.dev-env:
   tags:
     - development
     - wma
@@ -34,7 +34,7 @@ workflow:
   variables:
     STAGE: dev
 
-.prod-env
+.prod-env:
   tags:
   - production
   - wma
@@ -44,12 +44,12 @@ workflow:
   variables:
     STAGE: prod
 
-.dev-rules
+.dev-rules:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
 
-.prod-rules
+.prod-rules:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: never
