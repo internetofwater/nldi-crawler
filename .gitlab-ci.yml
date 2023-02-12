@@ -14,7 +14,8 @@ workflow:
     # Including [skip pipeline] anywhere in commit message will
     # stop creation of pipeline
     - if: $CI_COMMIT_MESSAGE =~ /\[skip pipeline\]/
-    when: never
+      when: never
+    - when: always
 
 .init-variables:
     variables:
