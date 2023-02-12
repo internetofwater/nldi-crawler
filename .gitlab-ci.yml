@@ -84,6 +84,6 @@ push-job:
   script:
     - aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 807615458658.dkr.ecr.us-west-2.amazonaws.com
     - echo "Tagging and pushing image."
-    - docker tag nldi-crawler-py:latest 807615458658.dkr.ecr.us-west-2.amazonaws.com/nhgf/nldi/py-crawler:$latest
+    - docker tag nldi-crawler-py:latest 807615458658.dkr.ecr.us-west-2.amazonaws.com/nhgf/nldi/py-crawler:latest
     - docker tag nldi-crawler-py:latest 807615458658.dkr.ecr.us-west-2.amazonaws.com/nhgf/nldi/py-crawler:$CI_COMMIT_SHA 
     - docker push --all-tags 807615458658.dkr.ecr.us-west-2.amazonaws.com/nhgf/nldi/py-crawler
