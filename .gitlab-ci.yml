@@ -77,6 +77,8 @@ push-job:
   extends:
     - .init-variables
   stage: push-image
+  before_script:
+    - docker build -t nldi-crawler-py:latest .
   script:
     - echo "tagging and pushing image."
     - docker tag nldi-crawler-py:latest nldi-crawler-py:$CI_COMMIT_SHA
