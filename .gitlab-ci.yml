@@ -62,7 +62,7 @@ build-job:
   stage: build-image
   script: 
     - echo "--- START BUILD JOB ---"
-    - docker build -t nldi-crawler-py:latest .
+    - docker build -t nldi-crawler-py .
     - echo "--- END BUILD JOB ---"
 
 test-job:
@@ -82,6 +82,12 @@ push-job:
     - docker tag nldi-crawler-py:latest nldi-crawler-py:$CI_COMMIT_SHA
   dependencies:
     - build-job
+
+
+
+
+
+
 
 .temp-push-job:
   extends:
