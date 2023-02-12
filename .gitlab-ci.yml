@@ -80,6 +80,8 @@ push-job:
   script:
     - echo "tagging and pushing image."
     - docker tag nldi-crawler-py:latest nldi-crawler-py:$CI_COMMIT_SHA
+  dependencies:
+    - build-job
 
 .temp-push-job:
   extends:
