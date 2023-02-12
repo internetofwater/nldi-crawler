@@ -64,6 +64,8 @@ build-job:
     - echo "--- START BUILD JOB ---"
     - docker build -t nldi-crawler-py:latest .
     - echo "--- END BUILD JOB ---"
+  tags:
+    - docker
 
 test-job:
   extends: 
@@ -74,6 +76,16 @@ test-job:
     - echo $ECR_DEV_REGISTRY_URL
 
 push-job:
+  extends:
+    - .init-variables
+  stage: push-image
+  before_script:
+    - echo "tagging and pushing image."
+    - docker tag nldi-crawler-py:latest nldi-crawler-py:$CI_COMMIT_SHA
+  tags: 
+    - docker
+
+.temp-push-job:
   extends:
     - .init-variables
   stage: push-image
