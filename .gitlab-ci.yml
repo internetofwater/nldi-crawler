@@ -1,8 +1,6 @@
 image: artifactory.wma.chs.usgs.gov/docker-official-mirror/docker:20.10.10
 
 stages:
-  - build-image
-  - test-image
   - push-image
 
 services:
@@ -58,32 +56,20 @@ workflow:
     - when: never
 
 
-build-job:
+.build-job:
   stage: build-image
   script: 
     - echo "--- START BUILD JOB ---"
     - docker build -t nldi-crawler-py .
     - echo "--- END BUILD JOB ---"
 
-test-job:
+.test-job:
   extends: 
     - .init-variables
   stage: test-image
   script:
     - echo $ECR_PROD_REGISTRY_URL
     - echo $ECR_DEV_REGISTRY_URL
-
-.temp-push-job:
-  extends:
-    - .init-variables
-  stage: push-image
-  before_script:
-    - docker build -t nldi-crawler-py:latest .
-  script:
-    - echo "tagging and pushing image."
-    - docker tag nldi-crawler-py:latest nldi-crawler-py:$CI_COMMIT_SHA
-  dependencies:
-    - build-job
 
 troubleshoot:
   stage: push-image
@@ -93,7 +79,7 @@ troubleshoot:
     - pip3 install awscli
   script:
     - aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 807615458658.dkr.ecr.us-west-2.amazonaws.com
-    - aws ecr describe-repositories
+    - aws ecr describe-repositories --region us-west-2
 
 
 .push-job:
