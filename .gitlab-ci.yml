@@ -55,23 +55,7 @@ workflow:
       when: manual
     - when: never
 
-
-.build-job:
-  stage: build-image
-  script: 
-    - echo "--- START BUILD JOB ---"
-    - docker build -t nldi-crawler-py .
-    - echo "--- END BUILD JOB ---"
-
-.test-job:
-  extends: 
-    - .init-variables
-  stage: test-image
-  script:
-    - echo $ECR_PROD_REGISTRY_URL
-    - echo $ECR_DEV_REGISTRY_URL
-
-troubleshoot:
+.troubleshoot:
   stage: push-image
   before_script:
     - apk add --update python3
@@ -83,7 +67,7 @@ troubleshoot:
     - aws sts get-caller-identity
     - cat ~/.aws/config
 
-.push-job:
+push-job:
   extends:
     - .init-variables
   stage: push-image
