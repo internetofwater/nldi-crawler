@@ -79,7 +79,7 @@ troubleshoot:
     - pip3 install awscli
   script:
     - aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 807615458658.dkr.ecr.us-west-2.amazonaws.com
-    - aws ecr describe-repositories --region us-west-2
+    - aws configure list
 
 
 .push-job:
