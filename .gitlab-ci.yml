@@ -38,10 +38,10 @@ workflow:
 
 .prod-env:
   tags:
-  - production
-  - wma
-  - aws
-  - us-west-2
+    - production
+    - wma
+    - aws
+    - us-west-2
   variables:
     STAGE: prod
 
@@ -81,6 +81,14 @@ push-job:
     - pip3 install awscli
   script:
     - aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 807615458658.dkr.ecr.us-west-2.amazonaws.com
+    - aws sts get-caller-identity
+
+
+
+
+
+.other-thing:
+  script:
     - docker build -t nldi/crawler-py:latest .
     - docker image tag nldi/crawler-py:latest 807615458658.dkr.ecr.us-west-2.amazonaws.com/nldi/crawler-py:latest
     - docker image push --all-tags 807615458658.dkr.ecr.us-west-2.amazonaws.com/nldi/crawler-py
