@@ -28,7 +28,6 @@ workflow:
     - wma
     - nldi
     - us-west-2
-    - aws
   variables:
     STAGE: dev
 
@@ -38,7 +37,6 @@ workflow:
   - wma
   - nldi
   - us-west-2
-  - aws
   variables:
     STAGE: prod
 
@@ -69,6 +67,7 @@ workflow:
 
 push-job:
   extends:
+    - .dev-env
     - .init-variables
   stage: push-image
   before_script:
