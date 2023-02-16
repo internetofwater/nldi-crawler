@@ -83,4 +83,4 @@ push-job:
     - aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 807615458658.dkr.ecr.us-west-2.amazonaws.com
     - docker build -t nldi/crawler-py:latest .
     - docker image tag nldi/crawler-py:latest 807615458658.dkr.ecr.us-west-2.amazonaws.com/nldi/crawler-py:latest
-    - docker image push --all-tags 807615458658.dkr.ecr.us-west-2.amazonaws.com/nldi/crawler-py:latest
+    - docker image push --all-tags 807615458658.dkr.ecr.us-west-2.amazonaws.com/nldi/crawler-py
