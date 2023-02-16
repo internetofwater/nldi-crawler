@@ -82,6 +82,7 @@ push-job:
   script:
     - aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 807615458658.dkr.ecr.us-west-2.amazonaws.com
     - aws sts get-caller-identity
+    - aws ecr describe-repositories --repository-names nldi/crawler-py:latest 807615458658.dkr.ecr.us-west-2.amazonaws.com/nldi/crawler --region us-west-2
 
 
 
