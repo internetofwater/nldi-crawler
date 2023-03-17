@@ -1,94 +1,49 @@
-image: artifactory.wma.chs.usgs.gov/docker-official-mirror/docker:20.10.10
+include:
+  - project: "wma/nhgf/shared-resources"
+  ref: "2022-02-14"
+  file:
+    - "ci-templates/docker.yml"
+    - "ci-templates/rules.yml"
+    - "ci-templates/aws/environment.yml"
+  
+  stages:
+    - docker-build
 
-stages:
-  - push-image
-
-services:
-  - name: artifactory.wma.chs.usgs.gov/docker-official-mirror/docker:20.10.10-dind
-    alias: docker
-
-workflow:
-  rules:
-    # Including [skip pipeline] anywhere in commit message will
-    # stop creation of pipeline
-    - if: $CI_COMMIT_MESSAGE =~ /\[skip pipeline\]/
-      when: never
-    - when: always
-
-.init-variables:
+  workflow:
+    rules:
+      - if: $CI_COMMIT_TAG != null
+        when: always
+      - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+        when: always
+      - when: never
+  
+  docker-build:dev:
+    stage: docker-build
     variables:
-      AWS_PROD_NUM: 579777464052
-      AWS_DEV_NUM: 807615458658
-      AWS_ACCOUNT_ID: "807615458658"
-      AWS_REGION: us-west-2
-      STAGE: dev
-      STAGE_LONG_NAME: development
-      CLOUDFORMATION_ROLE: arn:aws:iam::${AWS_ACCOUNT_ID}:role/csr-CloudFormation
-      ECR_PROD_REGISTRY_URL: "${AWS_PROD_NUM}.dkr.ecr.us-west-2.amazonaws.com"
-      ECR_DEV_REGISTRY_URL: "${AWS_DEV_NUM}.dkr.ecr.us-west-2.amazonaws.com"
-      
-.dev-env:
-  tags:
-    - development
-    - wma
-    - aws
-    - us-west-2
-  variables:
-    STAGE: dev
+      DOCKER_REPO_NAME: nldi/crawler-py
+      DOCKER_IMAGE_TAG: ${CI_PIPELINE_ID}
+    extends:
+      - .aws-env:dev:us-west-2
+      - .docker-build-aws
+    rules:
+      - !reference [.nhfg-rules, dev, manual]
 
-.prod-env:
-  tags:
-    - production
-    - wma
-    - aws
-    - us-west-2
-  variables:
-    STAGE: prod
-
-.dev-rules:
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  docker-build:prod:
+    stage: docker-build
+    variables: 
+      DOCKER_REPO_NAME: nldi/crawler-py
+      DOCKER_IMAGE_TAG: ${CI_COMMIT_TAG}
+    extends:
+      - .aws-env:prod:us-west-2
+      - .docker-build-aws
+    rules:
+      - !reference [.nhgf-rules, prod, manual]
 
 
-.prod-rules:
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      when: never
-    - if: $CI_COMMIT_TAG != null
-      when: manual
-    - when: never
-
-.troubleshoot:
-  stage: push-image
-  before_script:
-    - apk add --update python3
-    - python3 -m ensurepip --upgrade
-    - pip3 install awscli
-  script:
-    - aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 807615458658.dkr.ecr.us-west-2.amazonaws.com
-    - aws configure list
-    - aws sts get-caller-identity
-    - cat ~/.aws/config
-
-push-job:
-  extends:
-    - .dev-env
-    - .init-variables
-  stage: push-image
-  before_script:
-    - apk add --update python3
-    - python3 -m ensurepip --upgrade
-    - pip3 install awscli
-  script:
-    - aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 807615458658.dkr.ecr.us-west-2.amazonaws.com
-    - aws sts get-caller-identity
-    - aws ecr describe-repositories --repository-names nldi/crawler-py --region us-west-2
-    - docker build -t nldi/crawler-py:test .
-    - docker image tag nldi/crawler-py:test 807615458658.dkr.ecr.us-west-2.amazonaws.com/nldi/crawler-py:test
-    - docker image push 807615458658.dkr.ecr.us-west-2.amazonaws.com/nldi/crawler-py:test
-
-.other-thing:
-  script:
-    - docker build -t nldi/crawler-py:test .
-    - docker image tag nldi/crawler-py:test 807615458658.dkr.ecr.us-west-2.amazonaws.com/nldi/crawler-py:test
-    - docker image push 807615458658.dkr.ecr.us-west-2.amazonaws.com/nldi/crawler-py:test
+include:
+  - project: "wma/nhgf/shared-resources"
+  ref: "2022-02-14"
+  file:
+    - "ci-templates/docker.yml"
+    - "ci-templates/rules.yml"
+    - "ci-templates/aws/environment.yml"
