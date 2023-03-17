@@ -38,12 +38,3 @@ docker-build:prod:
     - .docker-build-aws
   rules:
     - !reference [.nhgf-rules, prod, manual]
-
-
-include:
-  - project: "wma/nhgf/shared-resources"
-  ref: "2022-02-14"
-  file:
-    - "ci-templates/docker.yml"
-    - "ci-templates/rules.yml"
-    - "ci-templates/aws/environment.yml"
