@@ -26,7 +26,7 @@ docker-build:dev:
     - .aws-env:dev:us-west-2
     - .docker-build-aws
   rules:
-    - !reference [.nhfg-rules, dev, manual]
+    - !reference [.nhgf-rules, dev, manual]
 
 docker-build:prod:
   stage: docker-build
