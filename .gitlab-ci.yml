@@ -1,10 +1,10 @@
 include:
   - project: "wma/nhgf/shared-resources"
-  ref: "2022-02-14"
-  file:
-    - "ci-templates/docker.yml"
-    - "ci-templates/rules.yml"
-    - "ci-templates/aws/environment.yml"
+    ref: "2022-02-14"
+    file:
+      - "ci-templates/docker.yml"
+      - "ci-templates/rules.yml"
+      - "ci-templates/aws/environment.yml"
   
   stages:
     - docker-build
