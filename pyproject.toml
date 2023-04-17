@@ -18,6 +18,7 @@ shapely = "^2.0.0"
 psycopg = "^3.1.7"
 psycopg-binary = "^3.1.8"
 psycopg2-binary = "^2.9.5"
+pydantic = "^1.10.7"
 
 [tool.poetry.scripts]
 nldi-cli = "nldi_crawler.cli:main"
