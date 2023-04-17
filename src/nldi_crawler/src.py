@@ -17,6 +17,7 @@ from sqlalchemy import URL
 from sqlalchemy import create_engine, select, String, Integer, Table, Column, MetaData
 from sqlalchemy.orm import Session as SQLASession
 from sqlalchemy.orm import registry
+from sqlalchemy.exc import OperationalError
 
 
 @dataclass
@@ -173,14 +174,19 @@ class SQLRepo(FakeSrcRepo):
         # having to pull in the ORM.
 
         logging.info("Loading crawler sources from %s", uri)
-        _engine = create_engine(uri, client_encoding="UTF-8", echo=False, future=True)
-        _stmt = select(CrawlerSource)
-        with SQLASession(_engine) as _session:
-            for _source in _session.scalars(_stmt):
-                logging.debug("New Source: %s", _source.source_name)
-                self.__SRC_TABLE__.append( CrawlerSource(**_source.__dict__) )
-        mapper_registry.dispose() #<-- Don't leave without doing this !!!
 
+        try:
+            _engine = create_engine(uri, client_encoding="UTF-8", echo=False, future=True)
+            _stmt = select(CrawlerSource)
+            with SQLASession(_engine) as _session:
+                for _source in _session.scalars(_stmt):
+                    logging.debug("New Source: %s", _source.source_name)
+                    self.__SRC_TABLE__.append( CrawlerSource(**_source.__dict__) )
+        except OperationalError as ex:
+            logging.error("Error connecting to database: %s", ex)
+            raise ex
+        finally:
+            mapper_registry.dispose() #<-- Don't leave without doing this !!!
         ## Note, that the source table definition and the registry we used
         ## to bind the dataclass to the table are both local to this method, and
         ## should not leak to outside scope.
