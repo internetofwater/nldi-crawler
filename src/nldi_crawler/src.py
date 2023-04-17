@@ -12,6 +12,8 @@ import csv
 import httpx
 from pydantic.dataclasses import dataclass
 
+from sqlalchemy import URL
+
 from sqlalchemy import create_engine, select, String, Integer, Table, Column, MetaData
 from sqlalchemy.orm import Session as SQLASession
 from sqlalchemy.orm import registry
@@ -37,7 +39,7 @@ class CrawlerSource:
     feature_type: str
 
 
-class SrcRepo(Protocol):
+class SrcRepo(Protocol): # pylint: disable=unnecessary-elipsis
     """
     Get and list crawler_sources.
     """
@@ -112,24 +114,32 @@ class CSVRepo(FakeSrcRepo):
     def __init__(self, uri: str, delimiter="\t"):
         self.__SRC_TABLE__ = []
         tsv = httpx.get(uri)
+        if tsv.status_code != 200:
+            raise ValueError(f"Unable to load {uri}")
         for _s in csv.DictReader(tsv.text.splitlines(), delimiter=delimiter):
             self.__SRC_TABLE__.append(CrawlerSource(**_s))
             logging.debug("Loaded source %s", _s["source_name"])
 
 class JSONRepo(FakeSrcRepo):
-    """ Implements the SrcRepo protocol using a JSON file as the source.
+    """
+    Implements the SrcRepo protocol using a JSON file as the source.
     """
     def __init__(self, uri: str):
         self.__SRC_TABLE__ = []
         json_data = httpx.get(uri)
+        if json_data.status_code != 200:
+            raise ValueError(f"Unable to load {uri}")
         for _s in json_data.json():
             self.__SRC_TABLE__.append(CrawlerSource(**_s))
             logging.debug("Loaded source %s", _s["source_name"])
 
-class SQLRepo(FakeSrcRepo):
-    """ Implements the SrcRepo protocol using a SQL database as the source. """
 
-    def __init__(self, uri: str):
+class SQLRepo(FakeSrcRepo):
+    """
+    Implements the SrcRepo protocol using a SQL database as the source.
+    """
+
+    def __init__(self, uri: URL | str):
         self.__SRC_TABLE__ = []
         self._metadata = MetaData()
         crawler_source_table = Table(
