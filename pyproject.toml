@@ -18,6 +18,7 @@ shapely = "^2.0.0"
 psycopg = "^3.1.7"
 psycopg-binary = "^3.1.8"
 psycopg2-binary = "^2.9.5"
+pydantic = "^1.10.7"
 
 [tool.poetry.scripts]
 nldi-cli = "nldi_crawler.cli:main"
@@ -38,6 +39,8 @@ sphinxcontrib-mermaid = "^0.7.1"
 ipykernel = "^6.19.2"
 pytest-postgresql = "^4.1.1"
 pytest-httpx = "^0.21.2"
+pytest-sugar = "^0.9.7"
+pytest-order = "^1.1.0"
 
 
 [build-system]
@@ -56,3 +59,11 @@ show_missing = true
 
 [tool.black]
 line-length = 100
+
+[tool.pytest.ini_options]
+addopts = "-p no:warnings"
+markers = [
+    "legacy: original tests from the old country",
+    "order: sets the order of the tests",
+    "integration: integration tests which depend on external data or infrastructure",
+]

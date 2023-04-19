@@ -16,7 +16,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.engine import URL
 
 from . import db
-from . import source
+from . import src
 from . import ingestor
 
 
@@ -50,6 +50,11 @@ def main(ctx, verbose_, conf_):
         port=cfg["NLDI_DB_PORT"],
         database=cfg["NLDI_DB_NAME"],
     )
+    try:
+        ctx.obj["SrcRepo"] = src.SQLRepo(ctx.obj["DB_URI"])
+    except SQLAlchemyError:  # pragma: no coverage
+        sys.exit(-2)
+
     logging.debug(" Using DB connection URI: %s", ctx.obj["DB_URI"])
     ctx.obj["DAL"] = db.DataAccessLayer(ctx.obj["DB_URI"])
 
@@ -60,18 +65,16 @@ def sources(ctx):
     """
     List all available crawler sources and exit.
     """
+    _srcs = ctx.obj["SrcRepo"]
     print("\nID : Source Name                                    : Type  : URI ")
     print("==  ", "=" * 46, "  =====  ", "=" * 48)
-    try:
-        for src in source.list_sources(ctx.obj["DAL"]):
-            print(
-                f"{src.crawler_source_id:2} :",
-                f"{src.source_name[0:48]:46} :",
-                f"{src.ingest_type.upper():5} :",
-                f"{src.source_uri[0:48]:48}...",
-            )
-    except SQLAlchemyError:  # pragma: no coverage
-        sys.exit(-2)
+    for _src in _srcs.get_list():
+        print(
+            f"{_src.crawler_source_id:2} :",
+            f"{_src.source_name[0:48]:46} :",
+            f"{_src.ingest_type.upper():5} :",
+            f"{_src.source_uri[0:48]:48}...",
+        )
 
 
 @main.command()
@@ -82,17 +85,19 @@ def validate(ctx, source_id):
     Connect to data source(s) to verify they can return JSON data.
     """
     logging.info("Validating data source(s)")
-
+    source = ctx.obj["SrcRepo"]
     if source_id is None:
-        source_list = source.list_sources(ctx.obj["DAL"])
+        source_list = source.get_list()
     else:
-        source_list = source.list_sources(ctx.obj["DAL"], selector=source_id)
-    if len(source_list) == 0:
-        click.echo("No source found.")
+        try:
+            source_list = [source.get(int(source_id))]
+        except ValueError:
+            click.echo(f"Invalid source ID {source_id}")
+            sys.exit(-2)
 
-    for src in source_list:
-        print(f"{src.crawler_source_id} : Checking {src.source_name}... ", end="")
-        result = source.validate_src(src)
+    for source in source_list:
+        print(f"{source.crawler_source_id} : Checking {source.source_name}... ", end="")
+        result = source.verify()
         if result[0]:
             print(" [PASS]")
         else:
@@ -108,15 +113,13 @@ def download(ctx, source_id):
     """
     logging.info(" Downloading source %s ", source_id)
     try:
-        source_list = source.list_sources(ctx.obj["DAL"], selector=source_id)
-    except SQLAlchemyError:
+        source = ctx.obj["SrcRepo"].get(int(source_id))
+    except ValueError:
+        click.echo(f"Invalid source ID {source_id}")
         sys.exit(-2)
 
-    if len(source_list) == 0:
-        click.echo(f"No source found with ID {source_id}")
-        return
-    fname = source.download_geojson(source_list[0])
-    if fname:
+    fname = source.download_geojson()
+    if fname != "":
         click.echo(f"Source {source_id} downloaded to {fname}")
     else:
         logging.warning("Download FAILED for source %s", source_id)
@@ -131,28 +134,22 @@ def display(ctx, source_id):
     """
     Show details for named data source.
     """
-    if not source_id:
-        return
     try:
-        source_list = source.list_sources(ctx.obj["DAL"], selector=source_id)
-    except SQLAlchemyError:
+        source = ctx.obj["SrcRepo"].get(source_id)
+    except ValueError:
+        click.echo(f"Invalid source ID {source_id}")
         sys.exit(-2)
 
-    if len(source_list) == 0:
-        click.echo(f"\nNo source found with ID {source_id}")
-        return
-
-    for src in source_list:
-        print(f"ID={src.crawler_source_id:2} :: {src.source_name}")
-        print(f"  Source Suffix  : {src.source_suffix}")
-        print(f"  Source URI     : {src.source_uri}")
-        print(f"  Feature ID     : {src.feature_id}")
-        print(f"  Feature Name   : {src.feature_name}")
-        print(f"  Feature URI    : {src.feature_uri}")
-        print(f"  Feature Reach  : {src.feature_reach}")
-        print(f"  Feature Measure: {src.feature_measure}")
-        print(f"  Ingest Type    : {src.ingest_type}")
-        print(f"  Feature Type   : {src.feature_type}")
+    print(f"ID={source.crawler_source_id:2} :: {source.source_name}")
+    print(f"  Source Suffix  : {source.source_suffix}")
+    print(f"  Source URI     : {source.source_uri}")
+    print(f"  Feature ID     : {source.feature_id}")
+    print(f"  Feature Name   : {source.feature_name}")
+    print(f"  Feature URI    : {source.feature_uri}")
+    print(f"  Feature Reach  : {source.feature_reach}")
+    print(f"  Feature Measure: {source.feature_measure}")
+    print(f"  Ingest Type    : {source.ingest_type}")
+    print(f"  Feature Type   : {source.feature_type}")
 
 
 @main.command()
@@ -162,23 +159,22 @@ def ingest(ctx, source_id):
     """
     Download and process data associated with a named data source.
     """
+    logging.info(" Ingesting source %s ", source_id)
     try:
-        source_list = source.list_sources(ctx.obj["DAL"], selector=source_id)
-    except SQLAlchemyError:
+        source = ctx.obj["SrcRepo"].get(source_id)
+    except ValueError:
+        click.echo(f"Invalid source ID {source_id}")
         sys.exit(-2)
 
-    if len(source_list) == 0:
-        click.echo(f"No source found with ID {source_id}")
-        return
-    fname = source.download_geojson(source_list[0])
+    fname = source.download_geojson()
     if fname:
         logging.info(" Source %s dowloaded to %s", source_id, fname)
     else:
         logging.warning(" Download FAILED for source %s", source_id)
         sys.exit(-1)
-    ingestor.create_tmp_table(ctx.obj["DAL"], source_list[0])
-    ingestor.ingest_from_file(source_list[0], fname, ctx.obj["DAL"])
-    ingestor.install_data(ctx.obj["DAL"], source_list[0])
+    ingestor.create_tmp_table(ctx.obj["DAL"], source)
+    ingestor.ingest_from_file(source, fname, ctx.obj["DAL"])
+    ingestor.install_data(ctx.obj["DAL"], source)
     os.remove(fname)
 
 

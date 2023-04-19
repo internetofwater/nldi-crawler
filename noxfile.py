@@ -11,7 +11,7 @@ nox.options.sessions = "lint", "test"
 src_locations = "src", "tests", "noxfile.py"
 
 
-@nox.session(python="3.9")
+@nox.session(python="3.10")
 def reformat(session):
     """Use the Black formatter to pretty-fy souce code."""
     args = session.posargs or src_locations
@@ -19,7 +19,7 @@ def reformat(session):
     session.run("black", *args)
 
 
-@nox.session(python=["3.9"])
+@nox.session(python=["3.10"])
 def typecheck(session):
     """Static type checking using pytype (a little easier than mypy)"""
     args = session.posargs or ["--disable=import-error", *src_locations]
@@ -27,7 +27,7 @@ def typecheck(session):
     session.run("pytype", *args)
 
 
-@nox.session(python=["3.9"])
+@nox.session(python=["3.10"])
 def lint(session):
     """Linter -- prefer pylint over flake8..."""
     args = session.posargs or src_locations
@@ -36,16 +36,33 @@ def lint(session):
     session.run("pylint", *args)
 
 
-@nox.session(python=["3.9"])
+@nox.session(python=["3.10"])
 def test(session):
     """test suite, including coverage report"""
     session.run("poetry", "install", external=True)
-    session.run("pytest", "-v", "--cov", external=True)
+    session.run("pytest", "-v", "--cov", "--sparse-ordering", external=True)
 
 
-@nox.session(python=["3.9"])
+@nox.session(python=["3.10"])
+def unittest(session):
+    """unit-tests only.  Will not execute anything marked as integration."""
+    session.run("poetry", "install", external=True)
+    session.run(
+        "pytest",
+        "-v",
+        "--cov",
+        "-m",
+        "not integration",
+        "--sparse-ordering",
+        external=True,
+    )
+
+
+@nox.session(python=["3.10"])
 def docs(session):
     """Rudimentary doc build system using sphinx.    TODO: enhance with mkdocs."""
     session.run("poetry", "install", external=True)
-    session.install("sphinx", "sphinx-autodoc-typehints", "sphinx-rtd-theme", "sphinxcontrib-mermaid")
+    session.install(
+        "sphinx", "sphinx-autodoc-typehints", "sphinx-rtd-theme", "sphinxcontrib-mermaid"
+    )
     session.run("sphinx-build", "docs", "docs/_build")
