@@ -22,7 +22,7 @@ from geoalchemy2.elements import WKTElement
 from geoalchemy2 import Geometry
 
 from .db import NLDI_Base
-from .source import CrawlerSource
+from .src import CrawlerSource
 
 ### EPSG codes for coordinate reference systems we might use.
 _NAD_83 = 4269

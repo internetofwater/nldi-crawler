@@ -112,9 +112,8 @@ def download(ctx, source_id):
     Download the data associated with a named data source.
     """
     logging.info(" Downloading source %s ", source_id)
-    source = ctx.obj["SrcRepo"]
     try:
-        _src = source.get(int(source_id))
+        source = ctx.obj["SrcRepo"].get(int(source_id))
     except ValueError:
         click.echo(f"Invalid source ID {source_id}")
         sys.exit(-2)
@@ -135,9 +134,8 @@ def display(ctx, source_id):
     """
     Show details for named data source.
     """
-    source = ctx.obj["SrcRepo"]
     try:
-        source_list = source.get(source_id)
+        source = ctx.obj["SrcRepo"].get(source_id)
     except ValueError:
         click.echo(f"Invalid source ID {source_id}")
         sys.exit(-2)
