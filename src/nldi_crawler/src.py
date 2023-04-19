@@ -5,11 +5,15 @@
 """
 Implements a 'repository' pattern for handling the crawler_source table.
 """
-
+import os
 import logging
 from typing import Protocol, Optional
+import tempfile
+
 import csv
 import httpx
+import ijson
+
 from pydantic.dataclasses import dataclass
 
 from sqlalchemy import URL
@@ -17,7 +21,7 @@ from sqlalchemy import URL
 from sqlalchemy import create_engine, select, String, Integer, Table, Column, MetaData
 from sqlalchemy.orm import Session as SQLASession
 from sqlalchemy.orm import registry
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import OperationalError, SQLAlchemyError
 
 
 @dataclass
@@ -40,8 +44,89 @@ class CrawlerSource:
     ingest_type: str
     feature_type: str
 
+    def verify(self) -> tuple:
+        """
+        Examines a specified source to ensure that it downloads, and the returned data is
+        proprly formatted and attributed.
 
-class SrcRepo(Protocol):  # pylint: disable=unnecessary-elipsis
+        :return: a tuple of two values: A boolean to indicate if validated, and a string holding
+                a description of the reason for failure. If validated is True, the reason string
+                is zero-length.
+        :rtype: tuple
+        """
+        try:
+            with httpx.stream(
+                "GET", self.source_uri, timeout=60.0, follow_redirects=True
+            ) as response:
+                chunk = response.iter_bytes(2 * 2 * 1024)
+                # read 2k bytes, to be sure we get a complete feature.
+                itm = next(ijson.items(next(chunk), "features.item"))
+                fail = None
+                if self.feature_reach is not None and self.feature_reach not in itm["properties"]:
+                    fail = (False, f"Column not found for 'feature_reach' : {self.feature_reach}")
+                if (
+                    self.feature_measure is not None
+                    and self.feature_measure not in itm["properties"]
+                ):
+                    fail = (
+                        False,
+                        f"Column not found for 'feature_measure' : {self.feature_measure}",
+                    )
+                if self.feature_name is not None and self.feature_name not in itm["properties"]:
+                    fail = (False, f"Column not found for 'feature_name' : {self.feature_name}")
+                # A unique feature ID does not have to be in the properties member.  If present,
+                # the `id` member is a sibling of `properties`.
+                # if self.feature_id is not None and self.feature_id not in itm["properties"]:
+                #     fail = (False, f"Column not found for 'feature_id' : {self.feature_id}")
+                if self.feature_uri is not None and self.feature_uri not in itm["properties"]:
+                    fail = (False, f"Column not found for 'feature_uri' : {self.feature_measure}")
+                if fail is not None:
+                    return fail
+        except httpx.ReadTimeout:
+            return (False, "Network Timeout")
+        except KeyError:
+            return (False, "Key Error")
+        except ijson.JSONError:
+            return (False, "Invalid JSON")
+        return (True, "")
+
+    def download_geojson(self) -> str:
+        """
+        Downloads data from the specified source, saving it to a temporary file on local disk.
+
+        :return: path name to temporary file
+        :rtype: str
+        """
+        logging.info(" Downloading data from %s ...", self.source_uri)
+        fname = "_tmp"
+        try:
+            with tempfile.NamedTemporaryFile(
+                suffix=".geojson",
+                prefix=f"CrawlerData_{self.crawler_source_id}_",
+                dir=".",
+                delete=False,
+            ) as tmp_fh:
+                fname = tmp_fh.name
+                logging.info("Writing to tmp file %s", tmp_fh.name)
+                # timeout = 60sec  TODO: make this a tunable
+                with httpx.stream(
+                    "GET", self.source_uri, timeout=60.0, follow_redirects=True
+                ) as response:
+                    for chunk in response.iter_bytes(1024):
+                        tmp_fh.write(chunk)
+        except IOError:
+            logging.exception(" I/O Error while downloading from %s to %s", self.source_uri, fname)
+            return ""
+        except httpx.ReadTimeout:
+            logging.critical(" Read TimeOut attempting to download from %s", self.source_uri)
+            os.remove(fname)
+            return ""
+        return fname
+
+
+
+
+class SrcRepo(Protocol):  # pylint: disable=unnecessary-ellipsis
     """
     Get and list crawler_sources.
     """
@@ -201,7 +286,7 @@ class SQLRepo(FakeSrcRepo):
                     self.__SRC_TABLE__.append(CrawlerSource(**_source.__dict__))
         except OperationalError as ex:
             logging.error("Error connecting to database: %s", ex)
-            raise ex
+            raise SQLAlchemyError from ex
         finally:
             mapper_registry.dispose()  # <-- Don't leave without doing this !!!
         ## Note, that the source table definition and the registry we used

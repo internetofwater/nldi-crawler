@@ -46,8 +46,16 @@ def test(session):
 def unittest(session):
     """unit-tests only.  Will not execute anything marked as integration."""
     session.run("poetry", "install", external=True)
-    session.run("pytest", "-v", "--cov", "-m", "not integration", external=True)
-    
+    session.run(
+        "pytest",
+        "-v",
+        "--cov",
+        "-m",
+        "not integration",
+        "--sparse-ordering",
+        external=True,
+    )
+
 
 @nox.session(python=["3.10"])
 def docs(session):
