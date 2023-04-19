@@ -27,6 +27,7 @@ class CrawlerSource:
     dataclass, not the standard library dataclass. This is because we want to be able
     to validate fields as the source is loaded.
     """
+
     crawler_source_id: int
     source_name: str
     source_suffix: str
@@ -40,16 +41,17 @@ class CrawlerSource:
     feature_type: str
 
 
-class SrcRepo(Protocol): # pylint: disable=unnecessary-elipsis
+class SrcRepo(Protocol):  # pylint: disable=unnecessary-elipsis
     """
     Get and list crawler_sources.
     """
+
     def get(self, sid: int) -> CrawlerSource:
-        """ Get a single crawler_source by id."""
+        """Get a single crawler_source by id."""
         ...
 
     def get_list(self) -> list[CrawlerSource]:
-        """ List all crawler_sources."""
+        """List all crawler_sources."""
         ...
 
 
@@ -62,7 +64,12 @@ class FakeSrcRepo:
     >>> repo = FakeSrcRepo()
     >>> itm = repo.get(12)
     >>> print(itm)
+
+    Note that the get and get_list methods refer to the same table, which is
+    populated during __init__.  Subclasses need only override __init__ to
+    populate the table; the get and get_list methods will work as expected.
     """
+
     __FAKE_TABLE__ = [
         dict(
             crawler_source_id=12,
@@ -75,8 +82,8 @@ class FakeSrcRepo:
             feature_reach="",
             feature_measure="",
             ingest_type="point",
-            feature_type="point"
-        	),
+            feature_type="point",
+        ),
         dict(
             crawler_source_id=13,
             source_name="geoconnex contribution demo sites",
@@ -88,8 +95,8 @@ class FakeSrcRepo:
             feature_reach="NHDPv2ReachCode",
             feature_measure="NHDPv2Measure",
             ingest_type="reach",
-            feature_type="hydrolocation"
-        )
+            feature_type="hydrolocation",
+        ),
     ]
 
     def __init__(self):
@@ -98,20 +105,25 @@ class FakeSrcRepo:
             self.__SRC_TABLE__.append(CrawlerSource(**_src))
 
     def get(self, sid: int) -> CrawlerSource:
-        """ Get a single crawler_source by id."""
+        """Get a single crawler_source by id."""
         for _src in self.__SRC_TABLE__:
             if _src.crawler_source_id == sid:
                 return _src
         raise ValueError(f"Source {sid} not found.")
 
     def get_list(self) -> list[CrawlerSource]:
-        """ List all crawler_sources."""
+        """List all crawler_sources."""
         return self.__SRC_TABLE__
+
 
 class CSVRepo(FakeSrcRepo):
     """
     Implements the SrcRepo protocol using a CSV file as the source.
+
+    Note that the CSV file must have a header row, and the names need to match the
+    dataclass field names.
     """
+
     def __init__(self, uri: str, delimiter="\t"):
         self.__SRC_TABLE__ = []
         tsv = httpx.get(uri)
@@ -121,10 +133,15 @@ class CSVRepo(FakeSrcRepo):
             self.__SRC_TABLE__.append(CrawlerSource(**_s))
             logging.debug("Loaded source %s", _s["source_name"])
 
+
 class JSONRepo(FakeSrcRepo):
     """
     Implements the SrcRepo protocol using a JSON file as the source.
+
+    Note that the JSON file must be an array of objects, and the names need to match the
+    dataclass field names.
     """
+
     def __init__(self, uri: str):
         self.__SRC_TABLE__ = []
         json_data = httpx.get(uri)
@@ -181,12 +198,12 @@ class SQLRepo(FakeSrcRepo):
             with SQLASession(_engine) as _session:
                 for _source in _session.scalars(_stmt):
                     logging.debug("New Source: %s", _source.source_name)
-                    self.__SRC_TABLE__.append( CrawlerSource(**_source.__dict__) )
+                    self.__SRC_TABLE__.append(CrawlerSource(**_source.__dict__))
         except OperationalError as ex:
             logging.error("Error connecting to database: %s", ex)
             raise ex
         finally:
-            mapper_registry.dispose() #<-- Don't leave without doing this !!!
+            mapper_registry.dispose()  # <-- Don't leave without doing this !!!
         ## Note, that the source table definition and the registry we used
         ## to bind the dataclass to the table are both local to this method, and
         ## should not leak to outside scope.
