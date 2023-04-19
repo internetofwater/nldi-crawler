@@ -6,15 +6,12 @@ Test source table functions.
 """
 import os
 import copy
-import pytest
 import ijson
 import httpx
 
 from unittest import mock
+import pytest
 from pytest_httpx import HTTPXMock
-from zmq import SRCFD
-
-from nldi_crawler import src
 
 
 @pytest.mark.order(10)
@@ -88,6 +85,7 @@ def test_validation_reach_not_found(fake_source):
     result = _src.verify()
     assert result[0] is False
 
+
 @pytest.mark.order(12)
 def test_validation_measure_not_found(fake_source):
     """measure column not found"""
@@ -95,6 +93,7 @@ def test_validation_measure_not_found(fake_source):
     _src.feature_measure = "invalid"
     result = _src.verify()
     assert result[0] is False
+
 
 @pytest.mark.order(12)
 def test_validation_uri_not_found(fake_source):
@@ -104,12 +103,14 @@ def test_validation_uri_not_found(fake_source):
     result = _src.verify()
     assert result[0] is False
 
+
 @pytest.mark.order(13)
 def test_download(fake_source):
     """download source data to local disk"""
     fname = fake_source.download_geojson()
     assert os.path.exists(fname)
     os.remove(fname)
+
 
 @pytest.mark.order(13)
 def test_download_network_timeout(httpx_mock: HTTPXMock, fake_source):
@@ -118,6 +119,7 @@ def test_download_network_timeout(httpx_mock: HTTPXMock, fake_source):
     fname = fake_source.download_geojson()
     ## timeout is handled within download_geojson, which should return empty string in that case.
     assert fname == ""
+
 
 @pytest.mark.order(13)
 def test_raises_io_error(fake_source):

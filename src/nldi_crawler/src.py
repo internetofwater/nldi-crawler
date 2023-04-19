@@ -124,8 +124,6 @@ class CrawlerSource:
         return fname
 
 
-
-
 class SrcRepo(Protocol):  # pylint: disable=unnecessary-ellipsis
     """
     Get and list crawler_sources.

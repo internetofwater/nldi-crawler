@@ -15,13 +15,14 @@ import click.testing
 from nldi_crawler import cli
 
 
+@pytest.mark.order(50)
 def test_main_succeeds():
     """main() runs with no args and yields a zero exit code."""
     runner = click.testing.CliRunner()
     result = runner.invoke(cli.main)
     assert result.exit_code == 0
 
-
+@pytest.mark.order(50)
 def test_verbose():
     """sets verbose level"""
     runner = click.testing.CliRunner()
@@ -31,6 +32,7 @@ def test_verbose():
     #  call to basicConfig within the invoked command includes 'force=True'
 
 
+@pytest.mark.order(50)
 def test_toml_config():
     """parse cfg file"""
     _test_dir = os.path.dirname(os.path.realpath(__file__))
@@ -40,6 +42,7 @@ def test_toml_config():
     assert cfg["NLDI_DB_USER"] == "nldi_schema_owner"
 
 
+@pytest.mark.order(50)
 def test_toml_broken_config():
     """parse cfg file"""
     _test_dir = os.path.dirname(os.path.realpath(__file__))
@@ -50,6 +53,7 @@ def test_toml_broken_config():
         assert cfg["NLDI_DB_PASS"] == "changeMe"
 
 
+@pytest.mark.order(50)
 def test_env_config():
     """set cfg options from environment"""
     os.environ["NLDI_DB_NAME"] = "SET"
@@ -59,6 +63,7 @@ def test_env_config():
     assert cfg["NLDI_DB_PASS"] == "secret"
 
 
+@pytest.mark.order(50)
 def test_cli_download(dal):
     """download via cli"""
     os.environ["NLDI_DB_PASS"] = dal.uri.password
@@ -74,6 +79,7 @@ def test_cli_download(dal):
     os.remove(fname)
 
 
+@pytest.mark.order(50)
 def test_cli_sources(dal):
     """download via cli"""
     os.environ["NLDI_DB_PASS"] = dal.uri.password
@@ -87,6 +93,7 @@ def test_cli_sources(dal):
     assert "ID : Source Name                                    : Type  : URI" in result.output
 
 
+@pytest.mark.order(50)
 def test_cli_validate(dal):
     """download via cli"""
     os.environ["NLDI_DB_PASS"] = dal.uri.password
@@ -100,6 +107,7 @@ def test_cli_validate(dal):
     assert "PASS" in result.output
 
 
+@pytest.mark.order(50)
 def test_cli_display(dal):
     """download via cli"""
     os.environ["NLDI_DB_PASS"] = dal.uri.password
