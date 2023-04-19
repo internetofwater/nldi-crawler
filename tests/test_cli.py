@@ -22,6 +22,7 @@ def test_main_succeeds():
     result = runner.invoke(cli.main)
     assert result.exit_code == 0
 
+
 @pytest.mark.order(50)
 def test_verbose():
     """sets verbose level"""

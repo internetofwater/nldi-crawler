@@ -90,7 +90,7 @@ def validate(ctx, source_id):
         source_list = source.get_list()
     else:
         try:
-            source_list = [ source.get(int(source_id)) ]
+            source_list = [source.get(int(source_id))]
         except ValueError:
             click.echo(f"Invalid source ID {source_id}")
             sys.exit(-2)

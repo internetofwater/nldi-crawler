@@ -64,7 +64,6 @@ def ingest_from_file(src, fname: str, dal) -> int:
         ORM mapping object to connect with the nldi_data.feature table
 
         """
-
         __tablename__ = tmp
         __table_args__ = {"schema": "nldi_data", "keep_existing": True}
         comid = mapped_column(Integer)
@@ -135,7 +134,7 @@ def create_tmp_table(dal, src):
     to the `features` table it models on. This will become important when we establish inheritance
     among tables later.
     """
-    tmp = src.table_name("tmp")
+    tmp = src.tablename("tmp")
     dal.connect()
     stmt = f"""
         DROP TABLE IF EXISTS nldi_data.{tmp};
@@ -165,9 +164,9 @@ def install_data(dal, src: CrawlerSource):
       * re-establish inheritance between feature and feature_{suffix}
       * remove the feature_{suffix}_old table
     """
-    old = src.table_name("old")
-    tmp = src.table_name("tmp")
-    table = src.table_name()
+    old = src.tablename("old")
+    tmp = src.tablename("tmp")
+    table = src.tablename()
     schema = "nldi_data"
 
     dal.connect()

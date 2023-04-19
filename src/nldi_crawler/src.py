@@ -10,6 +10,7 @@ import logging
 from typing import Protocol, Optional
 import tempfile
 
+import re
 import csv
 import httpx
 import ijson
@@ -25,7 +26,7 @@ from sqlalchemy.exc import OperationalError, SQLAlchemyError
 
 
 @dataclass
-class CrawlerSource:
+class CrawlerSource: #pylint: disable=too-many-instance-attributes
     """
     A dataclass representation of a crawler source. Note that this is the `pydantic`
     dataclass, not the standard library dataclass. This is because we want to be able
@@ -122,6 +123,28 @@ class CrawlerSource:
             os.remove(fname)
             return ""
         return fname
+
+    def tablename(self, *args) -> str:
+        """
+        Getter-like function to return a formatted string representing the table name.
+        If an optional positional argument is given, that string is appended to the table name.
+        This lets us do things like:
+        > self.table_name()
+        feature_suffix
+        > self.table_name("temp")
+        feature_suffix_temp
+        > self.table_name("old")
+        feature_suffix_old
+        :return: name of the table for this crawler_source
+        :rtype: string
+        """
+        # Sanitize the suffix name... only 'word' characters allowed.
+        _s = re.sub(r"\W", "_", self.source_suffix)
+        if args:
+            return "feature_" + _s + "_" + args[0]
+        return "feature_" + _s
+
+
 
 
 class SrcRepo(Protocol):  # pylint: disable=unnecessary-ellipsis

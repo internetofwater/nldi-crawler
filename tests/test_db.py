@@ -11,7 +11,6 @@ from sqlalchemy.engine import URL
 from nldi_crawler.db import DataAccessLayer
 
 
-
 @pytest.mark.order(20)
 @pytest.mark.integration
 @pytest.mark.xfail
