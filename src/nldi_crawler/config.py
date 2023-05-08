@@ -1,12 +1,7 @@
-
-
-
 from collections import UserDict
 import logging
 import os
 import configparser
-
-
 
 
 DEFAULT_DB_INFO = {

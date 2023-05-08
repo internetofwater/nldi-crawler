@@ -180,4 +180,3 @@ def ingest(ctx, source_id):
     ingestor.ingest_from_file(src, fname, ctx.obj["DAL"])
     ingestor.install_data(ctx.obj["DAL"], src)
     os.remove(fname)
-

@@ -10,6 +10,8 @@ import sqlalchemy.types
 from sqlalchemy import Integer, Numeric
 from sqlalchemy.orm import mapped_column
 from geoalchemy2 import Geometry
+from pydantic.dataclasses import dataclass
+from typing import Optional
 
 from .db import NLDI_Base
 
@@ -18,6 +20,22 @@ _NAD_83 = 4269
 _WGS_84 = 4326
 ###
 DEFAULT_SRS = _NAD_83
+
+
+@dataclass
+class CrawledFeature:
+    """
+    Defines the Feature model
+    """
+
+    comid: Optional[int]
+    identifier: Optional[str]
+    crawler_source_id: Optional[int]
+    name: Optional[str]
+    uri: Optional[str]
+    reachcode: Optional[str]
+    measure: Optional[float]
+    location: Optional[str]
 
 
 class StrippedString(sqlalchemy.types.TypeDecorator):

@@ -144,6 +144,30 @@ class CrawlerSource:  # pylint: disable=too-many-instance-attributes
             return "feature_" + _s + "_" + args[0]
         return "feature_" + _s
 
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the crawler_source.
+        :return: string representation of the crawler_source
+        :rtype: str
+        """
+        return f"{self.__class__.__name__} (id: {self.crawler_source_id}, source_suffix: {self.source_suffix}, feature_type: {self.feature_type})"
+
+    def feature_list(self, iter: bool = False):
+        """
+        Returns a list of features from the crawler_source.
+        :return: list of features
+        :rtype: list
+        """
+        if iter:
+            raise NotImplementedError("Iterating over the network stream is not yet implemented.")
+        _tmpfile = self.download_geojson()
+        try:
+            with open(_tmpfile, "r", encoding="UTF-8") as fh:
+                for feature in ijson.items(fh, "features.item"):
+                    yield feature
+        finally:
+            os.remove(_tmpfile)
+
 
 class SrcRepo(Protocol):  # pylint: disable=unnecessary-ellipsis
     """
@@ -204,7 +228,7 @@ class FakeSrcRepo:
     ]
 
     def __init__(self):
-        self.__SRC_TABLE__ = []
+        self.__SRC_TABLE__ = []  # pylint: disable=invalid-name
         for _src in self.__FAKE_TABLE__:
             self.__SRC_TABLE__.append(CrawlerSource(**_src))
 
@@ -222,6 +246,9 @@ class FakeSrcRepo:
     def as_list(self) -> list[CrawlerSource]:
         """List all crawler_sources."""
         return self.__SRC_TABLE__
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__} (count: {len(self.__SRC_TABLE__)})"
 
 
 class CSVRepo(FakeSrcRepo):
@@ -294,7 +321,7 @@ class SQLRepo(FakeSrcRepo):
         )
         # A more conventional way to make this binding would  be to create the CrawlerSource
         # class as a declarative base, but that would introduce a dependency on the ORM for
-        # all uses of that class, not just the SQL repo.
+        # all uses of the CrawlerSource class, not just the SQL repo.
         # This way, we can use the CrawlerSource class in other contexts without
         # having to pull in the ORM.
 
@@ -310,6 +337,8 @@ class SQLRepo(FakeSrcRepo):
         except OperationalError as ex:
             logging.error("Error connecting to database: %s", ex)
             raise SQLAlchemyError from ex
+        else:
+            logging.debug("Loaded %s sources", len(self.__SRC_TABLE__))
         finally:
             mapper_registry.dispose()  # <-- Don't leave without doing this !!!
         ## Note, that the source table definition and the registry we used

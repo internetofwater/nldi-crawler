@@ -23,14 +23,17 @@ DEFAULT_DB_URI = URL.create(
     database=DEFAULT_DB_INFO["NLDI_DB_NAME"],
 )
 
+
 class NLDI_Base(DeclarativeBase):  # pylint: disable=invalid-name,too-few-public-methods
     """Base class used to create reflected ORM objects."""
+
 
 class DataAccessLayer:
     """
     Abstraction layer to hold connection details for the data we want to access
     via the DB connection
     """
+
     def __init__(self, uri=DEFAULT_DB_URI):
         self.engine = None
         self.session = None
@@ -63,7 +66,6 @@ class DataAccessLayer:
             logging.warning("Cannot open a session without connection. Calling connect() for you.")
             self.connect()
         return Session(self.engine)
-
 
     def __enter__(self):
         self.connect()

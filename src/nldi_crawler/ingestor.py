@@ -88,42 +88,42 @@ def ingest_from_file(src, fname: str, dal) -> int:
     _reachmeas = src.feature_measure
     _uri = src.feature_uri
 
-    dal.connect()
+    i = 1
     try:
-        i = 1
-        with open(fname, "r", encoding="UTF-8") as read_fh:
-            with dal.Session() as session:
-                for itm in ijson.items(read_fh, "features.item", use_float=True):
-                    i += 1
-                    shp = from_geojson(json.dumps(itm["geometry"]))
-                    elmnt = WKTElement(to_wkt(shp), srid=DEFAULT_SRS)
-                    logging.debug("%s : %s", itm["properties"][_name], to_wkt(shp))
-                    try:
-                        m = float(itm["properties"][_reachmeas])
-                    except (ValueError, NameError, KeyError, TypeError):
-                        m = 0.0
-                    try:
-                        _my_id = itm["id"]
-                    except KeyError:
-                        _my_id = itm["properties"][_id]
+        dal.connect()
+        with dal.Session() as session:
+            for itm in src.feature_list():
+                i += 1
+                shp = from_geojson(json.dumps(itm["geometry"]))
+                elmnt = WKTElement(to_wkt(shp), srid=DEFAULT_SRS)
+                logging.debug("%s : %s", itm["properties"][_name], to_wkt(shp))
+                try:
+                    m = float(itm["properties"][_reachmeas])
+                except (ValueError, NameError, KeyError, TypeError):
+                    m = 0.0
+                try:
+                    _my_id = itm["id"]
+                except KeyError:
+                    _my_id = itm["properties"][_id]
 
-                    f = NLDI_Feature(
-                        identifier=_my_id,
-                        crawler_source_id=src.crawler_source_id,
-                        name=itm["properties"][_name],
-                        uri=itm["properties"][_uri],
-                        location=elmnt,
-                        reachcode=itm["properties"][_reachcode],
-                        measure=m,
-                    )
-                    session.add(f)
-                    session.commit()
+                _feature = NLDI_Feature(
+                    identifier=_my_id,
+                    crawler_source_id=src.crawler_source_id,
+                    name=itm["properties"][_name],
+                    uri=itm["properties"][_uri],
+                    location=elmnt,
+                    reachcode=itm["properties"][_reachcode],
+                    measure=m,
+                )
+                session.add(_feature)
+                session.commit()
         logging.info(" Processed %s features from %s", i - 1, src.source_name)
     except ijson.JSONError:
         logging.warning(" Parsing error; stopping after %s features read", i - 1)
     except SQLAlchemyError:
         logging.warning(" Database session error. Stopping")
-    dal.disconnect()
+    finally:
+        dal.disconnect()
     return i - 1
 
 
