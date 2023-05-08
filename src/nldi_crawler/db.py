@@ -10,6 +10,7 @@ import logging
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
+import sqlalchemy.types
 from sqlalchemy.orm import DeclarativeBase, Session
 
 from nldi_crawler.config import DEFAULT_DB_INFO
@@ -22,10 +23,6 @@ DEFAULT_DB_URI = URL.create(
     port=DEFAULT_DB_INFO["NLDI_DB_PORT"],
     database=DEFAULT_DB_INFO["NLDI_DB_NAME"],
 )
-
-
-class NLDI_Base(DeclarativeBase):  # pylint: disable=invalid-name,too-few-public-methods
-    """Base class used to create reflected ORM objects."""
 
 
 class DataAccessLayer:
@@ -73,3 +70,19 @@ class DataAccessLayer:
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.disconnect()
+
+
+class StrippedString(sqlalchemy.types.TypeDecorator):
+    """
+    Custom type to extend String.  We use this to forcefully remove any non-printing characters
+    from the input string. Some non-printables (including backspace and delete), if included
+    in the String, can mess with the SQL submitted by the connection engine.
+    """
+
+    impl = sqlalchemy.types.String  ## SQLAlchemy wants it this way instead of subclassing String
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return ""
+        return value.encode("ascii", errors="replace").decode("utf-8")

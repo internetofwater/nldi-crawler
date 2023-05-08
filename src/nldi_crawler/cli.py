@@ -170,13 +170,6 @@ def ingest(ctx, source_id):
         click.echo(f"Invalid source ID {source_id}")
         sys.exit(-2)
 
-    fname = src.download_geojson()
-    if fname:
-        logging.info(" Source %s dowloaded to %s", source_id, fname)
-    else:
-        logging.warning(" Download FAILED for source %s", source_id)
-        sys.exit(-1)
     ingestor.create_tmp_table(ctx.obj["DAL"], src)
-    ingestor.ingest_from_file(src, fname, ctx.obj["DAL"])
+    ingestor.ingest_from_file(src, dal=ctx.obj["DAL"])
     ingestor.install_data(ctx.obj["DAL"], src)
-    os.remove(fname)

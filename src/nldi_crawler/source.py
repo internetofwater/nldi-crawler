@@ -45,6 +45,14 @@ class CrawlerSource:  # pylint: disable=too-many-instance-attributes
     ingest_type: str
     feature_type: str
 
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the crawler_source.
+        :return: string representation of the crawler_source
+        :rtype: str
+        """
+        return f"{self.__class__.__name__} (id: {self.crawler_source_id}, source_suffix: {self.source_suffix}, feature_type: {self.feature_type})"
+
     def verify(self) -> tuple:
         """
         Examines a specified source to ensure that it downloads, and the returned data is
@@ -144,26 +152,23 @@ class CrawlerSource:  # pylint: disable=too-many-instance-attributes
             return "feature_" + _s + "_" + args[0]
         return "feature_" + _s
 
-    def __repr__(self) -> str:
-        """
-        Returns a string representation of the crawler_source.
-        :return: string representation of the crawler_source
-        :rtype: str
-        """
-        return f"{self.__class__.__name__} (id: {self.crawler_source_id}, source_suffix: {self.source_suffix}, feature_type: {self.feature_type})"
-
-    def feature_list(self, iter: bool = False):
+    def feature_list(self, stream: bool = False):
         """
         Returns a list of features from the crawler_source.
         :return: list of features
         :rtype: list
         """
-        if iter:
+        if stream:
             raise NotImplementedError("Iterating over the network stream is not yet implemented.")
+
         _tmpfile = self.download_geojson()
+        if not _tmpfile:
+            logging.exception("Cannot ingest data from %s", self.source_uri)
+            return []
+
         try:
             with open(_tmpfile, "r", encoding="UTF-8") as fh:
-                for feature in ijson.items(fh, "features.item"):
+                for feature in ijson.items(fh, "features.item", use_float=True):
                     yield feature
         finally:
             os.remove(_tmpfile)
@@ -200,7 +205,7 @@ class FakeSrcRepo:
 
     __FAKE_TABLE__ = [
         dict(
-            crawler_source_id=12,
+            crawler_source_id=101,
             source_name=r"New Mexico Water Data Initative Sites",
             source_suffix="nmwdi-st",
             source_uri=r"https://locations.newmexicowaterdata.org/collections/Things/items?f=json&limit=100000",
@@ -213,7 +218,7 @@ class FakeSrcRepo:
             feature_type="point",
         ),
         dict(
-            crawler_source_id=13,
+            crawler_source_id=102,
             source_name="geoconnex contribution demo sites",
             source_suffix="geoconnex-demo",
             source_uri=r"https://geoconnex-demo-pages.internetofwater.dev/collections/demo-gpkg/items?f=json&limit=10000",

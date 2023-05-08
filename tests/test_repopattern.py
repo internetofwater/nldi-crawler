@@ -19,8 +19,8 @@ def test_fake_repo():
     repo = source.FakeSrcRepo()
     srcs = repo.as_list()
     assert len(srcs) == 2
-    _s = repo.get(12)
-    assert _s.crawler_source_id == 12
+    _s = repo.get(102)
+    assert _s.crawler_source_id == 102
 
 
 @pytest.mark.order(5)
