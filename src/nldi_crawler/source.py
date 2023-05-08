@@ -178,6 +178,7 @@ class SrcRepo:  # pylint: disable=unnecessary-ellipsis
     """
     Get and list crawler_sources.
     """
+
     def __init__(self):
         self.__SRC_TABLE__ = []
 
@@ -271,6 +272,7 @@ class JSONRepo(FakeSrcRepo):
     Note that the JSON file must be an array of objects, and the names need to match the
     dataclass field names.
     """
+
     def __init__(self, uri: str):
         super().__init__()
         json_data = httpx.get(uri)
@@ -328,7 +330,7 @@ class SQLRepo(FakeSrcRepo):
                 for _source in _session.scalars(_stmt):
                     logging.debug("New Source: %s", _source.source_name)
                     self.__SRC_TABLE__.append(CrawlerSource(**_source.__dict__))
-        except OperationalError as ex:   # pragma: no coverage
+        except OperationalError as ex:  # pragma: no coverage
             logging.error("Error connecting to database: %s", ex)
             raise SQLAlchemyError from ex
         else:
