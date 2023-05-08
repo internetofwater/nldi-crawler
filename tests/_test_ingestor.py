@@ -18,9 +18,7 @@ def test_ingest_test_file_json_error(dal, dummy_source):
     """read and ingest from test file"""
     thisdir = os.path.dirname(__file__)
     with mock.patch("ijson.items", side_effect=JSONError("Error")):
-        i = ingestor.ingest_from_file(
-            dummy_source, os.path.join(thisdir, r"./IngestTest.geojson"), dal
-        )
+        i = ingestor.sql_ingestor(dummy_source, os.path.join(thisdir, r"./IngestTest.geojson"), dal)
         assert i == 0
 
 
@@ -29,9 +27,7 @@ def test_ingest_test_file_sql_error(dal, dummy_source):
     ingestor.create_tmp_table(dal, dummy_source)
     thisdir = os.path.dirname(__file__)
     with mock.patch.object(dal, "Session", side_effect=SQLAlchemyError("Error")):
-        i = ingestor.ingest_from_file(
-            dummy_source, os.path.join(thisdir, r"./IngestTest.geojson"), dal
-        )
+        i = ingestor.sql_ingestor(dummy_source, os.path.join(thisdir, r"./IngestTest.geojson"), dal)
         assert i == 0
 
 
@@ -39,5 +35,5 @@ def test_ingest_test_file(dal, dummy_source):
     """read and ingest from test file"""
     ingestor.create_tmp_table(dal, dummy_source)
     thisdir = os.path.dirname(__file__)
-    i = ingestor.ingest_from_file(dummy_source, os.path.join(thisdir, r"./IngestTest.geojson"), dal)
+    i = ingestor.sql_ingestor(dummy_source, os.path.join(thisdir, r"./IngestTest.geojson"), dal)
     assert i == 1

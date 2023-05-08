@@ -174,28 +174,36 @@ class CrawlerSource:  # pylint: disable=too-many-instance-attributes
             os.remove(_tmpfile)
 
 
-class SrcRepo(Protocol):  # pylint: disable=unnecessary-ellipsis
+class SrcRepo:  # pylint: disable=unnecessary-ellipsis
     """
     Get and list crawler_sources.
     """
+    def __init__(self):
+        self.__SRC_TABLE__ = []
 
     def get(self, sid: int) -> CrawlerSource:
         """Get a single crawler_source by id."""
-        ...
+        for _src in self.__SRC_TABLE__:
+            if _src.crawler_source_id == sid:
+                return _src
+        raise ValueError(f"Source {sid} not found.")
 
-    def get_list(self) -> list[CrawlerSource]:
+    def as_list(self) -> list[CrawlerSource]:
         """List all crawler_sources."""
-        ...
+        return self.__SRC_TABLE__
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__} (count: {len(self.__SRC_TABLE__)})"
 
 
-class FakeSrcRepo:
+class FakeSrcRepo(SrcRepo):
     """
     Implements the SrcRepo protocol using a fake in-memory table.
     This is typically done for testing.
 
     Example:
     >>> repo = FakeSrcRepo()
-    >>> itm = repo.get(12)
+    >>> itm = repo.get(102)
     >>> print(itm)
 
     Note that the get and get_list methods refer to the same table, which is
@@ -233,27 +241,9 @@ class FakeSrcRepo:
     ]
 
     def __init__(self):
-        self.__SRC_TABLE__ = []  # pylint: disable=invalid-name
+        super().__init__()
         for _src in self.__FAKE_TABLE__:
             self.__SRC_TABLE__.append(CrawlerSource(**_src))
-
-    def get(self, sid: int) -> CrawlerSource:
-        """Get a single crawler_source by id."""
-        # NOTE: because we implement `get`, we get iteration for free.  It is possible
-        # to `for s in src_repo` and get the same behavior as `for s in src_repo.get_list()`
-        # because of this.  However... we want to make explicit, so prefer to have users
-        # call get_list() as defined below.
-        for _src in self.__SRC_TABLE__:
-            if _src.crawler_source_id == sid:
-                return _src
-        raise ValueError(f"Source {sid} not found.")
-
-    def as_list(self) -> list[CrawlerSource]:
-        """List all crawler_sources."""
-        return self.__SRC_TABLE__
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__} (count: {len(self.__SRC_TABLE__)})"
 
 
 class CSVRepo(FakeSrcRepo):
@@ -265,7 +255,7 @@ class CSVRepo(FakeSrcRepo):
     """
 
     def __init__(self, uri: str, delimiter="\t"):
-        self.__SRC_TABLE__ = []
+        super().__init__()
         tsv = httpx.get(uri)
         if tsv.status_code != 200:
             raise ValueError(f"Unable to load {uri}")
@@ -281,9 +271,8 @@ class JSONRepo(FakeSrcRepo):
     Note that the JSON file must be an array of objects, and the names need to match the
     dataclass field names.
     """
-
     def __init__(self, uri: str):
-        self.__SRC_TABLE__ = []
+        super().__init__()
         json_data = httpx.get(uri)
         if json_data.status_code != 200:
             raise ValueError(f"Unable to load {uri}")
@@ -298,7 +287,7 @@ class SQLRepo(FakeSrcRepo):
     """
 
     def __init__(self, uri: URL | str):
-        self.__SRC_TABLE__ = []
+        super().__init__()
         self._metadata = MetaData()
         crawler_source_table = Table(
             "crawler_source",
@@ -339,7 +328,7 @@ class SQLRepo(FakeSrcRepo):
                 for _source in _session.scalars(_stmt):
                     logging.debug("New Source: %s", _source.source_name)
                     self.__SRC_TABLE__.append(CrawlerSource(**_source.__dict__))
-        except OperationalError as ex:
+        except OperationalError as ex:   # pragma: no coverage
             logging.error("Error connecting to database: %s", ex)
             raise SQLAlchemyError from ex
         else:

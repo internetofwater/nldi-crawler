@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nldi-crawler"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
 authors = ["g.trantham <gtrantham@contractor.usgs.gov>"]
 readme = "README.md"

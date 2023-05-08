@@ -33,7 +33,7 @@ _WGS_84 = 4326
 DEFAULT_SRS = _NAD_83
 
 
-def ingest_from_file(src, dal) -> int:
+def sql_ingestor(src, dal) -> int:
     """
     Takes in a source object and processes it to insert into the NLDI-DB feature table.
 
@@ -51,6 +51,9 @@ def ingest_from_file(src, dal) -> int:
         src.source_name,
     )
 
+    ## This is where the ORM magic happens. We create a temporary table that is a clone of the
+    ## feature table, and then we map the CrawledFeature class to that table.  We can then use
+    ## the ORM to insert the data into the table.
     tmp = src.tablename("tmp")
     _metadata = MetaData()
     tmp_feature_table = Table(
@@ -88,9 +91,9 @@ def ingest_from_file(src, dal) -> int:
                 elmnt = WKTElement(to_wkt(shp), srid=DEFAULT_SRS)
                 logging.debug("%s : %s", itm["properties"][_name], to_wkt(shp))
                 try:
-                    m = float(itm["properties"][_reachmeas])
+                    meas = float(itm["properties"][_reachmeas])
                 except (ValueError, NameError, KeyError, TypeError):
-                    m = 0.0
+                    meas = 0.0
                 try:
                     _my_id = itm["id"]
                 except KeyError:
@@ -104,7 +107,7 @@ def ingest_from_file(src, dal) -> int:
                     uri=itm["properties"][_uri],
                     location=elmnt,
                     reachcode=itm["properties"][_reachcode],
-                    measure=m,
+                    measure=meas,
                 )
                 session.add(_feature)
                 session.commit()

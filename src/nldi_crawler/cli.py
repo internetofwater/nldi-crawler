@@ -171,5 +171,5 @@ def ingest(ctx, source_id):
         sys.exit(-2)
 
     ingestor.create_tmp_table(ctx.obj["DAL"], src)
-    ingestor.ingest_from_file(src, dal=ctx.obj["DAL"])
+    ingestor.sql_ingestor(src, dal=ctx.obj["DAL"])
     ingestor.install_data(ctx.obj["DAL"], src)
