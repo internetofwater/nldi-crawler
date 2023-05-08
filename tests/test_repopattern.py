@@ -10,25 +10,25 @@ import sqlalchemy
 from sqlalchemy.exc import SQLAlchemyError
 
 
-from nldi_crawler import src
+from nldi_crawler import source
 
 
 @pytest.mark.order(5)
 def test_fake_repo():
     """test fake repo"""
-    repo = src.FakeSrcRepo()
-    srcs = repo.get_list()
+    repo = source.FakeSrcRepo()
+    srcs = repo.as_list()
     assert len(srcs) == 2
-    _s = repo.get(12)
-    assert _s.crawler_source_id == 12
+    _s = repo.get(102)
+    assert _s.crawler_source_id == 102
 
 
 @pytest.mark.order(5)
 def test_csv_repo():
     """test csv repo"""
     tsvsource = r"https://raw.githubusercontent.com/internetofwater/nldi-db/gt-097-source-table-fixes/liquibase/changeLogs/nldi/nldi_data/update_crawler_source/crawler_source.tsv"
-    repo = src.CSVRepo(tsvsource)
-    srcs = repo.get_list()
+    repo = source.CSVRepo(tsvsource)
+    srcs = repo.as_list()
     assert len(srcs) >= 1
     _s = repo.get(12)
     assert _s.crawler_source_id == 12
@@ -39,18 +39,20 @@ def test_csv_repo_bad_url():
     """Traps for bad URL"""
     with pytest.raises(ValueError):
         tsvsource = "https://raw.githubusercontent.com/no/such/source.tsv"
-        _ = src.CSVRepo(tsvsource)
+        _ = source.CSVRepo(tsvsource)
     with pytest.raises(httpx.UnsupportedProtocol):
         tsvsource = "file://no/such/source.json"
-        _ = src.CSVRepo(tsvsource)
+        _ = source.CSVRepo(tsvsource)
 
 
 @pytest.mark.order(5)
 def test_json_repo():
     """Reads JSON crawler source"""
-    jsonsource = "https://raw.githubusercontent.com/gzt5142/nldi-crawler-py/gt-src-repopattern/tests/sources.json"
-    repo = src.JSONRepo(jsonsource)
-    srcs = repo.get_list()
+    jsonsource = (
+        "https://raw.githubusercontent.com/gzt5142/nldi-crawler-py/python-port/tests/sources.json"
+    )
+    repo = source.JSONRepo(jsonsource)
+    srcs = repo.as_list()
     assert len(srcs) >= 1
     _s = repo.get(12)
     assert _s.crawler_source_id == 12
@@ -61,18 +63,18 @@ def test_json_repo_bad_url():
     """Traps for bad URL"""
     with pytest.raises(ValueError):
         jsonsource = "https://raw.githubusercontent.com/no/such/source.json"
-        _ = src.JSONRepo(jsonsource)
+        _ = source.JSONRepo(jsonsource)
     with pytest.raises(httpx.UnsupportedProtocol):
         jsonsource = "/no/such/source.json"
-        _ = src.JSONRepo(jsonsource)
+        _ = source.JSONRepo(jsonsource)
 
 
 @pytest.mark.order(5)
 @pytest.mark.integration
 def test_sql_repo(db_uri):
     """test sql repo"""
-    repo = src.SQLRepo(db_uri)
-    srcs = repo.get_list()
+    repo = source.SQLRepo(db_uri)
+    srcs = repo.as_list()
     assert len(srcs) >= 1
 
 
@@ -89,4 +91,4 @@ def test_sql_repo_bad_url():
         port=5432,
         database="nldi",
     )
-    _ = src.SQLRepo(url)
+    _ = source.SQLRepo(url)

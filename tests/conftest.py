@@ -8,7 +8,7 @@ import pytest
 from sqlalchemy.engine import URL
 from nldi_crawler.db import DataAccessLayer
 
-from nldi_crawler import src
+from nldi_crawler import source
 
 
 @pytest.fixture(scope="session")
@@ -42,7 +42,7 @@ def db_uri():
 @pytest.fixture(scope="session")
 def fake_source():
     """pretend source to use instead of connecting to a database"""
-    _src = src.CrawlerSource(
+    _src = source.CrawlerSource(
         crawler_source_id=13,
         source_name="geoconnex contribution demo sites",
         source_suffix="geoconnex-demo",
@@ -61,5 +61,5 @@ def fake_source():
 @pytest.fixture(scope="session")
 def crawler_repo():
     """in-memory table of crawler sources, faking an external source"""
-    m = src.FakeSrcRepo()
+    m = source.FakeSrcRepo()
     return m

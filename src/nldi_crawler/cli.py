@@ -9,15 +9,15 @@ Command Line Interface for launching the NLDI web crawler.
 import os
 import sys
 import logging
-import configparser
 import click
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.engine import URL
 
 from . import db
-from . import src
+from . import source
 from . import ingestor
+from .config import CrawlerConfig
 
 
 @click.group(invoke_without_command=True)
@@ -38,20 +38,24 @@ def main(ctx, verbose_, conf_):
         click.echo(ctx.get_help())
         sys.exit(0)
 
-    cfg = cfg_from_env()  # pull from env
+    cfg = CrawlerConfig.from_env()  # pull from env
     if conf_:
-        cfg.update(cfg_from_toml(conf_))  # .toml file overrides env
+        cfg.update(dict(CrawlerConfig.from_toml(conf_)))  # .toml file overrides env
     ctx.ensure_object(dict)
+
     ctx.obj["DB_URI"] = URL.create(
         "postgresql+psycopg",
         username=cfg["NLDI_DB_USER"],
         password=cfg.get("NLDI_DB_PASS", ""),
         host=cfg["NLDI_DB_HOST"],
-        port=cfg["NLDI_DB_PORT"],
+        port=int(cfg["NLDI_DB_PORT"]),
         database=cfg["NLDI_DB_NAME"],
     )
     try:
-        ctx.obj["SrcRepo"] = src.SQLRepo(ctx.obj["DB_URI"])
+        ctx.obj["SrcRepo"] = source.SQLRepo(ctx.obj["DB_URI"])
+        ## NOTE:: we are hard-wired to use the SQL connection to get the source table.
+        ##        The repo pattern is made such that we can use other sources if we want, but...
+        ##        TODO: configurable source repo (CSV, JSON, etc.)
     except SQLAlchemyError:  # pragma: no coverage
         sys.exit(-2)
 
@@ -68,7 +72,7 @@ def sources(ctx):
     _srcs = ctx.obj["SrcRepo"]
     print("\nID : Source Name                                    : Type  : URI ")
     print("==  ", "=" * 46, "  =====  ", "=" * 48)
-    for _src in _srcs.get_list():
+    for _src in _srcs.as_list():
         print(
             f"{_src.crawler_source_id:2} :",
             f"{_src.source_name[0:48]:46} :",
@@ -85,19 +89,19 @@ def validate(ctx, source_id):
     Connect to data source(s) to verify they can return JSON data.
     """
     logging.info("Validating data source(s)")
-    source = ctx.obj["SrcRepo"]
+    src = ctx.obj["SrcRepo"]
     if source_id is None:
-        source_list = source.get_list()
+        source_list = src.as_list()
     else:
         try:
-            source_list = [source.get(int(source_id))]
+            source_list = [src.get(int(source_id))]
         except ValueError:
             click.echo(f"Invalid source ID {source_id}")
             sys.exit(-2)
 
-    for source in source_list:
-        print(f"{source.crawler_source_id} : Checking {source.source_name}... ", end="")
-        result = source.verify()
+    for src in source_list:
+        print(f"{src.crawler_source_id} : Checking {src.source_name}... ", end="")
+        result = src.verify()
         if result[0]:
             print(" [PASS]")
         else:
@@ -113,12 +117,12 @@ def download(ctx, source_id):
     """
     logging.info(" Downloading source %s ", source_id)
     try:
-        source = ctx.obj["SrcRepo"].get(int(source_id))
+        src = ctx.obj["SrcRepo"].get(int(source_id))
     except ValueError:
         click.echo(f"Invalid source ID {source_id}")
         sys.exit(-2)
 
-    fname = source.download_geojson()
+    fname = src.download_geojson()
     if fname != "":
         click.echo(f"Source {source_id} downloaded to {fname}")
     else:
@@ -135,21 +139,21 @@ def display(ctx, source_id):
     Show details for named data source.
     """
     try:
-        source = ctx.obj["SrcRepo"].get(source_id)
+        src = ctx.obj["SrcRepo"].get(source_id)
     except ValueError:
         click.echo(f"Invalid source ID {source_id}")
         sys.exit(-2)
 
-    print(f"ID={source.crawler_source_id:2} :: {source.source_name}")
-    print(f"  Source Suffix  : {source.source_suffix}")
-    print(f"  Source URI     : {source.source_uri}")
-    print(f"  Feature ID     : {source.feature_id}")
-    print(f"  Feature Name   : {source.feature_name}")
-    print(f"  Feature URI    : {source.feature_uri}")
-    print(f"  Feature Reach  : {source.feature_reach}")
-    print(f"  Feature Measure: {source.feature_measure}")
-    print(f"  Ingest Type    : {source.ingest_type}")
-    print(f"  Feature Type   : {source.feature_type}")
+    print(f"ID={src.crawler_source_id:2} :: {src.source_name}")
+    print(f"  Source Suffix  : {src.source_suffix}")
+    print(f"  Source URI     : {src.source_uri}")
+    print(f"  Feature ID     : {src.feature_id}")
+    print(f"  Feature Name   : {src.feature_name}")
+    print(f"  Feature URI    : {src.feature_uri}")
+    print(f"  Feature Reach  : {src.feature_reach}")
+    print(f"  Feature Measure: {src.feature_measure}")
+    print(f"  Ingest Type    : {src.ingest_type}")
+    print(f"  Feature Type   : {src.feature_type}")
 
 
 @main.command()
@@ -161,71 +165,11 @@ def ingest(ctx, source_id):
     """
     logging.info(" Ingesting source %s ", source_id)
     try:
-        source = ctx.obj["SrcRepo"].get(source_id)
+        src = ctx.obj["SrcRepo"].get(source_id)
     except ValueError:
         click.echo(f"Invalid source ID {source_id}")
         sys.exit(-2)
 
-    fname = source.download_geojson()
-    if fname:
-        logging.info(" Source %s dowloaded to %s", source_id, fname)
-    else:
-        logging.warning(" Download FAILED for source %s", source_id)
-        sys.exit(-1)
-    ingestor.create_tmp_table(ctx.obj["DAL"], source)
-    ingestor.ingest_from_file(source, fname, ctx.obj["DAL"])
-    ingestor.install_data(ctx.obj["DAL"], source)
-    os.remove(fname)
-
-
-def cfg_from_toml(filepath: str) -> dict:
-    """
-    Read key configuration values from a TOML-formatted configuration file.
-    The config file must contain a 'nldi-db' section, else will return an empty
-    dictionary.
-
-    :param filepath: path to toml file
-    :type filepath: str
-    :return: dictionary holding the config information.
-    :rtype: dict
-    """
-    ## We already know that filepath is valid and points to an existing file, thanks
-    ## to click.Path() in the cmdline option spec.
-    _section_ = "nldi-db"
-    logging.info(" Parsing TOML config file %s for DB connection info...", filepath)
-    retval = {}
-    dbconfig = configparser.ConfigParser()
-    _ = dbconfig.read(filepath)
-    if _section_ not in dbconfig.sections():
-        logging.info(" No '%s' section in configuration file %s.", _section_, filepath)
-        return retval
-    retval["NLDI_DB_HOST"] = dbconfig[_section_].get("hostname").strip("'\"")
-    retval["NLDI_DB_PORT"] = dbconfig[_section_].get("port").strip("'\"")
-    retval["NLDI_DB_USER"] = dbconfig[_section_].get("username").strip("'\"")
-    if dbconfig[_section_].get("password") is None:
-        logging.debug("No password in TOML file; This is good.")
-    else:
-        retval["NLDI_DB_PASS"] = dbconfig[_section_].get("password").strip("'\"")
-        logging.warning(
-            "Password stored as plain text in %s. Consider passing as env variable instead.",
-            os.path.basename(filepath),
-        )
-    retval["NLDI_DB_NAME"] = dbconfig[_section_].get("db_name").strip("'\"")
-    return retval
-
-
-def cfg_from_env() -> dict:
-    """
-    Fetch key configuration values from environment, if set
-
-    :return: dictionary, populated with values.
-    :rtype: dict
-    """
-    logging.info(" Consulting environment variables for DB connection info...")
-    env_cfg = {}
-    for (_k, _v) in db.DEFAULT_DB_INFO.items():
-        env_cfg[_k] = os.environ.get(_k, _v)
-    if "NLDI_DB_PASS" in os.environ:
-        # password is a special case.  There is no default; it must be explicitly set.
-        env_cfg["NLDI_DB_PASS"] = os.environ.get("NLDI_DB_PASS")
-    return env_cfg
+    ingestor.create_tmp_table(ctx.obj["DAL"], src)
+    ingestor.sql_ingestor(src, dal=ctx.obj["DAL"])
+    ingestor.install_data(ctx.obj["DAL"], src)

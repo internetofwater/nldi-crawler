@@ -26,7 +26,7 @@ from sqlalchemy.exc import OperationalError, SQLAlchemyError
 
 
 @dataclass
-class CrawlerSource: #pylint: disable=too-many-instance-attributes
+class CrawlerSource:  # pylint: disable=too-many-instance-attributes
     """
     A dataclass representation of a crawler source. Note that this is the `pydantic`
     dataclass, not the standard library dataclass. This is because we want to be able
@@ -44,6 +44,14 @@ class CrawlerSource: #pylint: disable=too-many-instance-attributes
     feature_measure: Optional[str]
     ingest_type: str
     feature_type: str
+
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the crawler_source.
+        :return: string representation of the crawler_source
+        :rtype: str
+        """
+        return f"{self.__class__.__name__} (id: {self.crawler_source_id}, source_suffix: {self.source_suffix}, feature_type: {self.feature_type})"
 
     def verify(self) -> tuple:
         """
@@ -144,31 +152,59 @@ class CrawlerSource: #pylint: disable=too-many-instance-attributes
             return "feature_" + _s + "_" + args[0]
         return "feature_" + _s
 
+    def feature_list(self, stream: bool = False):
+        """
+        Returns a list of features from the crawler_source.
+        :return: list of features
+        :rtype: list
+        """
+        if stream:
+            raise NotImplementedError("Iterating over the network stream is not yet implemented.")
+
+        _tmpfile = self.download_geojson()
+        if not _tmpfile:
+            logging.exception("Cannot ingest data from %s", self.source_uri)
+            return []
+
+        try:
+            with open(_tmpfile, "r", encoding="UTF-8") as fh:
+                for feature in ijson.items(fh, "features.item", use_float=True):
+                    yield feature
+        finally:
+            os.remove(_tmpfile)
 
 
-
-class SrcRepo(Protocol):  # pylint: disable=unnecessary-ellipsis
+class SrcRepo:  # pylint: disable=unnecessary-ellipsis
     """
     Get and list crawler_sources.
     """
 
+    def __init__(self):
+        self.__SRC_TABLE__ = []
+
     def get(self, sid: int) -> CrawlerSource:
         """Get a single crawler_source by id."""
-        ...
+        for _src in self.__SRC_TABLE__:
+            if _src.crawler_source_id == sid:
+                return _src
+        raise ValueError(f"Source {sid} not found.")
 
-    def get_list(self) -> list[CrawlerSource]:
+    def as_list(self) -> list[CrawlerSource]:
         """List all crawler_sources."""
-        ...
+        return self.__SRC_TABLE__
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__} (count: {len(self.__SRC_TABLE__)})"
 
 
-class FakeSrcRepo:
+class FakeSrcRepo(SrcRepo):
     """
     Implements the SrcRepo protocol using a fake in-memory table.
     This is typically done for testing.
 
     Example:
     >>> repo = FakeSrcRepo()
-    >>> itm = repo.get(12)
+    >>> itm = repo.get(102)
     >>> print(itm)
 
     Note that the get and get_list methods refer to the same table, which is
@@ -178,7 +214,7 @@ class FakeSrcRepo:
 
     __FAKE_TABLE__ = [
         dict(
-            crawler_source_id=12,
+            crawler_source_id=101,
             source_name=r"New Mexico Water Data Initative Sites",
             source_suffix="nmwdi-st",
             source_uri=r"https://locations.newmexicowaterdata.org/collections/Things/items?f=json&limit=100000",
@@ -191,7 +227,7 @@ class FakeSrcRepo:
             feature_type="point",
         ),
         dict(
-            crawler_source_id=13,
+            crawler_source_id=102,
             source_name="geoconnex contribution demo sites",
             source_suffix="geoconnex-demo",
             source_uri=r"https://geoconnex-demo-pages.internetofwater.dev/collections/demo-gpkg/items?f=json&limit=10000",
@@ -206,20 +242,9 @@ class FakeSrcRepo:
     ]
 
     def __init__(self):
-        self.__SRC_TABLE__ = []
+        super().__init__()
         for _src in self.__FAKE_TABLE__:
             self.__SRC_TABLE__.append(CrawlerSource(**_src))
-
-    def get(self, sid: int) -> CrawlerSource:
-        """Get a single crawler_source by id."""
-        for _src in self.__SRC_TABLE__:
-            if _src.crawler_source_id == sid:
-                return _src
-        raise ValueError(f"Source {sid} not found.")
-
-    def get_list(self) -> list[CrawlerSource]:
-        """List all crawler_sources."""
-        return self.__SRC_TABLE__
 
 
 class CSVRepo(FakeSrcRepo):
@@ -231,7 +256,7 @@ class CSVRepo(FakeSrcRepo):
     """
 
     def __init__(self, uri: str, delimiter="\t"):
-        self.__SRC_TABLE__ = []
+        super().__init__()
         tsv = httpx.get(uri)
         if tsv.status_code != 200:
             raise ValueError(f"Unable to load {uri}")
@@ -249,7 +274,7 @@ class JSONRepo(FakeSrcRepo):
     """
 
     def __init__(self, uri: str):
-        self.__SRC_TABLE__ = []
+        super().__init__()
         json_data = httpx.get(uri)
         if json_data.status_code != 200:
             raise ValueError(f"Unable to load {uri}")
@@ -264,7 +289,7 @@ class SQLRepo(FakeSrcRepo):
     """
 
     def __init__(self, uri: URL | str):
-        self.__SRC_TABLE__ = []
+        super().__init__()
         self._metadata = MetaData()
         crawler_source_table = Table(
             "crawler_source",
@@ -292,7 +317,7 @@ class SQLRepo(FakeSrcRepo):
         )
         # A more conventional way to make this binding would  be to create the CrawlerSource
         # class as a declarative base, but that would introduce a dependency on the ORM for
-        # all uses of that class, not just the SQL repo.
+        # all uses of the CrawlerSource class, not just the SQL repo.
         # This way, we can use the CrawlerSource class in other contexts without
         # having to pull in the ORM.
 
@@ -305,9 +330,11 @@ class SQLRepo(FakeSrcRepo):
                 for _source in _session.scalars(_stmt):
                     logging.debug("New Source: %s", _source.source_name)
                     self.__SRC_TABLE__.append(CrawlerSource(**_source.__dict__))
-        except OperationalError as ex:
+        except OperationalError as ex:  # pragma: no coverage
             logging.error("Error connecting to database: %s", ex)
             raise SQLAlchemyError from ex
+        else:
+            logging.debug("Loaded %s sources", len(self.__SRC_TABLE__))
         finally:
             mapper_registry.dispose()  # <-- Don't leave without doing this !!!
         ## Note, that the source table definition and the registry we used

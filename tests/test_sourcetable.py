@@ -17,14 +17,14 @@ from pytest_httpx import HTTPXMock
 @pytest.mark.order(10)
 def test_list_sources(crawler_repo):
     """get table of sources from crawler_repo"""
-    srcs = crawler_repo.get_list()
+    srcs = crawler_repo.as_list()
     assert len(srcs) == 2
 
 
 @pytest.mark.order(10)
 def test_find_source(crawler_repo):
     """get specific source from db"""
-    _src = crawler_repo.get(12)
+    _src = crawler_repo.get(102)
     assert _src is not None
 
 
@@ -38,7 +38,7 @@ def test_no_such_source(crawler_repo):
 @pytest.mark.order(11)
 def test_validate_source(crawler_repo):
     """validate source"""
-    _src = crawler_repo.get(13)
+    _src = crawler_repo.get(102)
     result = _src.verify()
     assert result[0] is True
 
