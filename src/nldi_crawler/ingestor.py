@@ -22,7 +22,7 @@ from geoalchemy2.elements import WKTElement
 from geoalchemy2 import Geometry
 
 from .db import NLDI_Base
-from .src import CrawlerSource
+from .source import CrawlerSource
 
 ### EPSG codes for coordinate reference systems we might use.
 _NAD_83 = 4269
@@ -64,6 +64,7 @@ def ingest_from_file(src, fname: str, dal) -> int:
         ORM mapping object to connect with the nldi_data.feature table
 
         """
+
         __tablename__ = tmp
         __table_args__ = {"schema": "nldi_data", "keep_existing": True}
         comid = mapped_column(Integer)

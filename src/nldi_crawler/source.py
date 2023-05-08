@@ -26,7 +26,7 @@ from sqlalchemy.exc import OperationalError, SQLAlchemyError
 
 
 @dataclass
-class CrawlerSource: #pylint: disable=too-many-instance-attributes
+class CrawlerSource:  # pylint: disable=too-many-instance-attributes
     """
     A dataclass representation of a crawler source. Note that this is the `pydantic`
     dataclass, not the standard library dataclass. This is because we want to be able
@@ -143,8 +143,6 @@ class CrawlerSource: #pylint: disable=too-many-instance-attributes
         if args:
             return "feature_" + _s + "_" + args[0]
         return "feature_" + _s
-
-
 
 
 class SrcRepo(Protocol):  # pylint: disable=unnecessary-ellipsis

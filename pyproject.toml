@@ -61,7 +61,7 @@ show_missing = true
 line-length = 100
 
 [tool.pytest.ini_options]
-addopts = "-p no:warnings"
+addopts = "--tb=short -p no:warnings"
 markers = [
     "legacy: original tests from the old country",
     "order: sets the order of the tests",

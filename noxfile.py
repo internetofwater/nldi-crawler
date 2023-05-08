@@ -6,7 +6,7 @@ NOX (The Pythonic make) config to automate test, lint, black, etc.
 import nox  # pylint: disable=E0401
 
 # Global options (a.k.a. make defaults)
-nox.options.sessions = "lint", "test"
+nox.options.sessions = "lint", "unittest"
 
 src_locations = "src", "tests", "noxfile.py"
 
@@ -32,6 +32,8 @@ def lint(session):
     """Linter -- prefer pylint over flake8..."""
     args = session.posargs or src_locations
     session.run("poetry", "install", external=True)
+    session.install("black")
+    session.run("black", *args)
     session.install("pylint")
     session.run("pylint", *args)
 
@@ -39,7 +41,9 @@ def lint(session):
 @nox.session(python=["3.10"])
 def test(session):
     """test suite, including coverage report"""
+    args = session.posargs or src_locations
     session.run("poetry", "install", external=True)
+    session.run("black", *args)
     session.run("pytest", "-v", "--cov", "--sparse-ordering", external=True)
 
 
@@ -49,6 +53,7 @@ def unittest(session):
     session.run("poetry", "install", external=True)
     session.run(
         "pytest",
+        "--ff",
         "-v",
         "--cov",
         "-m",

@@ -16,7 +16,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.engine import URL
 
 from . import db
-from . import src
+from . import source
 from . import ingestor
 
 
@@ -51,7 +51,7 @@ def main(ctx, verbose_, conf_):
         database=cfg["NLDI_DB_NAME"],
     )
     try:
-        ctx.obj["SrcRepo"] = src.SQLRepo(ctx.obj["DB_URI"])
+        ctx.obj["SrcRepo"] = source.SQLRepo(ctx.obj["DB_URI"])
     except SQLAlchemyError:  # pragma: no coverage
         sys.exit(-2)
 
