@@ -12,13 +12,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
 from sqlalchemy.orm import DeclarativeBase, Session
 
-
-DEFAULT_DB_INFO = {
-    "NLDI_DB_HOST": "localhost",
-    "NLDI_DB_PORT": 5432,
-    "NLDI_DB_USER": "read_only_user",
-    "NLDI_DB_NAME": "nldi",
-}
+from nldi_crawler.config import DEFAULT_DB_INFO
 
 
 DEFAULT_DB_URI = URL.create(

@@ -17,7 +17,7 @@ from nldi_crawler import source
 def test_fake_repo():
     """test fake repo"""
     repo = source.FakeSrcRepo()
-    srcs = repo.get_list()
+    srcs = repo.as_list()
     assert len(srcs) == 2
     _s = repo.get(12)
     assert _s.crawler_source_id == 12
@@ -28,7 +28,7 @@ def test_csv_repo():
     """test csv repo"""
     tsvsource = r"https://raw.githubusercontent.com/internetofwater/nldi-db/gt-097-source-table-fixes/liquibase/changeLogs/nldi/nldi_data/update_crawler_source/crawler_source.tsv"
     repo = source.CSVRepo(tsvsource)
-    srcs = repo.get_list()
+    srcs = repo.as_list()
     assert len(srcs) >= 1
     _s = repo.get(12)
     assert _s.crawler_source_id == 12
@@ -52,7 +52,7 @@ def test_json_repo():
         "https://raw.githubusercontent.com/gzt5142/nldi-crawler-py/python-port/tests/sources.json"
     )
     repo = source.JSONRepo(jsonsource)
-    srcs = repo.get_list()
+    srcs = repo.as_list()
     assert len(srcs) >= 1
     _s = repo.get(12)
     assert _s.crawler_source_id == 12
@@ -74,7 +74,7 @@ def test_json_repo_bad_url():
 def test_sql_repo(db_uri):
     """test sql repo"""
     repo = source.SQLRepo(db_uri)
-    srcs = repo.get_list()
+    srcs = repo.as_list()
     assert len(srcs) >= 1
 
 

@@ -210,12 +210,16 @@ class FakeSrcRepo:
 
     def get(self, sid: int) -> CrawlerSource:
         """Get a single crawler_source by id."""
+        # NOTE: because we implement `get`, we get iteration for free.  It is possible
+        # to `for s in src_repo` and get the same behavior as `for s in src_repo.get_list()`
+        # because of this.  However... we want to make explicit, so prefer to have users
+        # call get_list() as defined below.
         for _src in self.__SRC_TABLE__:
             if _src.crawler_source_id == sid:
                 return _src
         raise ValueError(f"Source {sid} not found.")
 
-    def get_list(self) -> list[CrawlerSource]:
+    def as_list(self) -> list[CrawlerSource]:
         """List all crawler_sources."""
         return self.__SRC_TABLE__
 

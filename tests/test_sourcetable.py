@@ -17,7 +17,7 @@ from pytest_httpx import HTTPXMock
 @pytest.mark.order(10)
 def test_list_sources(crawler_repo):
     """get table of sources from crawler_repo"""
-    srcs = crawler_repo.get_list()
+    srcs = crawler_repo.as_list()
     assert len(srcs) == 2
 
 

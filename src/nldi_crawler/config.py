@@ -6,12 +6,22 @@ import logging
 import os
 import configparser
 
-from nldi_crawler import db
+
+
+
+DEFAULT_DB_INFO = {
+    "NLDI_DB_HOST": "localhost",
+    "NLDI_DB_PORT": 5432,
+    "NLDI_DB_USER": "read_only_user",
+    "NLDI_DB_NAME": "nldi",
+}
+
 
 class CrawlerConfig(UserDict):
     """
     Custom dict-like object to get config info.  Can read config from environment or from toml file.
     Can also be used as if a dictionary to set config values explicitly.
+    If a key value is not set, it will take the default value from DEFAULT_DB_INFO.
 
     Example usage:
     >>> cfg = CrawlerConfig.from_env()
@@ -22,6 +32,11 @@ class CrawlerConfig(UserDict):
     >>> cfg["NLDI_DB_HOST"] = "localhost"
     >>> cfg["NLDI_DB_PORT"] = "5432"
     """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for _k, _v in DEFAULT_DB_INFO.items():
+            self.setdefault(_k, _v)
 
     @classmethod
     def from_toml(cls, filepath: str):
@@ -69,7 +84,7 @@ class CrawlerConfig(UserDict):
         """
         logging.info(" Consulting environment variables for DB connection info...")
         env_cfg = {}
-        for (_k, _v) in db.DEFAULT_DB_INFO.items():
+        for (_k, _v) in DEFAULT_DB_INFO.items():
             env_cfg[_k] = os.environ.get(_k, _v)
         if "NLDI_DB_PASS" in os.environ:
             # password is a special case.  There is no default; it must be explicitly set.
