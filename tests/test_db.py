@@ -11,6 +11,8 @@ from sqlalchemy.engine import URL
 from nldi_crawler.db import DataAccessLayer
 
 
+@pytest.mark.order(20)
+@pytest.mark.integration
 @pytest.mark.xfail
 def test_failed_db_connection():
     """Failed db connection raises SQLAlchemyError"""
@@ -19,7 +21,7 @@ def test_failed_db_connection():
         username="nldi_schema_owner",
         password="invalid",  ##<<< this will cause password authentication fail
         host="172.18.0.1",
-        port="5432",
+        port=5432,
         database="nldi",
     )
     dal = DataAccessLayer(url)
@@ -29,6 +31,8 @@ def test_failed_db_connection():
     assert True  ## if we get to here, then this did not XFAIL.  Problem.
 
 
+@pytest.mark.order(20)
+@pytest.mark.integration
 def test_dal(dal):
     """
     Exercises the data access layer connection.

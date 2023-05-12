@@ -10,19 +10,19 @@ import logging
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
+import sqlalchemy.types
 from sqlalchemy.orm import DeclarativeBase, Session
 
-
-DEFAULT_DB_INFO = {
-    "NLDI_DB_HOST": "localhost",
-    "NLDI_DB_PORT": "5432",
-    "NLDI_DB_USER": "read_only_user",
-    "NLDI_DB_NAME": "nldi",
-}
+from nldi_crawler.config import DEFAULT_DB_INFO
 
 
-class NLDI_Base(DeclarativeBase):  # pylint: disable=invalid-name,too-few-public-methods
-    """Base class used to create reflected ORM objects."""
+DEFAULT_DB_URI = URL.create(
+    "postgresql+psycopg2",
+    username=DEFAULT_DB_INFO["NLDI_DB_USER"],
+    host=DEFAULT_DB_INFO["NLDI_DB_HOST"],
+    port=DEFAULT_DB_INFO["NLDI_DB_PORT"],
+    database=DEFAULT_DB_INFO["NLDI_DB_NAME"],
+)
 
 
 class DataAccessLayer:
@@ -30,14 +30,6 @@ class DataAccessLayer:
     Abstraction layer to hold connection details for the data we want to access
     via the DB connection
     """
-
-    DEFAULT_DB_URI = URL.create(
-        "postgresql+psycopg2",
-        username=DEFAULT_DB_INFO["NLDI_DB_USER"],
-        host=DEFAULT_DB_INFO["NLDI_DB_HOST"],
-        port=DEFAULT_DB_INFO["NLDI_DB_PORT"],
-        database=DEFAULT_DB_INFO["NLDI_DB_NAME"],
-    )
 
     def __init__(self, uri=DEFAULT_DB_URI):
         self.engine = None
@@ -71,3 +63,26 @@ class DataAccessLayer:
             logging.warning("Cannot open a session without connection. Calling connect() for you.")
             self.connect()
         return Session(self.engine)
+
+    def __enter__(self):
+        self.connect()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.disconnect()
+
+
+class StrippedString(sqlalchemy.types.TypeDecorator):
+    """
+    Custom type to extend String.  We use this to forcefully remove any non-printing characters
+    from the input string. Some non-printables (including backspace and delete), if included
+    in the String, can mess with the SQL submitted by the connection engine.
+    """
+
+    impl = sqlalchemy.types.String  ## SQLAlchemy wants it this way instead of subclassing String
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return ""
+        return value.encode("ascii", errors="replace").decode("utf-8")

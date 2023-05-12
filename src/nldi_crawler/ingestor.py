@@ -10,19 +10,21 @@ import logging
 import json
 
 import ijson
-import sqlalchemy.types
-from sqlalchemy import create_engine, Integer, Numeric
-from sqlalchemy.orm import Session, mapped_column
 from sqlalchemy.sql import text
 from sqlalchemy.exc import SQLAlchemyError
+
+from sqlalchemy import Integer, Numeric, Table, Column, MetaData
+from sqlalchemy.orm import registry
 
 
 from shapely import from_geojson, to_wkt
 from geoalchemy2.elements import WKTElement
 from geoalchemy2 import Geometry
 
-from .db import NLDI_Base
 from .source import CrawlerSource
+from .feature import CrawledFeature
+from .db import StrippedString
+
 
 ### EPSG codes for coordinate reference systems we might use.
 _NAD_83 = 4269
@@ -31,99 +33,92 @@ _WGS_84 = 4326
 DEFAULT_SRS = _NAD_83
 
 
-class StrippedString(sqlalchemy.types.TypeDecorator):
+def sql_ingestor(src, dal) -> int:
     """
-    Custom type to extend String.  We use this to forcefully remove any non-printing characters
-    from the input string. Some non-printables (including backspace and delete), if included
-    in the String, can mess with the SQL submitted by the connection engine.
-    """
+    Takes in a source object and processes it to insert into the NLDI-DB feature table.
 
-    impl = sqlalchemy.types.String  ## SQLAlchemy wants it this way instead of subclassing String
-    cache_ok = True
-
-    def process_bind_param(self, value, dialect):
-        if value is None:
-            return ""
-        return value.encode("ascii", errors="replace").decode("utf-8")
-
-
-def ingest_from_file(src, fname: str, dal) -> int:
-    """
-    Takes in a source dataset, and processes it to insert into the NLDI-DB feature table
+    The source object is expected to implement a feature_list() method that returns a list of
+    features to be ingested.  The source object is also expected to implement a tablename() method
+    that returns the name of the table to be used for the ingest.
 
     :param src: The source to be ingested
     :type src: CrawlerSource()
-    :param fname: The name of the local copy of the dataset.
-    :type fname: str
     """
-
-    tmp = src.table_name("tmp")
-
-    class NLDI_Feature(NLDI_Base):  # pylint: disable=invalid-name
-        """
-        ORM mapping object to connect with the nldi_data.feature table
-
-        """
-
-        __tablename__ = tmp
-        __table_args__ = {"schema": "nldi_data", "keep_existing": True}
-        comid = mapped_column(Integer)
-        identifier = mapped_column(StrippedString, primary_key=True)
-        crawler_source_id = mapped_column(Integer, primary_key=True)
-        name = mapped_column(StrippedString)
-        uri = mapped_column(StrippedString)
-        reachcode = mapped_column(StrippedString)
-        measure = mapped_column(Numeric(precision=38, scale=10))
-        location = mapped_column(Geometry("POINT", srid=DEFAULT_SRS))
-
     logging.info(
         " Ingesting from %s source: %s / %s",
         src.ingest_type.upper(),
         src.crawler_source_id,
         src.source_name,
     )
+
+    ## This is where the ORM magic happens. We create a temporary table that is a clone of the
+    ## feature table, and then we map the CrawledFeature class to that table.  We can then use
+    ## the ORM to insert the data into the table.
+    tmp = src.tablename("tmp")
+    _metadata = MetaData()
+    tmp_feature_table = Table(
+        tmp,
+        _metadata,
+        Column("comid", Integer),
+        Column("identifier", StrippedString, primary_key=True),
+        Column("crawler_source_id", Integer, primary_key=True),
+        Column("name", StrippedString),
+        Column("uri", StrippedString),
+        Column("reachcode", StrippedString),
+        Column("measure", Numeric(precision=38, scale=10)),
+        Column("location", Geometry("POINT", srid=DEFAULT_SRS)),
+        schema="nldi_data",
+    )
+    mapper_registry = registry()
+    mapper_registry.map_imperatively(
+        CrawledFeature,
+        tmp_feature_table,
+    )
+
     _id = src.feature_id
     _name = src.feature_name
     _reachcode = src.feature_reach
     _reachmeas = src.feature_measure
     _uri = src.feature_uri
 
-    dal.connect()
+    i = 1
     try:
-        i = 1
-        with open(fname, "r", encoding="UTF-8") as read_fh:
-            with dal.Session() as session:
-                for itm in ijson.items(read_fh, "features.item", use_float=True):
-                    i += 1
-                    shp = from_geojson(json.dumps(itm["geometry"]))
-                    elmnt = WKTElement(to_wkt(shp), srid=DEFAULT_SRS)
-                    logging.debug("%s : %s", itm["properties"][_name], to_wkt(shp))
-                    try:
-                        m = float(itm["properties"][_reachmeas])
-                    except (ValueError, NameError, KeyError, TypeError):
-                        m = 0.0
-                    try:
-                        _my_id = itm["id"]
-                    except KeyError:
-                        _my_id = itm["properties"][_id]
+        dal.connect()
+        with dal.Session() as session:
+            for itm in src.feature_list(stream=False):
+                i += 1
+                shp = from_geojson(json.dumps(itm["geometry"]))
+                elmnt = WKTElement(to_wkt(shp), srid=DEFAULT_SRS)
+                logging.debug("%s : %s", itm["properties"][_name], to_wkt(shp))
+                try:
+                    meas = float(itm["properties"][_reachmeas])
+                except (ValueError, NameError, KeyError, TypeError):
+                    meas = 0.0
+                try:
+                    _my_id = itm["id"]
+                except KeyError:
+                    _my_id = itm["properties"][_id]
 
-                    f = NLDI_Feature(
-                        identifier=_my_id,
-                        crawler_source_id=src.crawler_source_id,
-                        name=itm["properties"][_name],
-                        uri=itm["properties"][_uri],
-                        location=elmnt,
-                        reachcode=itm["properties"][_reachcode],
-                        measure=m,
-                    )
-                    session.add(f)
-                    session.commit()
+                _feature = CrawledFeature(
+                    comid=0,
+                    identifier=_my_id,
+                    crawler_source_id=src.crawler_source_id,
+                    name=itm["properties"][_name],
+                    uri=itm["properties"][_uri],
+                    location=elmnt,
+                    reachcode=itm["properties"][_reachcode],
+                    measure=meas,
+                )
+                session.add(_feature)
+                session.commit()
         logging.info(" Processed %s features from %s", i - 1, src.source_name)
     except ijson.JSONError:
         logging.warning(" Parsing error; stopping after %s features read", i - 1)
     except SQLAlchemyError:
-        logging.warning(" Database session error. Stopping")
-    dal.disconnect()
+        logging.exception(" Database session error. Stopping", exc_info=True)
+    finally:
+        mapper_registry.dispose()
+        dal.disconnect()
     return i - 1
 
 
@@ -135,7 +130,7 @@ def create_tmp_table(dal, src):
     to the `features` table it models on. This will become important when we establish inheritance
     among tables later.
     """
-    tmp = src.table_name("tmp")
+    tmp = src.tablename("tmp")
     dal.connect()
     stmt = f"""
         DROP TABLE IF EXISTS nldi_data.{tmp};
@@ -165,9 +160,9 @@ def install_data(dal, src: CrawlerSource):
       * re-establish inheritance between feature and feature_{suffix}
       * remove the feature_{suffix}_old table
     """
-    old = src.table_name("old")
-    tmp = src.table_name("tmp")
-    table = src.table_name()
+    old = src.tablename("old")
+    tmp = src.tablename("tmp")
+    table = src.tablename()
     schema = "nldi_data"
 
     dal.connect()

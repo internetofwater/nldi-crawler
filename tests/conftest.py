@@ -8,8 +8,7 @@ import pytest
 from sqlalchemy.engine import URL
 from nldi_crawler.db import DataAccessLayer
 
-# import sqlalchemy
-from nldi_crawler.source import CrawlerSource
+from nldi_crawler import source
 
 
 @pytest.fixture(scope="session")
@@ -20,7 +19,7 @@ def dal():
         username="nldi_schema_owner",
         password="changeMe",
         host="172.18.0.1",
-        port="5432",
+        port=5432,
         database="nldi",
     )
     _dal = DataAccessLayer(url)
@@ -29,9 +28,21 @@ def dal():
 
 
 @pytest.fixture(scope="session")
-def dummy_source():
+def db_uri():
+    return URL.create(
+        "postgresql+psycopg2",
+        username="nldi_schema_owner",
+        password="changeMe",
+        host="172.18.0.1",
+        port=5432,
+        database="nldi",
+    )
+
+
+@pytest.fixture(scope="session")
+def fake_source():
     """pretend source to use instead of connecting to a database"""
-    _src = CrawlerSource(
+    _src = source.CrawlerSource(
         crawler_source_id=13,
         source_name="geoconnex contribution demo sites",
         source_suffix="geoconnex-demo",
@@ -45,3 +56,10 @@ def dummy_source():
         feature_type="hydrolocation",
     )
     return _src
+
+
+@pytest.fixture(scope="session")
+def crawler_repo():
+    """in-memory table of crawler sources, faking an external source"""
+    m = source.FakeSrcRepo()
+    return m
