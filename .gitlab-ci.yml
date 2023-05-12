@@ -1,40 +1,5 @@
 include:
-  - project: "wma/nhgf/shared-resources"
-    ref: "2022-02-14"
-    file:
-      - "ci-templates/docker.yml"
-      - "ci-templates/rules.yml"
-      - "ci-templates/aws/environment.yml"
-  
-stages:
-  - docker-build
-
-workflow:
-  rules:
-    - if: $CI_COMMIT_TAG != null
-      when: always
-    - if: $CI_COMMIT_BRANCH == "ew-027"
-      when: always
-    - when: never
-  
-docker-build:dev:
-  stage: docker-build
-  variables:
-    DOCKER_REPO_NAME: nldi/crawler-py
-    DOCKER_IMAGE_TAG: ${CI_PIPELINE_ID}
-  extends:
-    - .aws-env:dev:us-west-2
-    - .docker-build-aws
-  rules:
-    - !reference [.nhgf-rules, dev, manual]
-
-docker-build:prod:
-  stage: docker-build
-  variables: 
-    DOCKER_REPO_NAME: nldi/crawler-py
-    DOCKER_IMAGE_TAG: ${CI_COMMIT_TAG}
-  extends:
-    - .aws-env:prod:us-west-2
-    - .docker-build-aws
-  rules:
-    - !reference [.nhgf-rules, prod, manual]
+  - project: "wma/nhgf/nldi/mirror-pipelines"
+    ref: "2023-05-12-r0"
+    file: 
+      - "nldi-crawler-py.yml"
