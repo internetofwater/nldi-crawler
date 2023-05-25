@@ -67,6 +67,7 @@ def test_env_config():
 
 
 @pytest.mark.order(50)
+@pytest.mark.integration
 def test_cli_download(dal):
     """download via cli"""
     os.environ["NLDI_DB_PASS"] = dal.uri.password
@@ -83,6 +84,7 @@ def test_cli_download(dal):
 
 
 @pytest.mark.order(50)
+@pytest.mark.integration
 def test_cli_sources(dal):
     """download via cli"""
     os.environ["NLDI_DB_PASS"] = dal.uri.password
@@ -97,6 +99,7 @@ def test_cli_sources(dal):
 
 
 @pytest.mark.order(50)
+@pytest.mark.integration
 def test_cli_validate(dal):
     """download via cli"""
     os.environ["NLDI_DB_PASS"] = dal.uri.password
@@ -111,6 +114,7 @@ def test_cli_validate(dal):
 
 
 @pytest.mark.order(50)
+@pytest.mark.integration
 def test_cli_display(dal):
     """download via cli"""
     os.environ["NLDI_DB_PASS"] = dal.uri.password

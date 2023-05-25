@@ -33,7 +33,7 @@ _WGS_84 = 4326
 DEFAULT_SRS = _NAD_83
 
 
-def sql_ingestor(src, dal) -> int:
+def sql_ingestor(src: CrawlerSource, dal) -> int:
     """
     Takes in a source object and processes it to insert into the NLDI-DB feature table.
 
@@ -75,12 +75,6 @@ def sql_ingestor(src, dal) -> int:
         tmp_feature_table,
     )
 
-    _id = src.feature_id
-    _name = src.feature_name
-    _reachcode = src.feature_reach
-    _reachmeas = src.feature_measure
-    _uri = src.feature_uri
-
     i = 1
     try:
         dal.connect()
@@ -89,24 +83,24 @@ def sql_ingestor(src, dal) -> int:
                 i += 1
                 shp = from_geojson(json.dumps(itm["geometry"]))
                 elmnt = WKTElement(to_wkt(shp), srid=DEFAULT_SRS)
-                logging.debug("%s : %s", itm["properties"][_name], to_wkt(shp))
+                logging.debug("%s : %s", itm["properties"][src.feature_name], to_wkt(shp))
                 try:
-                    meas = float(itm["properties"][_reachmeas])
+                    meas = float(itm["properties"][src.feature_measure])
                 except (ValueError, NameError, KeyError, TypeError):
                     meas = 0.0
                 try:
                     _my_id = itm["id"]
                 except KeyError:
-                    _my_id = itm["properties"][_id]
+                    _my_id = itm["properties"][src.feature_id]
 
                 _feature = CrawledFeature(
                     comid=0,
                     identifier=_my_id,
                     crawler_source_id=src.crawler_source_id,
-                    name=itm["properties"][_name],
-                    uri=itm["properties"][_uri],
+                    name=itm["properties"][src.feature_name],
+                    uri=itm["properties"][src.feature_uri],
                     location=elmnt,
-                    reachcode=itm["properties"][_reachcode],
+                    reachcode=itm["properties"][src.feature_reach],
                     measure=meas,
                 )
                 session.add(_feature)

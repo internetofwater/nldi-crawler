@@ -5,9 +5,10 @@
 """
 Implements a 'repository' pattern for handling the crawler_source table.
 """
+from collections import UserDict
 import os
 import logging
-from typing import Protocol, Optional
+from typing import Optional
 import tempfile
 
 import re
@@ -51,7 +52,11 @@ class CrawlerSource:  # pylint: disable=too-many-instance-attributes
         :return: string representation of the crawler_source
         :rtype: str
         """
-        return f"{self.__class__.__name__} (id: {self.crawler_source_id}, source_suffix: {self.source_suffix}, feature_type: {self.feature_type})"
+
+        return (
+            f"{self.__class__.__name__}"
+            + "(id: {self.crawler_source_id}, source_suffix: {self.source_suffix})"
+        )
 
     def verify(self) -> tuple:
         """
@@ -164,37 +169,45 @@ class CrawlerSource:  # pylint: disable=too-many-instance-attributes
         _tmpfile = self.download_geojson()
         if not _tmpfile:
             logging.exception("Cannot ingest data from %s", self.source_uri)
-            return []
-
+            return
         try:
-            with open(_tmpfile, "r", encoding="UTF-8") as fh:
-                for feature in ijson.items(fh, "features.item", use_float=True):
+            with open(_tmpfile, "r", encoding="UTF-8") as file_handle:
+                for feature in ijson.items(file_handle, "features.item", use_float=True):
                     yield feature
         finally:
             os.remove(_tmpfile)
+        return
 
 
-class SrcRepo:  # pylint: disable=unnecessary-ellipsis
+class SrcRepo(UserDict):
     """
-    Get and list crawler_sources.
+    Configuration of crawler_sources.
+
+    This class implements the repository pattern for the crawler_source table.
+    It is a dictionary-like object, with the crawler_source_id as the key. Note
+    that since the crawler_source_id is an integer, this will look like a list
+    in practice -- IT IS A DICT.
+
+    Examples:
+    >>> repo = SrcRepo()
+    >>> itm = repo[102]  ## will get the crawler_source with id==102, NOT
+                         ## the 102nd element of a list.
+
+    For this reason, it may be prefereable to use the get() method instead of
+    bracket notation.
+    >>> repo = SrcRepo()
+    >>> itm = repo.get(102)
+
+    In either case, the returned value is a CrawlerSource object.  Remember that
+    the get() method does not raise a KeyError if the key is not found, but rather
+    returns None.
+
+    Because this is a dictionary-like object, it can be iterated over using
+    'standard' dictionary methods:
+    >>> repo = SrcRepo()
+    >>> for id, crawler_src in repo.items():
+    ...     print(f"{id} --> {crawler_src}")
     """
-
-    def __init__(self):
-        self.__SRC_TABLE__ = []
-
-    def get(self, sid: int) -> CrawlerSource:
-        """Get a single crawler_source by id."""
-        for _src in self.__SRC_TABLE__:
-            if _src.crawler_source_id == sid:
-                return _src
-        raise ValueError(f"Source {sid} not found.")
-
-    def as_list(self) -> list[CrawlerSource]:
-        """List all crawler_sources."""
-        return self.__SRC_TABLE__
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__} (count: {len(self.__SRC_TABLE__)})"
 
 
 class FakeSrcRepo(SrcRepo):
@@ -206,53 +219,53 @@ class FakeSrcRepo(SrcRepo):
     >>> repo = FakeSrcRepo()
     >>> itm = repo.get(102)
     >>> print(itm)
-
-    Note that the get and get_list methods refer to the same table, which is
-    populated during __init__.  Subclasses need only override __init__ to
-    populate the table; the get and get_list methods will work as expected.
     """
 
+    # these replicate real crawler sources, but I've adjusted the cralwer_source_id to be something
+    # that won't collide with real data.
     __FAKE_TABLE__ = [
-        dict(
-            crawler_source_id=101,
-            source_name=r"New Mexico Water Data Initative Sites",
-            source_suffix="nmwdi-st",
-            source_uri=r"https://locations.newmexicowaterdata.org/collections/Things/items?f=json&limit=100000",
-            feature_id="id",
-            feature_name="name",
-            feature_uri="geoconnex",
-            feature_reach="",
-            feature_measure="",
-            ingest_type="point",
-            feature_type="point",
-        ),
-        dict(
-            crawler_source_id=102,
-            source_name="geoconnex contribution demo sites",
-            source_suffix="geoconnex-demo",
-            source_uri=r"https://geoconnex-demo-pages.internetofwater.dev/collections/demo-gpkg/items?f=json&limit=10000",
-            feature_id="fid",
-            feature_name="GNIS_NAME",
-            feature_uri="uri",
-            feature_reach="NHDPv2ReachCode",
-            feature_measure="NHDPv2Measure",
-            ingest_type="reach",
-            feature_type="hydrolocation",
-        ),
+        {
+            "crawler_source_id": 101,
+            "source_name": r"New Mexico Water Data Initative Sites",
+            "source_suffix": "nmwdi-st",
+            "source_uri": r"https://locations.newmexicowaterdata.org/collections/Things/items?f=json&limit=100",
+            "feature_id": "id",
+            "feature_name": "name",
+            "feature_uri": "geoconnex",
+            "feature_reach": "",
+            "feature_measure": "",
+            "ingest_type": "point",
+            "feature_type": "point",
+        },
+        {
+            "crawler_source_id": 102,
+            "source_name": "geoconnex contribution demo sites",
+            "source_suffix": "geoconnex-demo",
+            "source_uri": r"https://geoconnex-demo-pages.internetofwater.dev/collections/demo-gpkg/items?f=json&limit=100",
+            "feature_id": "fid",
+            "feature_name": "GNIS_NAME",
+            "feature_uri": "uri",
+            "feature_reach": "NHDPv2ReachCode",
+            "feature_measure": "NHDPv2Measure",
+            "ingest_type": "reach",
+            "feature_type": "hydrolocation",
+        },
     ]
 
     def __init__(self):
         super().__init__()
         for _src in self.__FAKE_TABLE__:
-            self.__SRC_TABLE__.append(CrawlerSource(**_src))
+            self[int(_src["crawler_source_id"])] = CrawlerSource(**_src)
 
 
-class CSVRepo(FakeSrcRepo):
+class CSVRepo(SrcRepo):
     """
     Implements the SrcRepo protocol using a CSV file as the source.
 
     Note that the CSV file must have a header row, and the names need to match the
     dataclass field names.
+
+    TODO: Add support for reading from a file-like object, rather than just a URI over network.
     """
 
     def __init__(self, uri: str, delimiter="\t"):
@@ -260,17 +273,18 @@ class CSVRepo(FakeSrcRepo):
         tsv = httpx.get(uri)
         if tsv.status_code != 200:
             raise ValueError(f"Unable to load {uri}")
-        for _s in csv.DictReader(tsv.text.splitlines(), delimiter=delimiter):
-            self.__SRC_TABLE__.append(CrawlerSource(**_s))
-            logging.debug("Loaded source %s", _s["source_name"])
+        for _src in csv.DictReader(tsv.text.splitlines(), delimiter=delimiter):
+            self[int(_src["crawler_source_id"])] = CrawlerSource(**_src)
 
 
-class JSONRepo(FakeSrcRepo):
+class JSONRepo(SrcRepo):
     """
     Implements the SrcRepo protocol using a JSON file as the source.
 
     Note that the JSON file must be an array of objects, and the names need to match the
     dataclass field names.
+
+    TODO: Add support for reading from a file-like object, rather than just a URI over network.
     """
 
     def __init__(self, uri: str):
@@ -278,12 +292,11 @@ class JSONRepo(FakeSrcRepo):
         json_data = httpx.get(uri)
         if json_data.status_code != 200:
             raise ValueError(f"Unable to load {uri}")
-        for _s in json_data.json():
-            self.__SRC_TABLE__.append(CrawlerSource(**_s))
-            logging.debug("Loaded source %s", _s["source_name"])
+        for _src in json_data.json():
+            self[int(_src["crawler_source_id"])] = CrawlerSource(**_src)
 
 
-class SQLRepo(FakeSrcRepo):
+class SQLRepo(SrcRepo):
     """
     Implements the SrcRepo protocol using a SQL database as the source.
     """
@@ -329,12 +342,12 @@ class SQLRepo(FakeSrcRepo):
             with SQLASession(_engine) as _session:
                 for _source in _session.scalars(_stmt):
                     logging.debug("New Source: %s", _source.source_name)
-                    self.__SRC_TABLE__.append(CrawlerSource(**_source.__dict__))
+                    self[int(_source.crawler_source_id)] = CrawlerSource(**_source.__dict__)
         except OperationalError as ex:  # pragma: no coverage
             logging.error("Error connecting to database: %s", ex)
             raise SQLAlchemyError from ex
         else:
-            logging.debug("Loaded %s sources", len(self.__SRC_TABLE__))
+            logging.debug("Loaded %s sources", len(self))
         finally:
             mapper_registry.dispose()  # <-- Don't leave without doing this !!!
         ## Note, that the source table definition and the registry we used
