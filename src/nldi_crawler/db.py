@@ -11,7 +11,7 @@ import logging
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
 import sqlalchemy.types
-from sqlalchemy.orm import DeclarativeBase, Session
+from sqlalchemy.orm import Session
 
 from nldi_crawler.config import DEFAULT_DB_INFO
 
@@ -55,7 +55,7 @@ class DataAccessLayer:
             self.engine.dispose()
             self.engine = None
 
-    def Session(self):  # pytlint: disable=invalid-name
+    def Session(self):  # pylint: disable=invalid-name
         """
         Opens a sqlalchemy.orm.Session() using the engine defined at instatiation time.
         """
@@ -72,7 +72,7 @@ class DataAccessLayer:
         self.disconnect()
 
 
-class StrippedString(sqlalchemy.types.TypeDecorator):
+class StrippedString(sqlalchemy.types.TypeDecorator):  # pylint: disable=too-many-ancestors
     """
     Custom type to extend String.  We use this to forcefully remove any non-printing characters
     from the input string. Some non-printables (including backspace and delete), if included
@@ -82,7 +82,7 @@ class StrippedString(sqlalchemy.types.TypeDecorator):
     impl = sqlalchemy.types.String  ## SQLAlchemy wants it this way instead of subclassing String
     cache_ok = True
 
-    def process_bind_param(self, value, dialect):
+    def process_bind_param(self, value, _):
         if value is None:
             return ""
         return value.encode("ascii", errors="replace").decode("utf-8")

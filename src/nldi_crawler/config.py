@@ -1,3 +1,13 @@
+#!/usr/bin/env python
+# coding: utf-8
+# pylint: disable=fixme
+#
+#
+"""
+Configuration handling for the crawler
+"""
+
+
 from collections import UserDict
 import logging
 import os

@@ -6,7 +6,6 @@
 """
 Command Line Interface for launching the NLDI web crawler.
 """
-import os
 import sys
 import logging
 import click
@@ -72,7 +71,7 @@ def sources(ctx):
     _srcs = ctx.obj["SrcRepo"]
     print("\nID : Source Name                                    : Type  : URI ")
     print("==  ", "=" * 46, "  =====  ", "=" * 48)
-    for _src in _srcs.as_list():
+    for _src in _srcs.values():
         print(
             f"{_src.crawler_source_id:2} :",
             f"{_src.source_name[0:48]:46} :",

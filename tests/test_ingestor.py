@@ -15,6 +15,7 @@ from nldi_crawler import ingestor
 
 
 @pytest.mark.order(30)
+@pytest.mark.integration
 def test_ingest_test_file_json_error(dal, fake_source):
     """read and ingest from test file"""
     with mock.patch("ijson.items", side_effect=JSONError("Error")):
@@ -23,6 +24,7 @@ def test_ingest_test_file_json_error(dal, fake_source):
 
 
 @pytest.mark.order(30)
+@pytest.mark.integration
 def test_ingest_test_file_sql_error(dal, fake_source):
     """read and ingest from test file -- induce SQL error to abort the ingest"""
     ingestor.create_tmp_table(dal, fake_source)

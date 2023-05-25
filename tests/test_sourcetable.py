@@ -6,10 +6,11 @@ Test source table functions.
 """
 import os
 import copy
+from unittest import mock
+
 import ijson
 import httpx
 
-from unittest import mock
 import pytest
 from pytest_httpx import HTTPXMock
 
@@ -17,7 +18,7 @@ from pytest_httpx import HTTPXMock
 @pytest.mark.order(10)
 def test_list_sources(crawler_repo):
     """get table of sources from crawler_repo"""
-    srcs = crawler_repo.as_list()
+    srcs = crawler_repo
     assert len(srcs) == 2
 
 
@@ -29,10 +30,10 @@ def test_find_source(crawler_repo):
 
 
 @pytest.mark.order(10)
-@pytest.mark.xfail(raises=ValueError)
 def test_no_such_source(crawler_repo):
     """get table of sources from db"""
-    _ = crawler_repo.get(999)
+    _s = crawler_repo.get(999)
+    assert _s is None
 
 
 @pytest.mark.order(11)
@@ -126,4 +127,4 @@ def test_raises_io_error(fake_source):
     """force IO error on write to file"""
     with mock.patch("tempfile.NamedTemporaryFile", side_effect=IOError("ERROR")):
         fname = fake_source.download_geojson()
-        assert fname is ""
+        assert fname == ""

@@ -41,7 +41,7 @@ def test_dal(dal):
     dal.connect()
     dal.connect()  ##<<< should log a message, but not an error.
     dal.disconnect()
-    s = (
+    _s = (
         dal.Session()
     )  ##<< creating a session without a connection should log a message, but not error.
-    assert s is not None
+    assert _s is not None
