@@ -1,18 +1,14 @@
-version: '3.3'
-
 services:
-
   cli:
-    image: nldicrawlerpy:slim 
+    image: nldicrawlerpy:slim
     build:
       context: .
-      dockerfile: ./docker/Dockerfile
+      dockerfile: Dockerfile
     environment:
-      NLDI_DB_HOST: "172.18.0.1"
-      NLDI_DB_PORT: "5432"
-      NLDI_DB_USER: "nldi_schema_owner"
-      NLDI_DB_PASS: "changeMe"
-      NLDI_DB_NAME: "nldi"
-    command: 'telnet 172.18.0.1 5432'
-
+      NLDI_DB_HOST: ${NLDI_DB_HOST}
+      NLDI_DB_PORT: ${NLDI_DB_PORT}
+      NLDI_DB_USER: ${NLDI_DB_USER}
+      NLDI_DB_PASS: ${NLDI_DB_PASS}
+      NLDI_DB_NAME: ${NLDI_DB_NAME}
+    command: 'poetry run nldi-cli -vv sources'
     container_name: nldi-cli

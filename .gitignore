@@ -11,3 +11,5 @@ poetry.lock
 docs/_build
 scratch.ipynb
 *.gpkg
+.env
+/learning/

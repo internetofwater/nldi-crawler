@@ -1,16 +1,14 @@
 ########################################################################################
 # Base image stub for pyNLDI-Crawler
-# Dockerfiles from code.usgs.gov/wma/pygeoapi and Clifford Hill
+# Initial template from code.usgs.gov/wma/pygeoapi and Clifford Hill
 
-FROM artifactory.wma.chs.usgs.gov/docker-official-mirror/ubuntu:focal as root-cert
+FROM python:3.10-slim as root-cert
+#FROM ubuntu:22.04 as root-cert 
 
 USER root
 
-LABEL maintainer1="Erik Wojtylko <ewojtylko@usgs.gov>"
-LABEL maintainer2=""
-
-# -yq simplified with -q=2 which implies y
-RUN apt-get update && apt-get install -q=2 --no-install-recommends software-properties-common 
+LABEL maintainer1="Gene Trantham <gtrantham@contractor.usgs.gov>"
+LABEL maintainer2="Erik Wojtylko <ewojtylko@usgs.gov>"
 
 # Needs DOI Cert to work.  VPN is needed for artifactory image and cert is needed to pip install through vpn.
 COPY ./docker/DOIRootCA2.cer /usr/local/share/ca-certificates/DOIRootCA2.crt
@@ -26,14 +24,11 @@ ENV PIP_CERT="/etc/ssl/certs/ca-certificates.crt" \
 # Set up Ubuntu Linux Environment now that certs are in order
 FROM root-cert as ubuntu-base
 
-RUN apt-get update  && apt-get install  -q=2 --no-install-recommends pip 
-
 RUN mkdir -p /nldi-crawler-py
 WORKDIR /nldi-crawler-py
-## We have to install a specific set of dependencies for urllib3 and requests: 
-RUN pip install -U pip setuptools iotedgedev pyOpenSSL==22.0.0 urllib3 requests
-## See: https://stackoverflow.com/questions/73960832/requestsdependencywarning-urllib3-1-26-12-or-chardet-3-0-4-doesnt-match-a
+RUN pip install -U pip setuptools
 RUN pip install poetry
 COPY . .
 RUN poetry install
+#RUN poetry add psycopg-binary
 # The rest...  also need to clean up chaff
