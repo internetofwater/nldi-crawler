@@ -1,6 +1,0 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<dataset>
-    <nldi_data.crawler_source crawler_source_id="1" source_name="Mean Source 1" source_suffix="; select * from pg_class;" source_uri="http://cida-eros-wqpdev.er.usgs.gov:8080/wqp/Station/search?mimeType=geojson" feature_id="MonitoringLocationIdentifier" feature_name="MonitoringLocationName" feature_uri="siteUrl" feature_reach="[NULL]" feature_measure="[NULL]" ingest_type="point"/>
-    <nldi_data.crawler_source crawler_source_id="2" source_name="Mean Source 2" source_suffix="wqp; select * from pg_class;" source_uri="http://test.org/station?mimeType=geojson" feature_id="myId" feature_name="myName" feature_uri="myUri" ingest_type="point"/>
-    <nldi_data.crawler_source crawler_source_id="3" source_name="Mean Source 3" source_suffix="wqp;' select * from pg_class;" source_uri="http://test.org/station?mimeType=geojson" feature_id="myId" feature_name="myName" feature_uri="myUri" ingest_type="point"/>
-</dataset>

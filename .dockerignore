@@ -1,4 +1,4 @@
-.venv
+.git
 .vscode
 .coverage
 .pytype
@@ -7,9 +7,7 @@
 .ipynb_checkpoints
 *.geojson
 __pycache__
-poetry.lock
 docs/_build
-scratch.ipynb
 *.gpkg
-.env
-/learning/
+tests
+notebooks
