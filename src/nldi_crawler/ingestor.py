@@ -23,7 +23,7 @@ from geoalchemy2 import Geometry
 
 from .source import CrawlerSource
 from .feature import CrawledFeature
-from .db import StrippedString
+from .db import StrippedString, DataAccessLayer
 
 
 ### EPSG codes for coordinate reference systems we might use.
@@ -33,7 +33,7 @@ _WGS_84 = 4326
 DEFAULT_SRS = _NAD_83
 
 
-def sql_ingestor(src: CrawlerSource, dal) -> int:
+def sql_ingestor(src: CrawlerSource, dal: DataAccessLayer) -> int:
     """
     Takes in a source object and processes it to insert into the NLDI-DB feature table.
 
@@ -116,7 +116,7 @@ def sql_ingestor(src: CrawlerSource, dal) -> int:
     return i - 1
 
 
-def create_tmp_table(dal, src):
+def create_tmp_table(dal: DataAccessLayer, src: CrawlerSource) -> None:
     """
     This method of creating the temp table relies completely on the postgress dialect of SQL to
     do the work. We could use sqlalchemy mechanisms to achieve something similar, but this is
@@ -137,7 +137,7 @@ def create_tmp_table(dal, src):
     dal.disconnect()
 
 
-def install_data(dal, src: CrawlerSource):
+def install_data(dal: DataAccessLayer, src: CrawlerSource) -> None:
     """
     To 'install' the ingested data, we will manipulate table names and inheritance.
 

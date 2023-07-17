@@ -15,13 +15,12 @@ from sqlalchemy.orm import Session
 
 from nldi_crawler.config import DEFAULT_DB_INFO
 
-
 DEFAULT_DB_URI = URL.create(
     "postgresql+psycopg2",
-    username=DEFAULT_DB_INFO["NLDI_DB_USER"],
-    host=DEFAULT_DB_INFO["NLDI_DB_HOST"],
-    port=DEFAULT_DB_INFO["NLDI_DB_PORT"],
-    database=DEFAULT_DB_INFO["NLDI_DB_NAME"],
+    username = str(DEFAULT_DB_INFO["NLDI_DB_USER"]),
+    host = str(DEFAULT_DB_INFO["NLDI_DB_HOST"]),
+    port= int(DEFAULT_DB_INFO["NLDI_DB_PORT"]),
+    database= str(DEFAULT_DB_INFO["NLDI_DB_NAME"]),
 )
 
 
@@ -31,7 +30,7 @@ class DataAccessLayer:
     via the DB connection
     """
 
-    def __init__(self, uri=DEFAULT_DB_URI):
+    def __init__(self, uri:URL = DEFAULT_DB_URI):
         self.engine = None
         self.session = None
         self.uri = uri

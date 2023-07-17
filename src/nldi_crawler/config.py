@@ -14,9 +14,9 @@ import os
 import configparser
 
 
-DEFAULT_DB_INFO = {
+DEFAULT_DB_INFO :dict[str, str]= {
     "NLDI_DB_HOST": "localhost",
-    "NLDI_DB_PORT": 5432,
+    "NLDI_DB_PORT": "5432",
     "NLDI_DB_USER": "read_only_user",
     "NLDI_DB_NAME": "nldi",
 }

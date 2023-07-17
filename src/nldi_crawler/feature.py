@@ -15,7 +15,6 @@ class CrawledFeature:
     """
     Defines the Feature model
     """
-
     comid: Optional[int]
     identifier: Optional[str]
     crawler_source_id: Optional[int]

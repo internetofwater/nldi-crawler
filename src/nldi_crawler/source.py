@@ -8,7 +8,7 @@ Implements a 'repository' pattern for handling the crawler_source table.
 from collections import UserDict
 import os
 import logging
-from typing import Optional
+from typing import Optional, Iterator
 import tempfile
 
 import re
@@ -157,7 +157,7 @@ class CrawlerSource:  # pylint: disable=too-many-instance-attributes
             return "feature_" + _s + "_" + args[0]
         return "feature_" + _s
 
-    def feature_list(self, stream: bool = False):
+    def feature_list(self, stream: bool = False) -> Iterator[dict]:
         """
         Returns a list of features from the crawler_source.
         :return: list of features
