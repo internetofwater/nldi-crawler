@@ -162,12 +162,12 @@ def install_data(dal: DataAccessLayer, src: CrawlerSource) -> None:
     dal.connect()
     stmt = f"""
         set search_path = {schema};
-        DROP TABLE IF EXISTS {old};
-        ALTER TABLE IF EXISTS {table} NO INHERIT feature;
-        ALTER TABLE IF EXISTS {table} RENAME TO {old};
-        ALTER TABLE {tmp} RENAME TO {table};
-        ALTER TABLE {table} INHERIT feature;
-        DROP TABLE IF EXISTS {old}
+        DROP TABLE IF EXISTS "{old}";
+        ALTER TABLE IF EXISTS "{table}" NO INHERIT feature;
+        ALTER TABLE IF EXISTS "{table}" RENAME TO "{old}";
+        ALTER TABLE "{tmp}" RENAME TO "{table}";
+        ALTER TABLE "{table}" INHERIT feature;
+        DROP TABLE IF EXISTS "{old}"
     """
     with dal.Session() as session:
         session.execute(text(stmt))
