@@ -127,8 +127,8 @@ def create_tmp_table(dal: DataAccessLayer, src: CrawlerSource) -> None:
     tmp = src.tablename("tmp")
     dal.connect()
     stmt = f"""
-        DROP TABLE IF EXISTS nldi_data.{tmp};
-        CREATE TABLE IF NOT EXISTS nldi_data.{tmp}
+        DROP TABLE IF EXISTS nldi_data."{tmp}";
+        CREATE TABLE IF NOT EXISTS nldi_data."{tmp}"
             (LIKE nldi_data.feature INCLUDING INDEXES);
     """
     with dal.Session() as session:
