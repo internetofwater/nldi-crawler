@@ -44,7 +44,7 @@ class CrawlerConfig(UserDict):
             self.setdefault(_k, _v)
 
     @classmethod
-    def from_toml(cls, filepath: str):
+    def from_toml(cls, filepath: str) -> dict[str, str]:
         """
         Read key configuration values from a TOML-formatted configuration file.
         The config file must contain a 'nldi-db' section, else will return an empty

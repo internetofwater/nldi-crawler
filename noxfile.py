@@ -20,11 +20,15 @@ def reformat(session):
 
 
 @nox.session(python=["3.10"])
-def typecheck(session):
-    """Static type checking using pytype (a little easier than mypy)"""
-    args = session.posargs or ["--disable=import-error", *src_locations]
-    session.install("pytype")
-    session.run("pytype", *args)
+def typecheck(session: nox.Session) -> None:
+    """
+    Static type checking using mypy.
+    """
+    args = session.posargs or ['src']
+    session.install(".")
+    session.install("mypy", "pytest")
+    session.run("mypy", *args)
+
 
 
 @nox.session(python=["3.10"])

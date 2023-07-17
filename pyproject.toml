@@ -67,3 +67,6 @@ markers = [
     "order: sets the order of the tests",
     "integration: integration tests which depend on external data or infrastructure",
 ]
+
+[tool.mypy]
+ignore_missing_imports = true
