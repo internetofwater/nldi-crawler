@@ -113,7 +113,9 @@ def sql_ingestor(src: CrawlerSource, dal: DataAccessLayer) -> int:
     finally:
         mapper_registry.dispose()
         dal.disconnect()
-    return i - 1
+    injested = i - 1
+
+    return injested
 
 
 def create_tmp_table(dal: DataAccessLayer, src: CrawlerSource) -> None:
@@ -173,3 +175,73 @@ def install_data(dal: DataAccessLayer, src: CrawlerSource) -> None:
         session.execute(text(stmt))
         session.commit()
     dal.disconnect()
+
+def drop_null_comids(dal: DataAccessLayer, src: CrawlerSource) -> None:
+    """
+    Remove any rows from the feature table that have a null comid value
+
+    Args:
+        dal (DataAccessLayer): Connection information for the database
+        src (CrawlerSource): Details for the source we are crawling
+    """
+
+    table = src.tablename()
+    schema = "nldi_data"
+    logging.info("Dropping features with empty COMID from %s", table)
+
+    dal.connect()
+    stmt = f"""
+        set search_path = {schema};
+        DELETE FROM "{table}" WHERE comid = 0;
+    """
+    with dal.Session() as session:
+        session.execute(text(stmt))
+        session.commit()
+    dal.disconnect()
+
+
+def link_comids(dal: DataAccessLayer, src: CrawlerSource) -> None:
+    """
+
+    Args:
+        dal (DataAccessLayer): Connection information for the database
+        src (CrawlerSource): Details for the source we are crawling
+    """
+    table = src.tablename()
+    schema = "nldi_data"
+
+    match src.ingest_type.upper():
+        case "POINT":
+            logging.info("Matching COMIDs for %s points", src.source_name)
+            stmt = f"""
+                UPDATE {schema}."{table}" upd_table
+                    SET comid = featureid
+                FROM {schema}."{table}" src_table
+                    JOIN nhdplus.catchmentsp
+                    ON ST_covers(catchmentsp.the_geom, src_table.location)
+                    WHERE upd_table.crawler_source_id = src_table.crawler_source_id AND
+                        upd_table.identifier = src_table.identifier
+             """
+        case "REACH":
+            logging.info("Matching COMIDs for %s reaches", src.source_name)
+            stmt = f"""
+                UPDATE {schema}."{table}" upd_table
+                    set comid = nhdflowline_np21.nhdplus_comid
+                FROM {schema}."{table}" src_table
+                    join nhdplus.nhdflowline_np21
+                    on nhdflowline_np21.reachcode = src_table.reachcode and
+                    src_table.measure between nhdflowline_np21.fmeasure and nhdflowline_np21.tmeasure
+                    where upd_table.crawler_source_id = src_table.crawler_source_id and
+                        upd_table.identifier = src_table.identifier
+            """
+        case _:
+            logging.info("Unknown ingest_type: %s", src.ingest_type)
+            return
+
+    dal.connect()
+    with dal.Session() as session:
+        session.execute(text(stmt))
+        session.commit()
+    dal.disconnect()
+    logging.info("Done matching COMIDs for %s", src.source_name)
+
