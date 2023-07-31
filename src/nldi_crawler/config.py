@@ -44,7 +44,7 @@ class CrawlerConfig(UserDict):
             self.setdefault(_k, _v)
 
     @classmethod
-    def from_toml(cls, filepath: str) -> CrawlerConfig | None:
+    def from_toml(cls, filepath: str) -> CrawlerConfig:
         """
         Read key configuration values from a TOML-formatted configuration file.
         The config file must contain a 'nldi-db' section, else will return an empty
@@ -64,7 +64,7 @@ class CrawlerConfig(UserDict):
         _ = dbconfig.read(filepath)
         if _section_ not in dbconfig.sections():
             logging.info(" No '%s' section in configuration file %s.", _section_, filepath)
-            return None
+            return cls(retval)
         retval["NLDI_DB_HOST"] = dbconfig[_section_].get("hostname").strip("'\"")
         retval["NLDI_DB_PORT"] = dbconfig[_section_].get("port").strip("'\"")
         retval["NLDI_DB_USER"] = dbconfig[_section_].get("username").strip("'\"")
