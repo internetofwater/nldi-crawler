@@ -2,7 +2,9 @@
 Configuration for SPHINX document generator
 """
 project = "NLDI Crawler"
+
 author = "USGS"
+
 copyright = f"2023, {author}"
 extensions= [
     "sphinx.ext.autodoc",
@@ -12,4 +14,5 @@ extensions= [
 	"sphinx_rtd_theme",
     'sphinxcontrib.mermaid'
 ]
+
 html_theme = "sphinx_rtd_theme"

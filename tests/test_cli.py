@@ -49,9 +49,8 @@ def test_toml_broken_config():
     """parse cfg file"""
     _test_dir = os.path.dirname(os.path.realpath(__file__))
     cfg = CrawlerConfig.from_toml(os.path.join(_test_dir, r"cfg-test-2.toml"))
-    ## This config file does not have an 'nldi-db' section, so the config dict should be empty.
-    with pytest.raises(KeyError):
-        assert cfg["NLDI_DB_NAME"] == "test1"
+    ## This config file does not have an 'nldi-db' section, so the config should contain defaults.
+    assert cfg["NLDI_DB_NAME"] == "nldi"
     with pytest.raises(KeyError):
         assert cfg["NLDI_DB_PASS"] == "changeMe"
 

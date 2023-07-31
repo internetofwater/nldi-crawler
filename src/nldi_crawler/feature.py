@@ -11,7 +11,7 @@ from pydantic.dataclasses import dataclass
 
 
 @dataclass
-class CrawledFeature:
+class CrawledFeature:  # pylint: disable=too-many-instance-attributes
     """
     Defines the Feature model
     """

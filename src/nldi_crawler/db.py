@@ -6,6 +6,8 @@
 """
 classes and functions surrounding database access
 """
+from typing import Any, Optional, Type
+
 import logging
 
 from sqlalchemy import create_engine
@@ -15,13 +17,12 @@ from sqlalchemy.orm import Session
 
 from nldi_crawler.config import DEFAULT_DB_INFO
 
-
 DEFAULT_DB_URI = URL.create(
     "postgresql+psycopg2",
-    username=DEFAULT_DB_INFO["NLDI_DB_USER"],
-    host=DEFAULT_DB_INFO["NLDI_DB_HOST"],
-    port=DEFAULT_DB_INFO["NLDI_DB_PORT"],
-    database=DEFAULT_DB_INFO["NLDI_DB_NAME"],
+    username=str(DEFAULT_DB_INFO["NLDI_DB_USER"]),
+    host=str(DEFAULT_DB_INFO["NLDI_DB_HOST"]),
+    port=int(DEFAULT_DB_INFO["NLDI_DB_PORT"]),
+    database=str(DEFAULT_DB_INFO["NLDI_DB_NAME"]),
 )
 
 
@@ -31,12 +32,12 @@ class DataAccessLayer:
     via the DB connection
     """
 
-    def __init__(self, uri=DEFAULT_DB_URI):
+    def __init__(self, uri: URL = DEFAULT_DB_URI):
         self.engine = None
         self.session = None
         self.uri = uri
 
-    def connect(self):
+    def connect(self) -> None:
         """
         opens a connection to the database. Sets self.engine as the way to access that connection.
         """
@@ -45,7 +46,7 @@ class DataAccessLayer:
         else:
             logging.warning("Attempt to re-open an already-open connection.")
 
-    def disconnect(self):
+    def disconnect(self) -> None:
         """
         closes the open engine
         """
@@ -55,7 +56,7 @@ class DataAccessLayer:
             self.engine.dispose()
             self.engine = None
 
-    def Session(self):  # pylint: disable=invalid-name
+    def Session(self) -> Session:  # pylint: disable=invalid-name
         """
         Opens a sqlalchemy.orm.Session() using the engine defined at instatiation time.
         """
@@ -64,11 +65,16 @@ class DataAccessLayer:
             self.connect()
         return Session(self.engine)
 
-    def __enter__(self):
+    def __enter__(self) -> "DataAccessLayer":
         self.connect()
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_value: Optional[BaseException],
+        traceback: Optional[Any],
+    ) -> None:
         self.disconnect()
 
 
