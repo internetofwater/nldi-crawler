@@ -172,3 +172,5 @@ def ingest(ctx: click.Context, source_id: int) -> None:
     ingestor.create_tmp_table(ctx.obj["DAL"], src)
     ingestor.sql_ingestor(src, dal=ctx.obj["DAL"])
     ingestor.install_data(ctx.obj["DAL"], src)
+    ingestor.link_comids(ctx.obj["DAL"], src)
+    ingestor.drop_null_comids(ctx.obj["DAL"], src)
