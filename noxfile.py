@@ -24,11 +24,10 @@ def typecheck(session: nox.Session) -> None:
     """
     Static type checking using mypy.
     """
-    args = session.posargs or ['src']
+    args = session.posargs or ["src"]
     session.install(".")
     session.install("mypy", "pytest")
     session.run("mypy", *args)
-
 
 
 @nox.session(python=["3.10"])

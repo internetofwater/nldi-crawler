@@ -8,10 +8,9 @@ Implements a 'repository' pattern for handling the crawler_source table.
 from collections import UserDict
 import os
 import logging
-from typing import Optional, Iterator
+from typing import Optional, Iterator, Any
 import tempfile
 
-import re
 import csv
 import httpx
 import ijson
@@ -151,13 +150,12 @@ class CrawlerSource:  # pylint: disable=too-many-instance-attributes
         :return: name of the table for this crawler_source
         :rtype: string
         """
-        # Sanitize the suffix name... only 'word' characters allowed.
-        _s = re.sub(r"\W", "_", self.source_suffix)
+        _s = self.source_suffix
         if args:
-            return "feature_" + _s + "_" + args[0]
+            return "feature_" + _s + "_" + str(args[0])
         return "feature_" + _s
 
-    def feature_list(self, stream: bool = False) -> Iterator[dict]:
+    def feature_list(self, stream: bool = False) -> Iterator[dict[str, Any]]:
         """
         Returns a list of features from the crawler_source.
         :return: list of features
@@ -252,7 +250,7 @@ class FakeSrcRepo(SrcRepo):
         },
     ]
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         for _src in self.__FAKE_TABLE__:
             self[int(_src["crawler_source_id"])] = CrawlerSource(**_src)

@@ -11,10 +11,11 @@ from pydantic.dataclasses import dataclass
 
 
 @dataclass
-class CrawledFeature:
+class CrawledFeature:  # pylint: disable=too-many-instance-attributes
     """
     Defines the Feature model
     """
+
     comid: Optional[int]
     identifier: Optional[str]
     crawler_source_id: Optional[int]

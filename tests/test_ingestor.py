@@ -4,7 +4,6 @@
 """
 Test database ingestor.
 """
-import os
 from unittest import mock
 import pytest
 

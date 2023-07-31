@@ -23,7 +23,7 @@ from .config import CrawlerConfig
 @click.option("-v", "verbose_", count=True, help="Verbose mode.")
 @click.option("--config", "conf_", type=click.Path(exists=True), help="Location of config file.")
 @click.pass_context
-def main(ctx, verbose_, conf_):
+def main(ctx: click.Context, verbose_: int, conf_: str) -> None:
     """
     Command-line interface to launch NLDI crawler.
     """
@@ -64,7 +64,7 @@ def main(ctx, verbose_, conf_):
 
 @main.command()
 @click.pass_context
-def sources(ctx):
+def sources(ctx: click.Context) -> None:
     """
     List all available crawler sources and exit.
     """
@@ -83,7 +83,7 @@ def sources(ctx):
 @main.command()
 @click.argument("source_id", required=False, type=click.INT)
 @click.pass_context
-def validate(ctx, source_id):
+def validate(ctx: click.Context, source_id: int) -> None:
     """
     Connect to data source(s) to verify they can return JSON data.
     """
@@ -110,7 +110,7 @@ def validate(ctx, source_id):
 @main.command()
 @click.argument("source_id", required=True, type=click.INT)
 @click.pass_context
-def download(ctx, source_id):
+def download(ctx: click.Context, source_id: int) -> None:
     """
     Download the data associated with a named data source.
     """
@@ -133,7 +133,7 @@ def download(ctx, source_id):
 @main.command()
 @click.argument("source_id", required=True, type=click.INT)
 @click.pass_context
-def display(ctx, source_id):
+def display(ctx: click.Context, source_id: int) -> None:
     """
     Show details for named data source.
     """
@@ -158,7 +158,7 @@ def display(ctx, source_id):
 @main.command()
 @click.argument("source_id", required=True, type=click.INT)
 @click.pass_context
-def ingest(ctx, source_id):
+def ingest(ctx: click.Context, source_id: int) -> None:
     """
     Download and process data associated with a named data source.
     """
