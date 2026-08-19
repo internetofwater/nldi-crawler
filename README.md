@@ -33,7 +33,7 @@ environment. It includes a demo database with data for the Yahara River in Wisco
 
 The image below is a sequence diagram detailing how the NLDI crawler operates.
 
-![Sequence Diagram](images/CrawlerDiagram.png)
+![Sequence Diagram](docs/CrawlerDiagram_orig.png)
 
 An internal user starts the crawler with an input source value. The crawler gathers information from the database for that source. A `GET` request to the source URL is made to get the target GeoJSON features. That collection of features is then looped through and each one is added as a row to a database table specific to the feature source.
 
